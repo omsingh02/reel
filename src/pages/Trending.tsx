@@ -1,37 +1,26 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { Layout } from '@/components/Layout';
-import { SearchBar } from '@/components/SearchBar';
 import { MediaGrid } from '@/components/MediaGrid';
 import { MediaDetails } from '@/components/MediaDetails';
 import { MediaTypeFilter } from '@/components/MediaTypeFilter';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { searchMedia, getTrending } from '@/lib/tmdb';
+import { getTrending } from '@/lib/tmdb';
 import type { MediaType } from '@/types/tmdb';
 
-export default function Index() {
-  const [searchQuery, setSearchQuery] = useState('');
+export default function Trending() {
   const [mediaType, setMediaType] = useState<MediaType>('movie');
   const [selectedMedia, setSelectedMedia] = useState<{ id: number; type: MediaType } | null>(null);
 
-  const { data: trendingData, isLoading: trendingLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['trending', mediaType],
     queryFn: () => getTrending(mediaType),
-    enabled: !searchQuery,
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: searchData, isLoading: searchLoading } = useQuery({
-    queryKey: ['search', searchQuery, mediaType],
-    queryFn: () => searchMedia(searchQuery, mediaType),
-    enabled: !!searchQuery,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const isLoading = searchQuery ? searchLoading : trendingLoading;
-  const items = searchQuery ? (searchData?.results || []) : (trendingData?.results || []);
+  const items = data?.results || [];
 
   const handleMediaClick = useCallback((id: number, type: MediaType) => {
     setSelectedMedia({ id, type });
@@ -41,11 +30,8 @@ export default function Index() {
     <Layout>
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center gap-4 px-4 lg:px-6 h-14">
-          <SearchBar 
-            onSearch={setSearchQuery} 
-            className="flex-1 max-w-md" 
-          />
+        <div className="flex items-center justify-between px-4 lg:px-6 h-14">
+          <h1 className="text-lg font-semibold">Trending This Week</h1>
           <MediaTypeFilter 
             value={mediaType} 
             onChange={setMediaType} 
@@ -55,24 +41,13 @@ export default function Index() {
 
       {/* Content */}
       <div className="flex-1 px-4 lg:px-6 py-6">
-        <div className="mb-6">
-          <h1 className="text-lg font-semibold">
-            {searchQuery ? `Results for "${searchQuery}"` : `Trending ${mediaType === 'movie' ? 'Movies' : 'TV Shows'}`}
-          </h1>
-          {!isLoading && items.length > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {items.length} {items.length === 1 ? 'result' : 'results'}
-            </p>
-          )}
-        </div>
-
         {isLoading ? (
           <LoadingSpinner className="py-20" size="lg" />
         ) : items.length === 0 ? (
           <EmptyState
-            icon={Search}
-            title="No results found"
-            description={searchQuery ? `Try a different search term` : 'Start searching for movies and TV shows'}
+            icon={TrendingUp}
+            title="No trending content"
+            description="Check back later for trending movies and TV shows"
           />
         ) : (
           <MediaGrid
