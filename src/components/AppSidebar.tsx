@@ -2,6 +2,7 @@ import { Home, List, TrendingUp, Film, Tv } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { ThemeToggle } from './ThemeToggle';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
@@ -21,13 +22,14 @@ export function AppSidebar() {
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-56 lg:border-r lg:border-border lg:bg-sidebar">
       {/* Logo */}
-      <div className="h-14 flex items-center px-4 border-b border-sidebar-border">
+      <div className="h-14 flex items-center justify-between px-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
             <Film className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="font-semibold text-sidebar-foreground">Watchlist</span>
         </div>
+        <ThemeToggle />
       </div>
 
       {/* Navigation */}

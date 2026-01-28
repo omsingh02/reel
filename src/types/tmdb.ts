@@ -45,18 +45,31 @@ export interface TMDBMovieDetails extends TMDBMovie {
   genres: { id: number; name: string }[];
   homepage: string;
   imdb_id: string;
-  production_companies: { id: number; name: string; logo_path: string | null }[];
+  production_companies: { id: number; name: string; logo_path: string | null; origin_country: string }[];
   production_countries: { iso_3166_1: string; name: string }[];
   revenue: number;
   runtime: number;
   status: string;
   tagline: string;
+  spoken_languages: { english_name: string; iso_639_1: string; name: string }[];
   credits?: {
-    cast: { id: number; name: string; character: string; profile_path: string | null }[];
-    crew: { id: number; name: string; job: string; department: string }[];
+    cast: { id: number; name: string; character: string; profile_path: string | null; order: number }[];
+    crew: { id: number; name: string; job: string; department: string; profile_path: string | null }[];
   };
   videos?: {
     results: { id: string; key: string; name: string; site: string; type: string }[];
+  };
+  recommendations?: {
+    results: TMDBMovie[];
+  };
+  keywords?: {
+    keywords: { id: number; name: string }[];
+  };
+  external_ids?: {
+    imdb_id: string;
+    facebook_id: string | null;
+    instagram_id: string | null;
+    twitter_id: string | null;
   };
 }
 
@@ -68,24 +81,60 @@ export interface TMDBTVShowDetails extends TMDBTVShow {
   in_production: boolean;
   languages: string[];
   last_air_date: string;
+  last_episode_to_air: {
+    id: number;
+    name: string;
+    overview: string;
+    air_date: string;
+    episode_number: number;
+    season_number: number;
+    runtime: number;
+    still_path: string | null;
+  } | null;
+  next_episode_to_air: {
+    id: number;
+    name: string;
+    overview: string;
+    air_date: string;
+    episode_number: number;
+    season_number: number;
+  } | null;
+  networks: { id: number; name: string; logo_path: string | null; origin_country: string }[];
   number_of_episodes: number;
   number_of_seasons: number;
+  production_companies: { id: number; name: string; logo_path: string | null; origin_country: string }[];
+  production_countries: { iso_3166_1: string; name: string }[];
   seasons: {
     id: number;
     name: string;
     season_number: number;
     episode_count: number;
     poster_path: string | null;
+    air_date: string;
+    overview: string;
   }[];
+  spoken_languages: { english_name: string; iso_639_1: string; name: string }[];
   status: string;
   tagline: string;
   type: string;
   credits?: {
-    cast: { id: number; name: string; character: string; profile_path: string | null }[];
-    crew: { id: number; name: string; job: string; department: string }[];
+    cast: { id: number; name: string; character: string; profile_path: string | null; order: number }[];
+    crew: { id: number; name: string; job: string; department: string; profile_path: string | null }[];
   };
   videos?: {
     results: { id: string; key: string; name: string; site: string; type: string }[];
+  };
+  recommendations?: {
+    results: TMDBTVShow[];
+  };
+  keywords?: {
+    results: { id: number; name: string }[];
+  };
+  external_ids?: {
+    imdb_id: string | null;
+    facebook_id: string | null;
+    instagram_id: string | null;
+    twitter_id: string | null;
   };
 }
 
