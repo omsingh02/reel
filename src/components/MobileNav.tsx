@@ -2,6 +2,7 @@ import { Home, List, TrendingUp, Film, Tv } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { ThemeToggle } from './ThemeToggle';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
@@ -41,6 +42,9 @@ export function MobileNav() {
             </NavLink>
           );
         })}
+        <div className="flex flex-col items-center justify-center h-full px-3">
+          <ThemeToggle />
+        </div>
       </div>
     </nav>
   );

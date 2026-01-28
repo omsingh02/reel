@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { X, Star, Clock, Calendar, Plus, Check, ExternalLink } from 'lucide-react';
+import { X, Star, Clock, Calendar, Plus, Check, ExternalLink, DollarSign, Globe, Building2, Tv2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails } from '@/types/tmdb';
+import { Separator } from '@/components/ui/separator';
+import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 import { getMovieDetails, getTVShowDetails, getImageUrl } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 
@@ -13,6 +13,25 @@ interface MediaDetailsProps {
   id: number;
   mediaType: MediaType;
   onClose: () => void;
+}
+
+function formatCurrency(value: number): string {
+  if (value >= 1_000_000_000) {
+    return `$${(value / 1_000_000_000).toFixed(1)}B`;
+  }
+  if (value >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(0)}M`;
+  }
+  if (value >= 1_000) {
+    return `$${(value / 1_000).toFixed(0)}K`;
+  }
+  return `$${value}`;
+}
+
+function formatRuntime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 }
 
 export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
@@ -36,7 +55,6 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
     if (inWatchlist) {
       removeFromWatchlist(id, mediaType);
     } else {
-      // Convert details to basic media format for storage
       const basicMedia = {
         id: data.id,
         poster_path: data.poster_path,
@@ -45,7 +63,7 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
           ? { title: (data as TMDBMovieDetails).title, release_date: (data as TMDBMovieDetails).release_date }
           : { name: (data as TMDBTVShowDetails).name, first_air_date: (data as TMDBTVShowDetails).first_air_date }
         )
-      } as any;
+      } as TMDBMovie | TMDBTVShow;
       addToWatchlist(basicMedia, mediaType);
     }
   };
@@ -53,7 +71,7 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-        <div className="fixed inset-y-0 right-0 w-full max-w-xl border-l border-border bg-background p-6">
+        <div className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background p-6">
           <Skeleton className="h-64 w-full rounded-lg mb-4" />
           <Skeleton className="h-8 w-3/4 mb-2" />
           <Skeleton className="h-4 w-1/2 mb-6" />
@@ -66,7 +84,7 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
   if (error || !data) {
     return (
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={onClose}>
-        <div className="fixed inset-y-0 right-0 w-full max-w-xl border-l border-border bg-background p-6 flex items-center justify-center">
+        <div className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background p-6 flex items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">Failed to load details</p>
             <Button variant="outline" onClick={onClose}>Close</Button>
@@ -77,9 +95,12 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
   }
 
   const isMovie = mediaType === 'movie';
-  const title = isMovie ? (data as TMDBMovieDetails).title : (data as TMDBTVShowDetails).name;
-  const releaseDate = isMovie ? (data as TMDBMovieDetails).release_date : (data as TMDBTVShowDetails).first_air_date;
-  const runtime = isMovie ? (data as TMDBMovieDetails).runtime : (data as TMDBTVShowDetails).episode_run_time?.[0];
+  const movieData = isMovie ? (data as TMDBMovieDetails) : null;
+  const tvData = !isMovie ? (data as TMDBTVShowDetails) : null;
+  
+  const title = movieData?.title ?? tvData?.name ?? '';
+  const releaseDate = movieData?.release_date ?? tvData?.first_air_date ?? '';
+  const runtime = movieData?.runtime ?? tvData?.episode_run_time?.[0];
   const backdropUrl = getImageUrl(data.backdrop_path, 'w780');
   const posterUrl = getImageUrl(data.poster_path, 'w342');
   const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
@@ -90,28 +111,40 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
 
   const director = isMovie 
     ? data.credits?.crew.find(c => c.job === 'Director')
-    : (data as TMDBTVShowDetails).created_by?.[0];
+    : null;
+  
+  const writers = isMovie
+    ? data.credits?.crew.filter(c => c.department === 'Writing').slice(0, 3)
+    : [];
 
-  const cast = data.credits?.cast.slice(0, 6) || [];
+  const cast = data.credits?.cast.slice(0, 8) || [];
+  const recommendations = (data.recommendations?.results || []).slice(0, 6);
+
+  // External links
+  const imdbId = data.external_ids?.imdb_id || (isMovie ? movieData?.imdb_id : null);
+  const externalLinks = [
+    imdbId && { name: 'IMDb', url: `https://www.imdb.com/title/${imdbId}` },
+    data.homepage && { name: 'Official Site', url: data.homepage },
+  ].filter(Boolean) as { name: string; url: string }[];
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={onClose}>
       <div 
-        className="fixed inset-y-0 right-0 w-full max-w-xl border-l border-border bg-background shadow-xl"
+        className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background shadow-xl"
         onClick={e => e.stopPropagation()}
       >
         <ScrollArea className="h-full">
           <div className="relative">
             {/* Backdrop */}
-            <div className="relative h-56 bg-secondary overflow-hidden">
+            <div className="relative h-64 bg-secondary overflow-hidden">
               {backdropUrl && (
                 <img 
                   src={backdropUrl} 
                   alt="" 
-                  className="h-full w-full object-cover opacity-60"
+                  className="h-full w-full object-cover opacity-50"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
               
               <Button
                 variant="ghost"
@@ -124,10 +157,10 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
             </div>
 
             {/* Content */}
-            <div className="relative px-6 pb-6 -mt-20">
-              <div className="flex gap-4 mb-6">
+            <div className="relative px-6 pb-6 -mt-24">
+              <div className="flex gap-5 mb-6">
                 {/* Poster */}
-                <div className="flex-shrink-0 w-28 aspect-[2/3] rounded-md overflow-hidden border border-border bg-secondary shadow-lg">
+                <div className="flex-shrink-0 w-32 aspect-[2/3] rounded-lg overflow-hidden border border-border bg-secondary shadow-xl">
                   {posterUrl ? (
                     <img src={posterUrl} alt={title} className="h-full w-full object-cover" />
                   ) : (
@@ -138,35 +171,60 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
                 </div>
 
                 {/* Title & Meta */}
-                <div className="flex-1 pt-20">
-                  <h2 className="text-xl font-semibold mb-2">{title}</h2>
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
+                <div className="flex-1 pt-24">
+                  <div className="flex items-start gap-2 mb-2">
+                    <Badge variant="outline" className="text-xs">
+                      {isMovie ? 'Movie' : 'TV Series'}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {data.status}
+                    </Badge>
+                  </div>
+                  <h2 className="text-2xl font-semibold mb-3">{title}</h2>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                     {year && (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" />
                         {year}
                       </span>
                     )}
-                    {runtime && (
-                      <span className="flex items-center gap-1">
+                    {runtime && runtime > 0 && (
+                      <span className="flex items-center gap-1.5">
                         <Clock className="h-3.5 w-3.5" />
-                        {runtime} min
+                        {formatRuntime(runtime)}
                       </span>
                     )}
                     {data.vote_average > 0 && (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5">
                         <Star className="h-3.5 w-3.5 fill-rating text-rating" />
                         {data.vote_average.toFixed(1)}
+                        <span className="text-xs">({data.vote_count.toLocaleString()})</span>
                       </span>
                     )}
                   </div>
-                  {!isMovie && (
-                    <p className="text-sm text-muted-foreground">
-                      {(data as TMDBTVShowDetails).number_of_seasons} season{(data as TMDBTVShowDetails).number_of_seasons !== 1 ? 's' : ''} • {(data as TMDBTVShowDetails).number_of_episodes} episodes
-                    </p>
-                  )}
                 </div>
               </div>
+
+              {/* TV Show specific info */}
+              {tvData && (
+                <div className="flex flex-wrap gap-3 mb-4 text-sm">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Tv2 className="h-4 w-4" />
+                    <span>{tvData.number_of_seasons} season{tvData.number_of_seasons !== 1 ? 's' : ''}</span>
+                    <span>•</span>
+                    <span>{tvData.number_of_episodes} episodes</span>
+                  </div>
+                  {tvData.networks && tvData.networks.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      {tvData.networks.slice(0, 2).map(network => (
+                        <Badge key={network.id} variant="outline" className="text-xs">
+                          {network.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Genres */}
               {data.genres && data.genres.length > 0 && (
@@ -199,54 +257,153 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
                   )}
                 </Button>
                 {trailer && (
-                  <Button
-                    variant="outline"
-                    asChild
-                  >
+                  <Button variant="outline" asChild>
                     <a 
                       href={`https://www.youtube.com/watch?v=${trailer.key}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <ExternalLink className="h-4 w-4 mr-2" />
+                      <Play className="h-4 w-4 mr-2" />
                       Trailer
                     </a>
                   </Button>
                 )}
+                {externalLinks.map(link => (
+                  <Button key={link.name} variant="outline" size="icon" asChild>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" title={link.name}>
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                ))}
               </div>
 
               {/* Tagline */}
               {data.tagline && (
-                <p className="text-sm italic text-muted-foreground mb-4">"{data.tagline}"</p>
+                <p className="text-sm italic text-muted-foreground mb-4 border-l-2 border-primary pl-3">
+                  "{data.tagline}"
+                </p>
               )}
 
               {/* Overview */}
               {data.overview && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-2">Overview</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{data.overview}</p>
+                  <h3 className="text-sm font-semibold mb-2 uppercase tracking-wide text-muted-foreground">Overview</h3>
+                  <p className="text-sm leading-relaxed">{data.overview}</p>
                 </div>
               )}
 
-              {/* Director/Creator */}
-              {director && (
+              <Separator className="my-6" />
+
+              {/* Movie Financial Info */}
+              {movieData && (movieData.budget > 0 || movieData.revenue > 0) && (
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  {movieData.budget > 0 && (
+                    <div className="p-3 rounded-lg bg-secondary/50">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        Budget
+                      </div>
+                      <p className="text-lg font-semibold">{formatCurrency(movieData.budget)}</p>
+                    </div>
+                  )}
+                  {movieData.revenue > 0 && (
+                    <div className="p-3 rounded-lg bg-secondary/50">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        Box Office
+                      </div>
+                      <p className="text-lg font-semibold">{formatCurrency(movieData.revenue)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Languages */}
+              {data.spoken_languages && data.spoken_languages.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-1">{isMovie ? 'Director' : 'Creator'}</h3>
-                  <p className="text-sm text-muted-foreground">{director.name}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                    <Globe className="h-3.5 w-3.5" />
+                    Languages
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {data.spoken_languages.map(lang => (
+                      <Badge key={lang.iso_639_1} variant="outline" className="text-xs">
+                        {lang.english_name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Production Companies */}
+              {data.production_companies && data.production_companies.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                    <Building2 className="h-3.5 w-3.5" />
+                    Production
+                  </div>
+                  <p className="text-sm">
+                    {data.production_companies.map(c => c.name).join(' • ')}
+                  </p>
+                </div>
+              )}
+
+              {/* Next Episode (TV) */}
+              {tvData?.next_episode_to_air && (
+                <div className="mb-6 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                  <h3 className="text-sm font-semibold mb-2">Next Episode</h3>
+                  <p className="text-sm font-medium">
+                    S{tvData.next_episode_to_air.season_number}E{tvData.next_episode_to_air.episode_number}: {tvData.next_episode_to_air.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(tvData.next_episode_to_air.air_date).toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    })}
+                  </p>
+                </div>
+              )}
+
+              <Separator className="my-6" />
+
+              {/* Director/Writers (Movie) */}
+              {isMovie && (director || (writers && writers.length > 0)) && (
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  {director && (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">Director</h3>
+                      <p className="text-sm">{director.name}</p>
+                    </div>
+                  )}
+                  {writers && writers.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">Writers</h3>
+                      <p className="text-sm">{writers.map(w => w.name).join(', ')}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Creators (TV) */}
+              {tvData?.created_by && tvData.created_by.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">Created by</h3>
+                  <p className="text-sm">{tvData.created_by.map(c => c.name).join(', ')}</p>
                 </div>
               )}
 
               {/* Cast */}
               {cast.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Cast</h3>
+                <div className="mb-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Cast</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {cast.map(person => (
                       <div 
                         key={person.id}
-                        className="flex items-center gap-2 p-2 rounded-md bg-secondary/50"
+                        className="flex items-center gap-3 p-2 rounded-md bg-secondary/50"
                       >
-                        <div className="h-8 w-8 rounded-full bg-secondary overflow-hidden flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-secondary overflow-hidden flex-shrink-0">
                           {person.profile_path ? (
                             <img 
                               src={getImageUrl(person.profile_path, 'w92') || ''} 
@@ -254,7 +411,7 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
+                            <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground font-medium">
                               {person.name[0]}
                             </div>
                           )}
@@ -265,6 +422,68 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Seasons (TV) */}
+              {tvData?.seasons && tvData.seasons.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Seasons</h3>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {tvData.seasons
+                      .filter(s => s.season_number > 0)
+                      .map(season => (
+                        <div 
+                          key={season.id}
+                          className="flex items-center gap-3 p-2 rounded-md bg-secondary/50"
+                        >
+                          <div className="w-12 h-16 rounded bg-secondary overflow-hidden flex-shrink-0">
+                            {season.poster_path ? (
+                              <img 
+                                src={getImageUrl(season.poster_path, 'w92') || ''} 
+                                alt={season.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
+                                S{season.season_number}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium">{season.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {season.episode_count} episodes
+                              {season.air_date && ` • ${new Date(season.air_date).getFullYear()}`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {recommendations.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">You might also like</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {recommendations.map(rec => {
+                      const recTitle = 'title' in rec ? rec.title : rec.name;
+                      const recPoster = getImageUrl(rec.poster_path, 'w154');
+                      return (
+                        <div key={rec.id} className="rounded-md overflow-hidden bg-secondary aspect-[2/3]">
+                          {recPoster ? (
+                            <img src={recPoster} alt={recTitle} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center p-2 text-xs text-muted-foreground text-center">
+                              {recTitle}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
