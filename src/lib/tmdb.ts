@@ -7,6 +7,7 @@ import type {
   TMDBTVShowDetails,
   MediaType 
 } from "@/types/tmdb";
+import type { SortOption } from "@/components/SortSelect";
 
 const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb`;
 
@@ -94,4 +95,28 @@ export function getTitle(media: TMDBMovie | TMDBTVShow): string {
 
 export function getReleaseDate(media: TMDBMovie | TMDBTVShow): string {
   return 'release_date' in media ? media.release_date : media.first_air_date;
+}
+
+export function sortMedia<T extends TMDBMovie | TMDBTVShow>(
+  items: T[],
+  sortBy: SortOption
+): T[] {
+  return [...items].sort((a, b) => {
+    switch (sortBy) {
+      case 'popularity':
+        return b.popularity - a.popularity;
+      case 'rating':
+        return b.vote_average - a.vote_average;
+      case 'release_date':
+        const dateA = getReleaseDate(a);
+        const dateB = getReleaseDate(b);
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      case 'title':
+        const titleA = getTitle(a);
+        const titleB = getTitle(b);
+        return titleA.localeCompare(titleB);
+      default:
+        return 0;
+    }
+  });
 }
