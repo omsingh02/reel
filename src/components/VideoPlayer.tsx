@@ -46,6 +46,10 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
           iv_load_policy: 3,
           fs: 0,
           playsinline: 1,
+          disablekb: 1,
+          cc_load_policy: 0,
+          origin: window.location.origin,
+          enablejsapi: 1,
         },
         events: {
           onReady: (event: YT.PlayerEvent) => {
