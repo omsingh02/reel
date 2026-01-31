@@ -1,8 +1,10 @@
 import { Home, List, TrendingUp, Film, Tv } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useWatchlist } from '@/hooks/useWatchlist';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 import { ThemeToggle } from './ThemeToggle';
+import { UserMenu } from './UserMenu';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
@@ -17,7 +19,8 @@ const categories = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const { watchlist } = useWatchlist();
+  const { user } = useAuth();
+  const { watchlist } = useWatchlistDB();
 
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-56 lg:border-r lg:border-border lg:bg-sidebar">
@@ -29,7 +32,10 @@ export function AppSidebar() {
           </div>
           <span className="font-semibold text-sidebar-foreground">Watchlist</span>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <UserMenu />
+        </div>
       </div>
 
       {/* Navigation */}
@@ -50,7 +56,7 @@ export function AppSidebar() {
               >
                 <item.icon className="h-4 w-4" />
                 {item.name}
-                {item.name === 'Watchlist' && watchlist.length > 0 && (
+                {item.name === 'Watchlist' && user && watchlist.length > 0 && (
                   <span className="ml-auto text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
                     {watchlist.length}
                   </span>

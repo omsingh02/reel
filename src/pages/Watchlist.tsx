@@ -1,15 +1,20 @@
 import { useState, useCallback } from 'react';
-import { List } from 'lucide-react';
+import { List, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { WatchlistCard } from '@/components/WatchlistCard';
 import { MediaDetails } from '@/components/MediaDetails';
 import { EmptyState } from '@/components/EmptyState';
-import { useWatchlist } from '@/hooks/useWatchlist';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 import type { MediaType } from '@/types/tmdb';
 
 export default function Watchlist() {
-  const { watchlist } = useWatchlist();
+  const { user, loading: authLoading } = useAuth();
+  const { watchlist, isLoading } = useWatchlistDB();
   const [selectedMedia, setSelectedMedia] = useState<{ id: number; type: MediaType } | null>(null);
+  const navigate = useNavigate();
 
   const handleItemClick = useCallback((id: number, type: MediaType) => {
     setSelectedMedia({ id, type });
@@ -21,7 +26,7 @@ export default function Watchlist() {
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center px-4 lg:px-6 h-14">
           <h1 className="text-lg font-semibold">My Watchlist</h1>
-          {watchlist.length > 0 && (
+          {user && watchlist.length > 0 && (
             <span className="ml-2 text-sm text-muted-foreground">
               ({watchlist.length} {watchlist.length === 1 ? 'item' : 'items'})
             </span>
@@ -31,7 +36,21 @@ export default function Watchlist() {
 
       {/* Content */}
       <div className="flex-1 px-4 lg:px-6 py-6">
-        {watchlist.length === 0 ? (
+        {!user && !authLoading ? (
+          <EmptyState
+            icon={LogIn}
+            title="Sign in to access your watchlist"
+            description="Create an account to save movies and TV shows across devices"
+          >
+            <Button onClick={() => navigate('/auth')} className="mt-4">
+              Sign In
+            </Button>
+          </EmptyState>
+        ) : isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        ) : watchlist.length === 0 ? (
           <EmptyState
             icon={List}
             title="Your watchlist is empty"
@@ -41,9 +60,17 @@ export default function Watchlist() {
           <div className="space-y-2 max-w-2xl">
             {watchlist.map((item) => (
               <WatchlistCard
-                key={`${item.mediaType}-${item.id}`}
-                item={item}
-                onClick={() => handleItemClick(item.id, item.mediaType)}
+                key={`${item.tmdb_type}-${item.tmdb_id}`}
+                item={{
+                  id: item.tmdb_id,
+                  mediaType: item.tmdb_type,
+                  title: item.title,
+                  posterPath: item.poster_path,
+                  releaseDate: item.release_date || '',
+                  voteAverage: item.vote_average || 0,
+                  addedAt: item.added_at,
+                }}
+                onClick={() => handleItemClick(item.tmdb_id, item.tmdb_type)}
               />
             ))}
           </div>
