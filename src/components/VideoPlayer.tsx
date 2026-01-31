@@ -22,7 +22,7 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isReady, setIsReady] = useState(false);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(false);
   const hideControlsTimeout = useRef<number | null>(null);
 
   // Load YouTube IFrame API
