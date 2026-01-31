@@ -1,49 +1,58 @@
-import { useState, useCallback, useSyncExternalStore } from 'react';
-import type { WatchlistItem, TMDBMovie, TMDBTVShow, MediaType } from '@/types/tmdb';
-import { getWatchlist, addToWatchlist as add, removeFromWatchlist as remove, isInWatchlist as check } from '@/lib/watchlist';
+import { useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWatchlistDB } from '@/hooks/useWatchlistDB';
+import type { TMDBMovie, TMDBTVShow, MediaType, WatchlistItem } from '@/types/tmdb';
+import { getWatchlist, addToWatchlist as addLocal, removeFromWatchlist as removeLocal, isInWatchlist as checkLocal } from '@/lib/watchlist';
 
-const WATCHLIST_KEY = 'movie-watchlist';
-
-// Create a simple store for cross-component reactivity
-let listeners: (() => void)[] = [];
-
-function subscribe(listener: () => void) {
-  listeners.push(listener);
-  return () => {
-    listeners = listeners.filter(l => l !== listener);
-  };
-}
-
-function notifyListeners() {
-  listeners.forEach(l => l());
-}
-
-function getSnapshot(): string {
-  return localStorage.getItem(WATCHLIST_KEY) || '[]';
-}
-
+// This hook provides a unified interface for watchlist operations
+// Uses database when authenticated, localStorage when not
 export function useWatchlist() {
-  const watchlistString = useSyncExternalStore(subscribe, getSnapshot);
-  const watchlist: WatchlistItem[] = JSON.parse(watchlistString);
+  const { user } = useAuth();
+  const dbWatchlist = useWatchlistDB();
+
+  // For unauthenticated users, use localStorage
+  const localWatchlist = getWatchlist();
+  
+  const watchlist: WatchlistItem[] = user 
+    ? dbWatchlist.watchlist.map(item => ({
+        id: item.tmdb_id,
+        mediaType: item.tmdb_type,
+        title: item.title,
+        posterPath: item.poster_path,
+        releaseDate: item.release_date || '',
+        voteAverage: item.vote_average || 0,
+        addedAt: item.added_at,
+      }))
+    : localWatchlist;
 
   const addToWatchlist = useCallback((media: TMDBMovie | TMDBTVShow, mediaType: MediaType) => {
-    add(media, mediaType);
-    notifyListeners();
-  }, []);
+    if (user) {
+      dbWatchlist.addToWatchlist(media, mediaType);
+    } else {
+      addLocal(media, mediaType);
+    }
+  }, [user, dbWatchlist]);
 
   const removeFromWatchlist = useCallback((id: number, mediaType: MediaType) => {
-    remove(id, mediaType);
-    notifyListeners();
-  }, []);
+    if (user) {
+      dbWatchlist.removeFromWatchlist(id, mediaType);
+    } else {
+      removeLocal(id, mediaType);
+    }
+  }, [user, dbWatchlist]);
 
   const isInWatchlist = useCallback((id: number, mediaType: MediaType) => {
-    return check(id, mediaType);
-  }, []);
+    if (user) {
+      return dbWatchlist.isInWatchlist(id, mediaType);
+    }
+    return checkLocal(id, mediaType);
+  }, [user, dbWatchlist]);
 
   return {
     watchlist,
     addToWatchlist,
     removeFromWatchlist,
-    isInWatchlist
+    isInWatchlist,
+    isLoading: user ? dbWatchlist.isLoading : false,
   };
 }
