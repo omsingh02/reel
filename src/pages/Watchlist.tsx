@@ -56,6 +56,7 @@ export default function Watchlist() {
           id={selectedMedia.id}
           mediaType={selectedMedia.type}
           onClose={() => setSelectedMedia(null)}
+          onNavigate={handleItemClick}
         />
       )}
     </Layout>

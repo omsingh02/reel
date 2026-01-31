@@ -146,6 +146,7 @@ export default function TVShows() {
           id={selectedMedia.id}
           mediaType={selectedMedia.type}
           onClose={() => setSelectedMedia(null)}
+          onNavigate={handleMediaClick}
         />
       )}
     </Layout>

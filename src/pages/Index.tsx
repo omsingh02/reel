@@ -186,6 +186,7 @@ export default function Index() {
           id={selectedMedia.id}
           mediaType={selectedMedia.type}
           onClose={handleCloseDetails}
+          onNavigate={handleMediaClick}
         />
       )}
     </Layout>
