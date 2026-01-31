@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { ShareButton } from '@/components/ShareButton';
+import { RecommendationCarousel } from '@/components/RecommendationCarousel';
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 import { getMovieDetails, getTVShowDetails, getImageUrl } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
@@ -17,6 +18,7 @@ interface MediaDetailsProps {
   id: number;
   mediaType: MediaType;
   onClose: () => void;
+  onNavigate?: (id: number, mediaType: MediaType) => void;
 }
 
 function formatCurrency(value: number): string {
@@ -38,7 +40,7 @@ function formatRuntime(minutes: number): string {
   return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 }
 
-export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
+export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
   const [showPlayer, setShowPlayer] = useState(false);
 
@@ -143,7 +145,7 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
     : [];
 
   const cast = data.credits?.cast.slice(0, 8) || [];
-  const recommendations = (data.recommendations?.results || []).slice(0, 6);
+  const recommendations = (data.recommendations?.results || []).slice(0, 10);
 
   // External links
   const imdbId = data.external_ids?.imdb_id || (isMovie ? movieData?.imdb_id : null);
@@ -499,26 +501,15 @@ export function MediaDetails({ id, mediaType, onClose }: MediaDetailsProps) {
 
                 {/* Recommendations */}
                 {recommendations.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">You might also like</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      {recommendations.map(rec => {
-                        const recTitle = 'title' in rec ? rec.title : rec.name;
-                        const recPoster = getImageUrl(rec.poster_path, 'w154');
-                        return (
-                          <div key={rec.id} className="rounded-md overflow-hidden bg-secondary aspect-[2/3]">
-                            {recPoster ? (
-                              <img src={recPoster} alt={recTitle} className="h-full w-full object-cover" />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center p-2 text-xs text-muted-foreground text-center">
-                                {recTitle}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <RecommendationCarousel
+                    items={recommendations}
+                    mediaType={mediaType}
+                    onSelect={(recId, recType) => {
+                      if (onNavigate) {
+                        onNavigate(recId, recType);
+                      }
+                    }}
+                  />
                 )}
               </div>
             </div>

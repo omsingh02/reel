@@ -112,6 +112,7 @@ export default function Trending() {
           id={selectedMedia.id}
           mediaType={selectedMedia.type}
           onClose={() => setSelectedMedia(null)}
+          onNavigate={handleMediaClick}
         />
       )}
     </Layout>
