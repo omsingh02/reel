@@ -31,16 +31,22 @@ serve(async (req) => {
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 
-    // If token is not the anon key, validate it as a user JWT
+    // If token is not the anon key, validate it as a user JWT.
+    // Any validation failure should gracefully fall back to anon access,
+    // since TMDB content is public and should not hard-fail the request.
     if (token !== anonKey) {
-      const supabaseClient = createClient(supabaseUrl, anonKey, {
-        global: { headers: { Authorization: authHeader } }
-      });
+      try {
+        const supabaseClient = createClient(supabaseUrl, anonKey, {
+          global: { headers: { Authorization: authHeader } }
+        });
 
-      const { data, error } = await supabaseClient.auth.getClaims(token);
-      if (error || !data?.claims) {
-        // JWT invalid but TMDB data is public - allow with warning
-        console.warn('JWT validation failed, proceeding with anon access:', error?.message);
+        const { data, error } = await supabaseClient.auth.getClaims(token);
+        if (error || !data?.claims) {
+          console.warn('JWT validation failed, proceeding with anon access:', error?.message || 'no claims');
+        }
+      } catch (jwtError) {
+        const message = jwtError instanceof Error ? jwtError.message : 'unknown JWT validation error';
+        console.warn('JWT validation threw, proceeding with anon access:', message);
       }
     }
 
