@@ -56,7 +56,7 @@ export function ShareButton({ title, mediaType, id }: ShareButtonProps) {
   // Use native share on mobile
   if (navigator.share) {
     return (
-      <Button variant="outline" size="icon" onClick={nativeShare}>
+      <Button variant="outline" size="icon" className="rounded-full" onClick={nativeShare}>
         <Share2 className="h-4 w-4" />
       </Button>
     );
@@ -65,20 +65,20 @@ export function ShareButton({ title, mediaType, id }: ShareButtonProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" className="rounded-full">
           <Share2 className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={copyLink}>
+      <DropdownMenuContent align="end" className="rounded-2xl">
+        <DropdownMenuItem onClick={copyLink} className="rounded-xl">
           <Link className="h-4 w-4 mr-2" />
           Copy link
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={shareTwitter}>
+        <DropdownMenuItem onClick={shareTwitter} className="rounded-xl">
           <Twitter className="h-4 w-4 mr-2" />
           Share on X
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={shareFacebook}>
+        <DropdownMenuItem onClick={shareFacebook} className="rounded-xl">
           <Facebook className="h-4 w-4 mr-2" />
           Share on Facebook
         </DropdownMenuItem>

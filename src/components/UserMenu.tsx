@@ -18,7 +18,7 @@ export function UserMenu() {
 
   if (!user) {
     return (
-      <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+      <Button variant="ghost" size="sm" className="rounded-full" onClick={() => navigate('/auth')}>
         Sign In
       </Button>
     );
@@ -37,7 +37,7 @@ export function UserMenu() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-56 rounded-2xl" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">Account</p>
@@ -47,7 +47,7 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>
+        <DropdownMenuItem onClick={() => signOut()} className="rounded-xl">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

@@ -11,13 +11,15 @@ interface MediaTypeFilterProps {
 
 export function MediaTypeFilter({ value, onChange, className }: MediaTypeFilterProps) {
   return (
-    <div className={cn("inline-flex rounded-md border border-border p-1 bg-secondary/30", className)}>
+    <div className={cn("inline-flex rounded-full p-1 bg-secondary/40", className)}>
       <Button
         variant="ghost"
         size="sm"
         className={cn(
-          "h-8 px-3 text-sm font-medium rounded-sm",
-          value === 'movie' && "bg-background shadow-sm"
+          "h-8 px-3 text-sm font-medium rounded-full transition-all",
+          value === 'movie' 
+            ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90" 
+            : "hover:bg-secondary/60"
         )}
         onClick={() => onChange('movie')}
       >
@@ -28,8 +30,10 @@ export function MediaTypeFilter({ value, onChange, className }: MediaTypeFilterP
         variant="ghost"
         size="sm"
         className={cn(
-          "h-8 px-3 text-sm font-medium rounded-sm",
-          value === 'tv' && "bg-background shadow-sm"
+          "h-8 px-3 text-sm font-medium rounded-full transition-all",
+          value === 'tv' 
+            ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90" 
+            : "hover:bg-secondary/60"
         )}
         onClick={() => onChange('tv')}
       >

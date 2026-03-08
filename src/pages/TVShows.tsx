@@ -89,10 +89,9 @@ export default function TVShows() {
 
   return (
     <Layout>
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center gap-3 px-4 lg:px-6 h-14">
-          <h1 className="text-lg font-semibold hidden sm:block">TV Shows</h1>
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg">
+        <div className="flex items-center gap-3 px-5 lg:px-8 h-16">
+          <h1 className="text-xl font-semibold hidden sm:block">TV Shows</h1>
           <SearchBar 
             onSearch={setSearchQuery} 
             placeholder="Search TV shows..."
@@ -106,10 +105,9 @@ export default function TVShows() {
         </div>
       </header>
 
-      {/* Content */}
-      <div className="flex-1 px-4 lg:px-6 py-6">
+      <div className="flex-1 px-5 lg:px-8 py-6">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold sm:hidden">TV Shows</h2>
+          <h2 className="text-xl font-semibold sm:hidden">TV Shows</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {searchQuery ? `Results for "${searchQuery}"` : 'Popular TV shows right now'}
             {!isLoading && items.length > 0 && ` • ${items.length} results`}
@@ -132,7 +130,6 @@ export default function TVShows() {
               onItemClick={handleMediaClick}
             />
             
-            {/* Load more trigger */}
             <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
               {isFetchingMore && <LoadingSpinner size="sm" />}
             </div>
@@ -140,7 +137,6 @@ export default function TVShows() {
         )}
       </div>
 
-      {/* Details Panel */}
       {selectedMedia && (
         <MediaDetails
           id={selectedMedia.id}

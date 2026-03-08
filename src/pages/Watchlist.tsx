@@ -22,10 +22,9 @@ export default function Watchlist() {
 
   return (
     <Layout>
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center px-4 lg:px-6 h-14">
-          <h1 className="text-lg font-semibold">My Watchlist</h1>
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg">
+        <div className="flex items-center px-5 lg:px-8 h-16">
+          <h1 className="text-xl font-semibold">My Watchlist</h1>
           {user && watchlist.length > 0 && (
             <span className="ml-2 text-sm text-muted-foreground">
               ({watchlist.length} {watchlist.length === 1 ? 'item' : 'items'})
@@ -34,15 +33,14 @@ export default function Watchlist() {
         </div>
       </header>
 
-      {/* Content */}
-      <div className="flex-1 px-4 lg:px-6 py-6">
+      <div className="flex-1 px-5 lg:px-8 py-6">
         {!user && !authLoading ? (
           <EmptyState
             icon={LogIn}
             title="Sign in to access your watchlist"
             description="Create an account to save movies and TV shows across devices"
           >
-            <Button onClick={() => navigate('/auth')} className="mt-4">
+            <Button onClick={() => navigate('/auth')} className="mt-4 rounded-full">
               Sign In
             </Button>
           </EmptyState>
@@ -77,7 +75,6 @@ export default function Watchlist() {
         )}
       </div>
 
-      {/* Details Panel */}
       {selectedMedia && (
         <MediaDetails
           id={selectedMedia.id}

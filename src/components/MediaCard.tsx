@@ -1,7 +1,6 @@
 import { memo, useCallback, useState, forwardRef } from 'react';
 import { Plus, Check, Star, Film, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { TMDBMovie, TMDBTVShow, MediaType } from '@/types/tmdb';
 import { getImageUrl, getTitle, getReleaseDate } from '@/lib/tmdb';
@@ -36,11 +35,11 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
   return (
     <div 
       ref={ref}
-      className="group relative flex flex-col overflow-hidden rounded-md border border-border bg-card cursor-pointer hover:border-primary/50 transition-colors"
+      className="group relative flex flex-col overflow-hidden rounded-2xl bg-card cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-200"
       onClick={onClick}
     >
       {/* Poster */}
-      <div className="relative aspect-[2/3] bg-secondary overflow-hidden">
+      <div className="relative aspect-[2/3] bg-secondary overflow-hidden rounded-xl m-1.5 mb-0">
         {!imageError && posterUrl ? (
           <img
             src={posterUrl}
@@ -60,19 +59,16 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
         )}
         
         {/* Media type badge */}
-        <Badge 
-          variant="secondary" 
-          className="absolute top-2 left-2 text-xs font-medium bg-background/90 backdrop-blur-sm"
-        >
+        <span className="absolute top-2 left-2 text-xs font-medium bg-secondary/90 backdrop-blur-sm text-secondary-foreground px-2.5 py-1 rounded-full">
           {mediaType === 'movie' ? 'Movie' : 'TV'}
-        </Badge>
+        </span>
 
         {/* Watchlist button */}
         <Button
           size="sm"
           variant={inWatchlist ? "default" : "secondary"}
           className={cn(
-            "absolute top-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity",
+            "absolute top-2 right-2 h-8 w-8 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
             inWatchlist && "opacity-100 bg-primary"
           )}
           onClick={handleWatchlistClick}
@@ -82,8 +78,8 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
       </div>
 
       {/* Info */}
-      <div className="flex flex-col gap-1 p-3">
-        <h3 className="font-medium text-sm leading-tight line-clamp-2" title={title}>
+      <div className="flex flex-col gap-1 p-4">
+        <h3 className="font-semibold text-sm leading-tight line-clamp-2" title={title}>
           {title}
         </h3>
         <div className="flex items-center justify-between text-xs text-muted-foreground">

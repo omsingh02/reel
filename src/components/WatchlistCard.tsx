@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { X, Star, Film, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { WatchlistItem } from '@/types/tmdb';
 import { getImageUrl } from '@/lib/tmdb';
@@ -24,11 +23,11 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
 
   return (
     <div 
-      className="group flex items-center gap-3 p-3 rounded-md border border-border bg-card hover:border-primary/50 transition-colors cursor-pointer"
+      className="group flex items-center gap-3 p-3 rounded-2xl bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer"
       onClick={onClick}
     >
       {/* Poster */}
-      <div className="flex-shrink-0 w-12 aspect-[2/3] rounded overflow-hidden bg-secondary">
+      <div className="flex-shrink-0 w-12 aspect-[2/3] rounded-xl overflow-hidden bg-secondary">
         {posterUrl ? (
           <img
             src={posterUrl}
@@ -49,9 +48,9 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
           <h3 className="font-medium text-sm leading-tight truncate" title={item.title}>
             {item.title}
           </h3>
-          <Badge variant="outline" className="flex-shrink-0 text-[10px] py-0 px-1.5">
+          <span className="flex-shrink-0 text-[10px] font-medium py-0.5 px-2 rounded-full bg-secondary text-secondary-foreground">
             {item.mediaType === 'movie' ? 'Movie' : 'TV'}
-          </Badge>
+          </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>{year || 'TBA'}</span>
@@ -68,7 +67,7 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
       <Button
         variant="ghost"
         size="sm"
-        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+        className="h-8 w-8 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
         onClick={handleRemove}
       >
         <X className="h-4 w-4" />

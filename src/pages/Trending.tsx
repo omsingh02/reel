@@ -62,10 +62,9 @@ export default function Trending() {
 
   return (
     <Layout>
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center justify-between gap-3 px-4 lg:px-6 h-14">
-          <h1 className="text-lg font-semibold">Trending This Week</h1>
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg">
+        <div className="flex items-center justify-between gap-3 px-5 lg:px-8 h-16">
+          <h1 className="text-xl font-semibold">Trending This Week</h1>
           <div className="flex items-center gap-2">
             <SortSelect
               value={sortBy}
@@ -80,8 +79,7 @@ export default function Trending() {
         </div>
       </header>
 
-      {/* Content */}
-      <div className="flex-1 px-4 lg:px-6 py-6">
+      <div className="flex-1 px-5 lg:px-8 py-6">
         {isLoading ? (
           <LoadingSpinner className="py-20" size="lg" />
         ) : items.length === 0 ? (
@@ -98,7 +96,6 @@ export default function Trending() {
               onItemClick={handleMediaClick}
             />
             
-            {/* Load more trigger */}
             <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
               {isFetchingNextPage && <LoadingSpinner size="sm" />}
             </div>
@@ -106,7 +103,6 @@ export default function Trending() {
         )}
       </div>
 
-      {/* Details Panel */}
       {selectedMedia && (
         <MediaDetails
           id={selectedMedia.id}

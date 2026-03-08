@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 export type SortOption = 'popularity' | 'rating' | 'release_date' | 'title';
 
@@ -24,12 +25,12 @@ const sortOptions: { value: SortOption; label: string }[] = [
 export function SortSelect({ value, onChange, className }: SortSelectProps) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className={className}>
+      <SelectTrigger className={cn("rounded-full bg-secondary/40 border-0", className)}>
         <SelectValue placeholder="Sort by" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="rounded-2xl">
         {sortOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem key={option.value} value={option.value} className="rounded-xl">
             {option.label}
           </SelectItem>
         ))}
