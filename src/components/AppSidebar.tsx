@@ -23,7 +23,7 @@ export function AppSidebar() {
   const { watchlist } = useWatchlistDB();
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-60 lg:border-r lg:border-border lg:bg-surface-container-low">
+    <aside className="hidden lg:flex lg:flex-col lg:w-60 lg:border-r lg:border-sidebar-border lg:bg-sidebar-background">
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">

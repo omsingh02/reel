@@ -432,7 +432,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     {tvData.seasons
                       .filter(s => s.season_number > 0)
                       .map(season => (
-                        <div key={season.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/30">
+                        <div key={season.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/50 border border-border/30">
                           <div className="w-12 h-16 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
                             {season.poster_path ? (
                               <img src={getImageUrl(season.poster_path, 'w92') || ''} alt={season.name} className="h-full w-full object-cover" />

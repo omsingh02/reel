@@ -22,7 +22,7 @@ export default function Watchlist() {
 
   return (
     <Layout>
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg">
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">My Watchlist</h1>
           {user && watchlist.length > 0 && (
