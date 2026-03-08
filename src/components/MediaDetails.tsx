@@ -404,7 +404,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Cast</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {cast.map(person => (
-                      <div key={person.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/30">
+                      <div key={person.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/50 border border-border/30">
                         <div className="h-10 w-10 rounded-full bg-secondary overflow-hidden flex-shrink-0">
                           {person.profile_path ? (
                             <img src={getImageUrl(person.profile_path, 'w92') || ''} alt={person.name} className="h-full w-full object-cover" />
