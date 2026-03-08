@@ -22,7 +22,7 @@ interface RecommendationCarouselProps {
   onSelect: (id: number, mediaType: MediaType) => void;
 }
 
-export function RecommendationCarousel({ items, mediaType, onSelect }: RecommendationCarouselProps) {
+export const RecommendationCarousel = React.forwardRef<HTMLDivElement, RecommendationCarouselProps>(function RecommendationCarousel({ items, mediaType, onSelect }, ref) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
     containScroll: 'trimSnaps',

@@ -198,7 +198,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               </div>
 
               {/* Content */}
-              <div className="relative px-6 pb-6 -mt-24">
+              <div className="relative px-6 pb-6 -mt-24 overflow-hidden">
                 <div className="flex gap-5 mb-6">
                   {/* Poster */}
                   <div className="flex-shrink-0 w-32 aspect-[2/3] rounded-lg overflow-hidden border border-border bg-secondary shadow-xl">
