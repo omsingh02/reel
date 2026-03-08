@@ -13,13 +13,23 @@ const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmd
 
 async function fetchTMDB<T>(params: Record<string, string>): Promise<T> {
   const searchParams = new URLSearchParams(params);
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  
+  // Try to get a fresh session token; fall back to anon key
+  let token = anonKey;
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.access_token) {
+      token = sessionData.session.access_token;
+    }
+  } catch {
+    // Use anon key on any auth error
+  }
   
   const response = await fetch(`${EDGE_FUNCTION_URL}?${searchParams}`, {
     headers: {
       'Content-Type': 'application/json',
-      'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      'apikey': anonKey,
       'Authorization': `Bearer ${token}`
     }
   });
