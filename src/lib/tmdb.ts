@@ -14,24 +14,35 @@ const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmd
 async function fetchTMDB<T>(params: Record<string, string>): Promise<T> {
   const searchParams = new URLSearchParams(params);
   const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  
-  // Always try to get a fresh session (triggers refresh if expired)
+
+  const isTokenExpired = (jwt: string): boolean => {
+    try {
+      const payload = JSON.parse(atob(jwt.split('.')[1]));
+      return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
+  };
+
+  // Always prefer a valid user token, otherwise fall back to anon key
   let token = anonKey;
   try {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-      // Session refresh failed - try refreshing explicitly
+    const { data: sessionData } = await supabase.auth.getSession();
+    const sessionToken = sessionData?.session?.access_token;
+
+    if (sessionToken && !isTokenExpired(sessionToken)) {
+      token = sessionToken;
+    } else {
       const { data: refreshData } = await supabase.auth.refreshSession();
-      if (refreshData?.session?.access_token) {
-        token = refreshData.session.access_token;
+      const refreshedToken = refreshData?.session?.access_token;
+      if (refreshedToken && !isTokenExpired(refreshedToken)) {
+        token = refreshedToken;
       }
-    } else if (sessionData?.session?.access_token) {
-      token = sessionData.session.access_token;
     }
   } catch {
     // Use anon key on any auth error
   }
-  
+
   const response = await fetch(`${EDGE_FUNCTION_URL}?${searchParams}`, {
     headers: {
       'Content-Type': 'application/json',
