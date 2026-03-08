@@ -212,8 +212,8 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   </div>
 
                   {/* Title & Meta */}
-                  <div className="flex-1 pt-24">
-                    <div className="flex items-start gap-2 mb-2">
+                  <div className="flex-1 min-w-0 pt-24">
+                    <div className="flex flex-wrap items-start gap-2 mb-2">
                       <Badge variant="outline" className="text-xs">
                         {isMovie ? 'Movie' : 'TV Series'}
                       </Badge>
