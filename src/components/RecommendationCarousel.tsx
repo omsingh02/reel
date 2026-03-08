@@ -136,4 +136,4 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
       </div>
     </div>
   );
-}
+});
