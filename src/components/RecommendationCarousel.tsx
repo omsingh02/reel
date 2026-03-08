@@ -57,7 +57,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
   return (
     <div className="relative group" ref={ref}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="text-sm font-medium text-muted-foreground">
           You might also like
         </h3>
         <div className="flex gap-1">
@@ -65,7 +65,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity",
+              "h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
               !canScrollPrev && "invisible"
             )}
             onClick={scrollPrev}
@@ -76,7 +76,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity",
+              "h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
               !canScrollNext && "invisible"
             )}
             onClick={scrollNext}
@@ -99,7 +99,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
                 className="flex-shrink-0 w-28 group/card cursor-pointer text-left"
                 onClick={() => onSelect(item.id, mediaType)}
               >
-                <div className="relative aspect-[2/3] rounded-md overflow-hidden bg-secondary mb-2">
+                <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary mb-2">
                   {posterUrl ? (
                     <img
                       src={posterUrl}
@@ -113,7 +113,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
                   )}
                   
                   {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col justify-end p-2 rounded-xl">
                     {item.vote_average > 0 && (
                       <div className="flex items-center gap-1 text-xs text-white">
                         <Star className="h-3 w-3 fill-rating text-rating" />

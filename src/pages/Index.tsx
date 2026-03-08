@@ -20,7 +20,6 @@ export default function Index() {
   const [sortBy, setSortBy] = useState<SortOption>('popularity');
   const [selectedMedia, setSelectedMedia] = useState<{ id: number; type: MediaType } | null>(null);
 
-  // Handle URL params for deep linking
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const movieId = params.get('movie');
@@ -95,7 +94,6 @@ export default function Index() {
 
   const handleMediaClick = useCallback((id: number, type: MediaType) => {
     setSelectedMedia({ id, type });
-    // Update URL for deep linking
     const url = new URL(window.location.href);
     url.searchParams.set(type, id.toString());
     window.history.replaceState({}, '', url);
@@ -103,7 +101,6 @@ export default function Index() {
 
   const handleCloseDetails = useCallback(() => {
     setSelectedMedia(null);
-    // Clear URL params
     const url = new URL(window.location.href);
     url.searchParams.delete('movie');
     url.searchParams.delete('tv');
@@ -118,8 +115,8 @@ export default function Index() {
   return (
     <Layout>
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center gap-3 px-4 lg:px-6 h-14">
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg">
+        <div className="flex items-center gap-3 px-5 lg:px-8 h-16">
           <SearchBar 
             onSearch={setSearchQuery} 
             className="flex-1 max-w-md" 
@@ -137,10 +134,10 @@ export default function Index() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 px-4 lg:px-6 py-6">
+      <div className="flex-1 px-5 lg:px-8 py-6">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold">
+            <h1 className="text-xl font-semibold">
               {searchQuery ? `Results for "${searchQuery}"` : `Trending ${mediaType === 'movie' ? 'Movies' : 'TV Shows'}`}
             </h1>
             {!isLoading && items.length > 0 && (
@@ -172,7 +169,6 @@ export default function Index() {
               onItemClick={handleMediaClick}
             />
             
-            {/* Load more trigger */}
             <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
               {isFetchingMore && <LoadingSpinner size="sm" />}
             </div>
@@ -180,7 +176,6 @@ export default function Index() {
         )}
       </div>
 
-      {/* Details Panel */}
       {selectedMedia && (
         <MediaDetails
           id={selectedMedia.id}

@@ -23,11 +23,11 @@ export function AppSidebar() {
   const { watchlist } = useWatchlistDB();
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-56 lg:border-r lg:border-border lg:bg-sidebar">
+    <aside className="hidden lg:flex lg:flex-col lg:w-60 lg:border-r lg:border-border lg:bg-surface-container-low">
       {/* Logo */}
-      <div className="h-14 flex items-center justify-between px-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
+      <div className="h-16 flex items-center justify-between px-5 border-b border-sidebar-border">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center">
             <Film className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="font-semibold text-sidebar-foreground">Watchlist</span>
@@ -48,16 +48,16 @@ export function AppSidebar() {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-full transition-colors",
                   isActive 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                    ? "bg-primary/12 text-primary" 
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                 )}
               >
                 <item.icon className="h-4 w-4" />
                 {item.name}
                 {item.name === 'Watchlist' && user && watchlist.length > 0 && (
-                  <span className="ml-auto text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+                  <span className="ml-auto text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
                     {watchlist.length}
                   </span>
                 )}
@@ -67,7 +67,7 @@ export function AppSidebar() {
         </div>
 
         <div className="mt-6">
-          <h3 className="px-3 text-xs font-semibold text-sidebar-foreground/60 uppercase tracking-wider mb-2">
+          <h3 className="px-4 text-xs font-medium text-muted-foreground mb-2">
             Browse
           </h3>
           <div className="space-y-1">
@@ -78,9 +78,9 @@ export function AppSidebar() {
                   key={item.name}
                   to={item.href}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-full transition-colors",
                     isActive 
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                      ? "bg-primary/12 text-primary" 
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                   )}
                 >

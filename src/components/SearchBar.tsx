@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -56,21 +55,21 @@ export function SearchBar({
 
   return (
     <div className={cn("relative", className)}>
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      <Input
+      <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <input
         ref={inputRef}
         type="text"
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="h-10 pl-10 pr-10 bg-secondary/50 border-border focus-visible:ring-1 focus-visible:ring-primary"
+        className="h-12 w-full rounded-full bg-secondary/60 border-0 pl-12 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow"
       />
       {value && (
         <Button
           variant="ghost"
           size="sm"
-          className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0 hover:bg-secondary"
+          className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 p-0 rounded-full hover:bg-secondary"
           onClick={handleClear}
         >
           <X className="h-4 w-4" />
