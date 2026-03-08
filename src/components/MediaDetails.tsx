@@ -477,11 +477,87 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 </div>
               )}
 
+              {/* Watch Providers */}
+              {(streamingProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <MonitorPlay className="h-3.5 w-3.5" />Where to Watch
+                  </div>
+                  {streamingProviders.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs text-muted-foreground mb-1.5">Stream</p>
+                      <div className="flex flex-wrap gap-2">
+                        {streamingProviders.map(p => (
+                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
+                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
+                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {rentProviders.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs text-muted-foreground mb-1.5">Rent</p>
+                      <div className="flex flex-wrap gap-2">
+                        {rentProviders.map(p => (
+                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
+                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
+                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {buyProviders.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">Buy</p>
+                      <div className="flex flex-wrap gap-2">
+                        {buyProviders.map(p => (
+                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
+                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
+                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Backdrops Gallery */}
+              {backdrops.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <Image className="h-3.5 w-3.5" />Images
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {backdrops.map((img, i) => (
+                      <div key={i} className="aspect-video rounded-xl overflow-hidden bg-secondary border border-border/30">
+                        <img src={getImageUrl(img.file_path, 'w500') || ''} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Recommendations */}
               {recommendations.length > 0 && (
                 <RecommendationCarousel
                   items={recommendations}
                   mediaType={mediaType}
+                  onSelect={(recId, recType) => {
+                    if (onNavigate) onNavigate(recId, recType);
+                  }}
+                />
+              )}
+
+              {/* Similar Titles */}
+              {similarItems.length > 0 && (
+                <RecommendationCarousel
+                  items={similarItems}
+                  mediaType={mediaType}
+                  title="Similar Titles"
                   onSelect={(recId, recType) => {
                     if (onNavigate) onNavigate(recId, recType);
                   }}
