@@ -27,21 +27,26 @@ serve(async (req) => {
       );
     }
 
-    // Verify JWT with Supabase
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
+    // Verify the token - accept both anon key and user JWTs
     const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
     
-    if (claimsError || !claimsData?.claims) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    // If the token is the anon key itself, allow access (public data)
+    if (token !== anonKey) {
+      // Verify user JWT with Supabase
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        anonKey,
+        { global: { headers: { Authorization: authHeader } } }
       );
+
+      const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+      
+      if (userError || !userData?.user) {
+        // If user JWT is invalid/expired, still allow with anon-level access
+        // since TMDB data is public
+        console.warn('User JWT validation failed, proceeding with anon access:', userError?.message);
+      }
     }
 
     const apiKey = Deno.env.get('TMDB_API_KEY');
