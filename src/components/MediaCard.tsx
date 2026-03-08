@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useState, forwardRef } from 'react';
 import { Plus, Check, Star, Film, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ interface MediaCardProps {
   onClick?: () => void;
 }
 
-export const MediaCard = memo(function MediaCard({ media, mediaType, onClick }: MediaCardProps) {
+export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(function MediaCard({ media, mediaType, onClick }, ref) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -35,6 +35,7 @@ export const MediaCard = memo(function MediaCard({ media, mediaType, onClick }: 
 
   return (
     <div 
+      ref={ref}
       className="group relative flex flex-col overflow-hidden rounded-md border border-border bg-card cursor-pointer hover:border-primary/50 transition-colors"
       onClick={onClick}
     >
@@ -97,4 +98,4 @@ export const MediaCard = memo(function MediaCard({ media, mediaType, onClick }: 
       </div>
     </div>
   );
-});
+}));

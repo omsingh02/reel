@@ -99,7 +99,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-        <div className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background p-6">
+        <div className="fixed inset-y-0 right-0 w-[min(100vw,48rem)] max-w-[100vw] border-l border-border bg-background p-6 box-border overflow-x-hidden">
           <Skeleton className="h-64 w-full rounded-lg mb-4" />
           <Skeleton className="h-8 w-3/4 mb-2" />
           <Skeleton className="h-4 w-1/2 mb-6" />
@@ -112,7 +112,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   if (error || !data) {
     return (
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={onClose}>
-        <div className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background p-6 flex items-center justify-center">
+        <div className="fixed inset-y-0 right-0 w-[min(100vw,48rem)] max-w-[100vw] border-l border-border bg-background p-6 box-border overflow-x-hidden flex items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">Failed to load details</p>
             <Button variant="outline" onClick={onClose}>Close</Button>
@@ -159,11 +159,11 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     <>
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={onClose}>
         <div 
-          className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background shadow-xl animate-slide-in-right overflow-hidden"
+          className="fixed inset-y-0 right-0 w-[min(100vw,48rem)] max-w-[100vw] border-l border-border bg-background shadow-xl animate-slide-in-right overflow-x-hidden box-border"
           onClick={e => e.stopPropagation()}
         >
           <ScrollArea className="h-full">
-            <div className="relative overflow-hidden max-w-full">
+            <div className="relative w-full min-w-0 overflow-hidden">
               {/* Backdrop */}
               <div className="relative h-64 bg-secondary overflow-hidden">
                 {backdropUrl && (
@@ -198,8 +198,8 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               </div>
 
               {/* Content */}
-              <div className="relative px-6 pb-6 -mt-24 overflow-hidden">
-                <div className="flex gap-5 mb-6">
+              <div className="relative px-6 pb-6 -mt-24 overflow-hidden w-full min-w-0 box-border">
+                <div className="flex gap-5 mb-6 min-w-0">
                   {/* Poster */}
                   <div className="flex-shrink-0 w-32 aspect-[2/3] rounded-lg overflow-hidden border border-border bg-secondary shadow-xl">
                     {posterUrl ? (
@@ -279,9 +279,9 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 )}
 
                 {/* Actions */}
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap gap-2 mb-6 min-w-0">
                   <Button
-                    className="flex-1"
+                    className="basis-full sm:basis-auto sm:flex-1"
                     variant={inWatchlist ? "outline" : "default"}
                     onClick={handleWatchlistClick}
                   >
@@ -332,7 +332,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 {data.overview && (
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold mb-2 uppercase tracking-wide text-muted-foreground">Overview</h3>
-                    <p className="text-sm leading-relaxed">{data.overview}</p>
+                    <p className="text-sm leading-relaxed break-words">{data.overview}</p>
                   </div>
                 )}
 
@@ -340,7 +340,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
                 {/* Movie Financial Info */}
                 {movieData && (movieData.budget > 0 || movieData.revenue > 0) && (
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     {movieData.budget > 0 && (
                       <div className="p-3 rounded-lg bg-secondary/50">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -413,7 +413,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
                 {/* Director/Writers (Movie) */}
                 {isMovie && (director || (writers && writers.length > 0)) && (
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     {director && (
                       <div>
                         <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">Director</h3>
@@ -441,7 +441,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 {cast.length > 0 && (
                   <div className="mb-6">
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Cast</h3>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {cast.map(person => (
                         <div 
                           key={person.id}
