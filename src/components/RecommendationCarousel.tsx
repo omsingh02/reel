@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ interface RecommendationCarouselProps {
   onSelect: (id: number, mediaType: MediaType) => void;
 }
 
-export function RecommendationCarousel({ items, mediaType, onSelect }: RecommendationCarouselProps) {
+export const RecommendationCarousel = React.forwardRef<HTMLDivElement, RecommendationCarouselProps>(function RecommendationCarousel({ items, mediaType, onSelect }, ref) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
     containScroll: 'trimSnaps',
@@ -55,7 +55,7 @@ export function RecommendationCarousel({ items, mediaType, onSelect }: Recommend
   if (items.length === 0) return null;
 
   return (
-    <div className="relative group">
+    <div className="relative group" ref={ref}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           You might also like
@@ -136,4 +136,4 @@ export function RecommendationCarousel({ items, mediaType, onSelect }: Recommend
       </div>
     </div>
   );
-}
+});

@@ -159,11 +159,11 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     <>
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={onClose}>
         <div 
-          className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background shadow-xl animate-slide-in-right"
+          className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background shadow-xl animate-slide-in-right overflow-hidden"
           onClick={e => e.stopPropagation()}
         >
           <ScrollArea className="h-full">
-            <div className="relative overflow-hidden">
+            <div className="relative overflow-hidden max-w-full">
               {/* Backdrop */}
               <div className="relative h-64 bg-secondary overflow-hidden">
                 {backdropUrl && (
@@ -198,7 +198,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               </div>
 
               {/* Content */}
-              <div className="relative px-6 pb-6 -mt-24">
+              <div className="relative px-6 pb-6 -mt-24 overflow-hidden">
                 <div className="flex gap-5 mb-6">
                   {/* Poster */}
                   <div className="flex-shrink-0 w-32 aspect-[2/3] rounded-lg overflow-hidden border border-border bg-secondary shadow-xl">
@@ -212,8 +212,8 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   </div>
 
                   {/* Title & Meta */}
-                  <div className="flex-1 pt-24">
-                    <div className="flex items-start gap-2 mb-2">
+                  <div className="flex-1 min-w-0 pt-24">
+                    <div className="flex flex-wrap items-start gap-2 mb-2">
                       <Badge variant="outline" className="text-xs">
                         {isMovie ? 'Movie' : 'TV Series'}
                       </Badge>
@@ -221,7 +221,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                         {data.status}
                       </Badge>
                     </div>
-                    <h2 className="text-2xl font-semibold mb-3">{title}</h2>
+                    <h2 className="text-2xl font-semibold mb-3 break-words">{title}</h2>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                       {year && (
                         <span className="flex items-center gap-1.5">
@@ -386,7 +386,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                       <Building2 className="h-3.5 w-3.5" />
                       Production
                     </div>
-                    <p className="text-sm">
+                    <p className="text-sm break-words">
                       {data.production_companies.map(c => c.name).join(' • ')}
                     </p>
                   </div>
