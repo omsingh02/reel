@@ -386,7 +386,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                       <Building2 className="h-3.5 w-3.5" />
                       Production
                     </div>
-                    <p className="text-sm">
+                    <p className="text-sm break-words">
                       {data.production_companies.map(c => c.name).join(' • ')}
                     </p>
                   </div>
