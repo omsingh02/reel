@@ -224,6 +224,11 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   <div className="flex flex-wrap items-center gap-1.5 mb-2">
                     <Chip>{isMovie ? 'Movie' : 'TV Series'}</Chip>
                     <Chip>{data.status}</Chip>
+                    {certification && (
+                      <span className="inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
+                        {certification}
+                      </span>
+                    )}
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-bold mb-3 break-words text-foreground">{title}</h2>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
