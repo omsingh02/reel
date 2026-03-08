@@ -23,7 +23,7 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
 
   return (
     <div 
-      className="group flex items-center gap-3 p-3 rounded-2xl bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer"
+      className="group flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/40 hover:shadow-md transition-all cursor-pointer"
       onClick={onClick}
     >
       {/* Poster */}

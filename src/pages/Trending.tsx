@@ -62,7 +62,7 @@ export default function Trending() {
 
   return (
     <Layout>
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg">
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center justify-between gap-3 px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">Trending This Week</h1>
           <div className="flex items-center gap-2">

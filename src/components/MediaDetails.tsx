@@ -313,9 +313,9 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
               {/* Financial info (Movie) */}
               {movieData && (movieData.budget > 0 || movieData.revenue > 0) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   {movieData.budget > 0 && (
-                    <div className="p-4 rounded-2xl bg-secondary/30">
+                    <div className="p-4 rounded-2xl bg-secondary/50 border border-border/30">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                         <DollarSign className="h-3.5 w-3.5" />Budget
                       </div>
@@ -323,7 +323,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     </div>
                   )}
                   {movieData.revenue > 0 && (
-                    <div className="p-4 rounded-2xl bg-secondary/30">
+                    <div className="p-4 rounded-2xl bg-secondary/50 border border-border/30">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                         <DollarSign className="h-3.5 w-3.5" />Box Office
                       </div>
@@ -404,7 +404,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Cast</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {cast.map(person => (
-                      <div key={person.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/30">
+                      <div key={person.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/50 border border-border/30">
                         <div className="h-10 w-10 rounded-full bg-secondary overflow-hidden flex-shrink-0">
                           {person.profile_path ? (
                             <img src={getImageUrl(person.profile_path, 'w92') || ''} alt={person.name} className="h-full w-full object-cover" />
@@ -432,7 +432,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     {tvData.seasons
                       .filter(s => s.season_number > 0)
                       .map(season => (
-                        <div key={season.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/30">
+                        <div key={season.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/50 border border-border/30">
                           <div className="w-12 h-16 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
                             {season.poster_path ? (
                               <img src={getImageUrl(season.poster_path, 'w92') || ''} alt={season.name} className="h-full w-full object-cover" />

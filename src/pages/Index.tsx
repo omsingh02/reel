@@ -115,7 +115,7 @@ export default function Index() {
   return (
     <Layout>
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg">
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-5 lg:px-8 h-16">
           <SearchBar 
             onSearch={setSearchQuery} 
