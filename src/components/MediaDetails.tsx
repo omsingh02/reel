@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Star, Clock, Calendar, Plus, Check, ExternalLink, DollarSign, Globe, Building2, Tv2, Play } from 'lucide-react';
+import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play } from 'lucide-react';
+import { BrandIcon } from '@/components/BrandIcon';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
