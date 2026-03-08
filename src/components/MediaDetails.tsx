@@ -221,7 +221,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                         {data.status}
                       </Badge>
                     </div>
-                    <h2 className="text-2xl font-semibold mb-3">{title}</h2>
+                    <h2 className="text-2xl font-semibold mb-3 break-words">{title}</h2>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                       {year && (
                         <span className="flex items-center gap-1.5">
