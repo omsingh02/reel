@@ -35,6 +35,7 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
 
   return (
     <div 
+      ref={ref}
       className="group relative flex flex-col overflow-hidden rounded-md border border-border bg-card cursor-pointer hover:border-primary/50 transition-colors"
       onClick={onClick}
     >
