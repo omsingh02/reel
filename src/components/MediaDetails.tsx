@@ -323,7 +323,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     </div>
                   )}
                   {movieData.revenue > 0 && (
-                    <div className="p-4 rounded-2xl bg-secondary/30">
+                    <div className="p-4 rounded-2xl bg-secondary/50 border border-border/30">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                         <DollarSign className="h-3.5 w-3.5" />Box Office
                       </div>
