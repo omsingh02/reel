@@ -413,7 +413,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
                 {/* Director/Writers (Movie) */}
                 {isMovie && (director || (writers && writers.length > 0)) && (
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     {director && (
                       <div>
                         <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">Director</h3>
