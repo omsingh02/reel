@@ -313,9 +313,9 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
               {/* Financial info (Movie) */}
               {movieData && (movieData.budget > 0 || movieData.revenue > 0) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   {movieData.budget > 0 && (
-                    <div className="p-4 rounded-2xl bg-secondary/30">
+                    <div className="p-4 rounded-2xl bg-secondary/50 border border-border/30">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                         <DollarSign className="h-3.5 w-3.5" />Budget
                       </div>
