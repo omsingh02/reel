@@ -305,11 +305,19 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   )}
                   <ShareButton title={title} mediaType={mediaType} id={id} />
                   {externalLinks.map(link => (
-                    <Button key={link.name} variant="outline" size="icon" asChild>
-                      <a href={link.url} target="_blank" rel="noopener noreferrer" title={link.name}>
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
+                    <a
+                      key={link.name}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={link.name}
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-md border border-border bg-background hover:bg-accent transition-all group"
+                    >
+                      <BrandIcon
+                        name={link.name}
+                        className="h-5 w-5 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-200"
+                      />
+                    </a>
                   ))}
                 </div>
 
