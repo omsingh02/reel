@@ -332,7 +332,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 {data.overview && (
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold mb-2 uppercase tracking-wide text-muted-foreground">Overview</h3>
-                    <p className="text-sm leading-relaxed">{data.overview}</p>
+                    <p className="text-sm leading-relaxed break-words">{data.overview}</p>
                   </div>
                 )}
 
