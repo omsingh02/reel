@@ -112,7 +112,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   if (error || !data) {
     return (
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={onClose}>
-        <div className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background p-6 flex items-center justify-center">
+        <div className="fixed inset-y-0 right-0 w-[min(100vw,48rem)] max-w-[100vw] border-l border-border bg-background p-6 box-border overflow-x-hidden flex items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">Failed to load details</p>
             <Button variant="outline" onClick={onClose}>Close</Button>
