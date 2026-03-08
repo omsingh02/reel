@@ -98,4 +98,4 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
       </div>
     </div>
   );
-});
+}));
