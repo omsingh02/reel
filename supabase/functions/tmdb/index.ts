@@ -8,7 +8,6 @@ const corsHeaders = {
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
-// Allowed endpoints to prevent arbitrary API access
 const ALLOWED_ENDPOINTS = ['search', 'details', 'trending', 'popular'];
 const ALLOWED_MEDIA_TYPES = ['movie', 'tv'];
 
@@ -18,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    // Authentication check
+    // Validate authorization header exists
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
@@ -27,25 +26,21 @@ serve(async (req) => {
       );
     }
 
-    // Verify the token - accept both anon key and user JWTs
+    // Verify the token using getClaims
     const token = authHeader.replace('Bearer ', '');
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-    
-    // If the token is the anon key itself, allow access (public data)
-    if (token !== anonKey) {
-      // Verify user JWT with Supabase
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        anonKey,
-        { global: { headers: { Authorization: authHeader } } }
-      );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 
-      const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-      
-      if (userError || !userData?.user) {
-        // If user JWT is invalid/expired, still allow with anon-level access
-        // since TMDB data is public
-        console.warn('User JWT validation failed, proceeding with anon access:', userError?.message);
+    // If token is not the anon key, validate it as a user JWT
+    if (token !== anonKey) {
+      const supabaseClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+
+      const { data, error } = await supabaseClient.auth.getClaims(token);
+      if (error || !data?.claims) {
+        // JWT invalid but TMDB data is public - allow with warning
+        console.warn('JWT validation failed, proceeding with anon access:', error?.message);
       }
     }
 
@@ -64,7 +59,6 @@ serve(async (req) => {
     const mediaType = url.searchParams.get('type') || 'movie';
     const idStr = url.searchParams.get('id');
 
-    // Validate endpoint
     if (!endpoint || !ALLOWED_ENDPOINTS.includes(endpoint)) {
       return new Response(
         JSON.stringify({ error: 'Invalid endpoint' }),
@@ -72,7 +66,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate media type
     if (!ALLOWED_MEDIA_TYPES.includes(mediaType)) {
       return new Response(
         JSON.stringify({ error: 'Invalid media type. Must be "movie" or "tv"' }),
@@ -80,7 +73,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate page number
     const page = parseInt(pageStr, 10);
     if (isNaN(page) || page < 1 || page > 1000) {
       return new Response(
@@ -99,7 +91,6 @@ serve(async (req) => {
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        // Limit query length to prevent abuse
         if (query.length > 200) {
           return new Response(
             JSON.stringify({ error: 'Query too long. Maximum 200 characters' }),
@@ -131,6 +122,7 @@ serve(async (req) => {
         );
     }
 
+    console.log(`Fetching TMDB: ${endpoint} ${mediaType}`);
     const response = await fetch(tmdbUrl);
     const data = await response.json();
 
