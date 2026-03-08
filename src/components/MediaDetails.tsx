@@ -99,7 +99,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-        <div className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background p-6">
+        <div className="fixed inset-y-0 right-0 w-[min(100vw,48rem)] max-w-[100vw] border-l border-border bg-background p-6 box-border overflow-x-hidden">
           <Skeleton className="h-64 w-full rounded-lg mb-4" />
           <Skeleton className="h-8 w-3/4 mb-2" />
           <Skeleton className="h-4 w-1/2 mb-6" />
