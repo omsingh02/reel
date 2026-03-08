@@ -19,6 +19,7 @@ interface RecommendationItem {
 interface RecommendationCarouselProps {
   items: RecommendationItem[];
   mediaType: MediaType;
+  title?: string;
   onSelect: (id: number, mediaType: MediaType) => void;
 }
 
