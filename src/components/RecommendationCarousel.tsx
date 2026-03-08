@@ -55,7 +55,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
   if (items.length === 0) return null;
 
   return (
-    <div className="relative group">
+    <div className="relative group" ref={ref}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           You might also like
