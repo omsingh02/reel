@@ -140,6 +140,25 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const cast = data.credits?.cast.slice(0, 8) || [];
   const recommendations = (data.recommendations?.results || []).slice(0, 10);
 
+  // Watch providers (US region, fallback to first available)
+  const watchProviders = data['watch/providers']?.results;
+  const regionProviders = watchProviders?.['US'] || watchProviders?.['GB'] || (watchProviders ? Object.values(watchProviders)[0] : null);
+  const streamingProviders = regionProviders?.flatrate || [];
+  const rentProviders = regionProviders?.rent || [];
+  const buyProviders = regionProviders?.buy || [];
+  const watchProvidersLink = regionProviders?.link;
+
+  // Certification
+  const certification = isMovie
+    ? movieData?.release_dates?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.find(rd => rd.certification)?.certification
+    : tvData?.content_ratings?.results?.find(r => r.iso_3166_1 === 'US')?.rating;
+
+  // Images (top backdrops)
+  const backdrops = (data.images?.backdrops || []).slice(0, 6);
+
+  // Similar titles
+  const similarItems = (data.similar?.results || []).slice(0, 10);
+
   const imdbId = data.external_ids?.imdb_id || (isMovie ? movieData?.imdb_id : null);
   const externalLinks = [
     imdbId && { name: 'IMDb', url: `https://www.imdb.com/title/${imdbId}` },
