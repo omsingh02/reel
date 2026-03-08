@@ -159,11 +159,11 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     <>
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={onClose}>
         <div 
-          className="fixed inset-y-0 right-0 w-full max-w-2xl border-l border-border bg-background shadow-xl animate-slide-in-right overflow-hidden"
+          className="fixed inset-y-0 right-0 w-[min(100vw,48rem)] max-w-[100vw] border-l border-border bg-background shadow-xl animate-slide-in-right overflow-x-hidden box-border"
           onClick={e => e.stopPropagation()}
         >
           <ScrollArea className="h-full">
-            <div className="relative overflow-hidden max-w-full">
+            <div className="relative w-full min-w-0 overflow-hidden">
               {/* Backdrop */}
               <div className="relative h-64 bg-secondary overflow-hidden">
                 {backdropUrl && (
