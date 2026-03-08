@@ -441,7 +441,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 {cast.length > 0 && (
                   <div className="mb-6">
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Cast</h3>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {cast.map(person => (
                         <div 
                           key={person.id}
