@@ -279,7 +279,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-2 mb-6">
+                <div className="flex flex-wrap gap-2 mb-6">
                   <Button
                     className="flex-1"
                     variant={inWatchlist ? "outline" : "default"}
