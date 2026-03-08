@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play } from 'lucide-react';
+import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, Shield, MonitorPlay } from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -140,6 +140,25 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const cast = data.credits?.cast.slice(0, 8) || [];
   const recommendations = (data.recommendations?.results || []).slice(0, 10);
 
+  // Watch providers (US region, fallback to first available)
+  const watchProviders = data['watch/providers']?.results;
+  const regionProviders = watchProviders?.['US'] || watchProviders?.['GB'] || (watchProviders ? Object.values(watchProviders)[0] : null);
+  const streamingProviders = regionProviders?.flatrate || [];
+  const rentProviders = regionProviders?.rent || [];
+  const buyProviders = regionProviders?.buy || [];
+  const watchProvidersLink = regionProviders?.link;
+
+  // Certification
+  const certification = isMovie
+    ? movieData?.release_dates?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.find(rd => rd.certification)?.certification
+    : tvData?.content_ratings?.results?.find(r => r.iso_3166_1 === 'US')?.rating;
+
+  // Images (top backdrops)
+  const backdrops = (data.images?.backdrops || []).slice(0, 6);
+
+  // Similar titles
+  const similarItems = (data.similar?.results || []).slice(0, 10);
+
   const imdbId = data.external_ids?.imdb_id || (isMovie ? movieData?.imdb_id : null);
   const externalLinks = [
     imdbId && { name: 'IMDb', url: `https://www.imdb.com/title/${imdbId}` },
@@ -205,6 +224,11 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   <div className="flex flex-wrap items-center gap-1.5 mb-2">
                     <Chip>{isMovie ? 'Movie' : 'TV Series'}</Chip>
                     <Chip>{data.status}</Chip>
+                    {certification && (
+                      <span className="inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
+                        {certification}
+                      </span>
+                    )}
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-bold mb-3 break-words text-foreground">{title}</h2>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
@@ -453,11 +477,87 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 </div>
               )}
 
+              {/* Watch Providers */}
+              {(streamingProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <MonitorPlay className="h-3.5 w-3.5" />Where to Watch
+                  </div>
+                  {streamingProviders.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs text-muted-foreground mb-1.5">Stream</p>
+                      <div className="flex flex-wrap gap-2">
+                        {streamingProviders.map(p => (
+                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
+                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
+                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {rentProviders.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs text-muted-foreground mb-1.5">Rent</p>
+                      <div className="flex flex-wrap gap-2">
+                        {rentProviders.map(p => (
+                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
+                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
+                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {buyProviders.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1.5">Buy</p>
+                      <div className="flex flex-wrap gap-2">
+                        {buyProviders.map(p => (
+                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
+                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
+                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Backdrops Gallery */}
+              {backdrops.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <Image className="h-3.5 w-3.5" />Images
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {backdrops.map((img, i) => (
+                      <div key={i} className="aspect-video rounded-xl overflow-hidden bg-secondary border border-border/30">
+                        <img src={getImageUrl(img.file_path, 'w500') || ''} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Recommendations */}
               {recommendations.length > 0 && (
                 <RecommendationCarousel
                   items={recommendations}
                   mediaType={mediaType}
+                  onSelect={(recId, recType) => {
+                    if (onNavigate) onNavigate(recId, recType);
+                  }}
+                />
+              )}
+
+              {/* Similar Titles */}
+              {similarItems.length > 0 && (
+                <RecommendationCarousel
+                  items={similarItems}
+                  mediaType={mediaType}
+                  title="Similar Titles"
                   onSelect={(recId, recType) => {
                     if (onNavigate) onNavigate(recId, recType);
                   }}

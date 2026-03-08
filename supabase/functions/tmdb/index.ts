@@ -113,7 +113,7 @@ serve(async (req) => {
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        tmdbUrl = `${TMDB_BASE_URL}/${mediaType}/${id}?api_key=${apiKey}&append_to_response=credits,videos,recommendations,keywords,external_ids`;
+        tmdbUrl = `${TMDB_BASE_URL}/${mediaType}/${id}?api_key=${apiKey}&append_to_response=credits,videos,recommendations,keywords,external_ids,images,similar,watch/providers${mediaType === 'movie' ? ',release_dates' : ',content_ratings'}`;
         break;
       case 'trending':
         tmdbUrl = `${TMDB_BASE_URL}/trending/${mediaType}/week?api_key=${apiKey}&page=${page}`;

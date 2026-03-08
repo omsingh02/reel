@@ -71,6 +71,24 @@ export interface TMDBMovieDetails extends TMDBMovie {
     instagram_id: string | null;
     twitter_id: string | null;
   };
+  images?: {
+    backdrops: { file_path: string; width: number; height: number; vote_average: number }[];
+    posters: { file_path: string; width: number; height: number; vote_average: number }[];
+  };
+  similar?: {
+    results: TMDBMovie[];
+  };
+  'watch/providers'?: {
+    results: Record<string, {
+      link?: string;
+      flatrate?: { provider_id: number; provider_name: string; logo_path: string }[];
+      rent?: { provider_id: number; provider_name: string; logo_path: string }[];
+      buy?: { provider_id: number; provider_name: string; logo_path: string }[];
+    }>;
+  };
+  release_dates?: {
+    results: { iso_3166_1: string; release_dates: { certification: string; type: number; release_date: string }[] }[];
+  };
 }
 
 export interface TMDBTVShowDetails extends TMDBTVShow {
@@ -135,6 +153,24 @@ export interface TMDBTVShowDetails extends TMDBTVShow {
     facebook_id: string | null;
     instagram_id: string | null;
     twitter_id: string | null;
+  };
+  images?: {
+    backdrops: { file_path: string; width: number; height: number; vote_average: number }[];
+    posters: { file_path: string; width: number; height: number; vote_average: number }[];
+  };
+  similar?: {
+    results: TMDBTVShow[];
+  };
+  'watch/providers'?: {
+    results: Record<string, {
+      link?: string;
+      flatrate?: { provider_id: number; provider_name: string; logo_path: string }[];
+      rent?: { provider_id: number; provider_name: string; logo_path: string }[];
+      buy?: { provider_id: number; provider_name: string; logo_path: string }[];
+    }>;
+  };
+  content_ratings?: {
+    results: { iso_3166_1: string; rating: string }[];
   };
 }
 

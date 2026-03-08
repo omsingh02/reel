@@ -19,10 +19,11 @@ interface RecommendationItem {
 interface RecommendationCarouselProps {
   items: RecommendationItem[];
   mediaType: MediaType;
+  title?: string;
   onSelect: (id: number, mediaType: MediaType) => void;
 }
 
-export const RecommendationCarousel = React.forwardRef<HTMLDivElement, RecommendationCarouselProps>(function RecommendationCarousel({ items, mediaType, onSelect }, ref) {
+export const RecommendationCarousel = React.forwardRef<HTMLDivElement, RecommendationCarouselProps>(function RecommendationCarousel({ items, mediaType, title: sectionTitle, onSelect }, ref) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
     containScroll: 'trimSnaps',
@@ -58,7 +59,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
     <div className="relative group" ref={ref}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-muted-foreground">
-          You might also like
+          {sectionTitle || 'You might also like'}
         </h3>
         <div className="flex gap-1">
           <Button
