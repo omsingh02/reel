@@ -340,7 +340,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
                 {/* Movie Financial Info */}
                 {movieData && (movieData.budget > 0 || movieData.revenue > 0) && (
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     {movieData.budget > 0 && (
                       <div className="p-3 rounded-lg bg-secondary/50">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
