@@ -28,15 +28,44 @@ export function useWatchlistDB() {
     queryFn: async () => {
       if (!user) return [];
       
+      // Ensure session is fresh before querying
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        await supabase.auth.refreshSession();
+      }
+      
       const { data, error } = await supabase
         .from('watchlist_items')
         .select('*')
         .order('added_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        // If JWT expired, try refreshing and retrying once
+        if (error.message?.includes('JWT expired') || error.code === 'PGRST303') {
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError) throw refreshError;
+          
+          const { data: retryData, error: retryError } = await supabase
+            .from('watchlist_items')
+            .select('*')
+            .order('added_at', { ascending: false });
+          
+          if (retryError) throw retryError;
+          return retryData as WatchlistItemDB[];
+        }
+        throw error;
+      }
       return data as WatchlistItemDB[];
     },
     enabled: !!user,
+    retry: (failureCount, error: any) => {
+      // Retry once on JWT errors to allow auto-refresh to kick in
+      if (error?.message?.includes('JWT expired') || error?.code === 'PGRST303') {
+        return failureCount < 2;
+      }
+      return failureCount < 1;
+    },
+    retryDelay: 1000,
   });
 
   const addMutation = useMutation({
