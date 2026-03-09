@@ -220,7 +220,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 </div>
 
                 {/* Title & meta */}
-                <div className="flex-1 min-w-0 pt-20 sm:pt-24">
+                <div className="flex-1 min-w-0 pt-16 sm:pt-24">
                   <div className="flex flex-wrap items-center gap-1.5 mb-2">
                     <Chip>{isMovie ? 'Movie' : 'TV Series'}</Chip>
                     <Chip>{data.status}</Chip>
