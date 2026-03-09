@@ -230,7 +230,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                       </span>
                     )}
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-3 break-words text-foreground">{title}</h2>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3 break-words text-foreground">{title}</h2>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                     {year && (
                       <span className="flex items-center gap-1.5">

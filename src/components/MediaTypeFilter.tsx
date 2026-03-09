@@ -16,7 +16,7 @@ export function MediaTypeFilter({ value, onChange, className }: MediaTypeFilterP
         variant="ghost"
         size="sm"
         className={cn(
-          "h-8 px-3 text-sm font-medium rounded-full transition-all",
+          "h-8 px-2.5 sm:px-3 text-sm font-medium rounded-full transition-all",
           value === 'movie' 
             ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90" 
             : "hover:bg-secondary/60"

@@ -33,7 +33,7 @@ export default function Watchlist() {
         </div>
       </header>
 
-      <div className="flex-1 px-5 lg:px-8 py-6">
+      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
         {!user && !authLoading ? (
           <EmptyState
             icon={LogIn}

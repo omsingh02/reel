@@ -134,7 +134,7 @@ export default function Index() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 px-5 lg:px-8 py-6">
+      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold">

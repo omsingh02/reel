@@ -79,7 +79,7 @@ export default function Trending() {
         </div>
       </header>
 
-      <div className="flex-1 px-5 lg:px-8 py-6">
+      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
         {isLoading ? (
           <LoadingSpinner className="py-20" size="lg" />
         ) : items.length === 0 ? (

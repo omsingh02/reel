@@ -67,7 +67,7 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
       <Button
         variant="ghost"
         size="sm"
-        className="h-8 w-8 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+        className="h-8 w-8 p-0 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
         onClick={handleRemove}
       >
         <X className="h-4 w-4" />
