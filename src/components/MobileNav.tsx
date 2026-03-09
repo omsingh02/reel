@@ -19,7 +19,7 @@ export function MobileNav() {
   const { watchlist } = useWatchlistDB();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-sm">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-sm" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around h-16">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;

@@ -169,7 +169,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     <>
       <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
         <div
-          className="fixed inset-2 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-2xl sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in flex flex-col"
+          className="fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in flex flex-col"
           onClick={e => e.stopPropagation()}
         >
           {/* Drag handle (mobile) */}
@@ -180,7 +180,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden">
             {/* Hero */}
-            <div className="relative h-56 sm:h-72 lg:h-80 bg-secondary overflow-hidden">
+            <div className="relative h-44 sm:h-56 lg:h-72 bg-secondary overflow-hidden">
               {backdropUrl && (
                 <img src={backdropUrl} alt="" className="h-full w-full object-cover" />
               )}
@@ -208,10 +208,10 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
             </div>
 
             {/* Content */}
-            <div className="relative px-5 sm:px-8 pb-8 -mt-20 sm:-mt-24">
-              <div className="flex gap-5 mb-5">
+            <div className="relative px-4 sm:px-8 pb-20 sm:pb-8 -mt-16 sm:-mt-24">
+              <div className="flex gap-4 sm:gap-5 mb-5">
                 {/* Poster */}
-                <div className="flex-shrink-0 w-28 sm:w-32 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-background bg-secondary shadow-xl">
+                <div className="flex-shrink-0 w-24 sm:w-32 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-background bg-secondary shadow-xl">
                   {posterUrl ? (
                     <img src={posterUrl} alt={title} className="h-full w-full object-cover" />
                   ) : (
@@ -220,7 +220,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 </div>
 
                 {/* Title & meta */}
-                <div className="flex-1 min-w-0 pt-20 sm:pt-24">
+                <div className="flex-1 min-w-0 pt-16 sm:pt-24">
                   <div className="flex flex-wrap items-center gap-1.5 mb-2">
                     <Chip>{isMovie ? 'Movie' : 'TV Series'}</Chip>
                     <Chip>{data.status}</Chip>
@@ -230,7 +230,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                       </span>
                     )}
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-3 break-words text-foreground">{title}</h2>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3 break-words text-foreground">{title}</h2>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                     {year && (
                       <span className="flex items-center gap-1.5">

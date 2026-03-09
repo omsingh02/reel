@@ -63,7 +63,7 @@ export default function Trending() {
   return (
     <Layout>
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center justify-between gap-3 px-5 lg:px-8 h-16">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">Trending This Week</h1>
           <div className="flex items-center gap-2">
             <SortSelect
@@ -79,7 +79,7 @@ export default function Trending() {
         </div>
       </header>
 
-      <div className="flex-1 px-5 lg:px-8 py-6">
+      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
         {isLoading ? (
           <LoadingSpinner className="py-20" size="lg" />
         ) : items.length === 0 ? (

@@ -90,7 +90,7 @@ export default function Movies() {
   return (
     <Layout>
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-5 lg:px-8 h-16">
+        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold hidden sm:block">Movies</h1>
           <SearchBar 
             onSearch={setSearchQuery} 
@@ -105,7 +105,7 @@ export default function Movies() {
         </div>
       </header>
 
-      <div className="flex-1 px-5 lg:px-8 py-6">
+      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold sm:hidden">Movies</h2>
           <p className="text-sm text-muted-foreground mt-1">

@@ -68,7 +68,7 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
           size="sm"
           variant={inWatchlist ? "default" : "secondary"}
           className={cn(
-            "absolute top-2 right-2 h-8 w-8 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+            "absolute top-2 right-2 h-8 w-8 p-0 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
             inWatchlist && "opacity-100 bg-primary"
           )}
           onClick={handleWatchlistClick}
