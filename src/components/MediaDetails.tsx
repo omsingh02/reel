@@ -180,7 +180,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden">
             {/* Hero */}
-            <div className="relative h-56 sm:h-72 lg:h-80 bg-secondary overflow-hidden">
+            <div className="relative h-44 sm:h-56 lg:h-72 bg-secondary overflow-hidden">
               {backdropUrl && (
                 <img src={backdropUrl} alt="" className="h-full w-full object-cover" />
               )}
