@@ -169,7 +169,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     <>
       <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
         <div
-          className="fixed inset-2 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-2xl sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in flex flex-col"
+          className="fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in flex flex-col"
           onClick={e => e.stopPropagation()}
         >
           {/* Drag handle (mobile) */}
