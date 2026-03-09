@@ -208,10 +208,10 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
             </div>
 
             {/* Content */}
-            <div className="relative px-5 sm:px-8 pb-8 -mt-20 sm:-mt-24">
-              <div className="flex gap-5 mb-5">
+            <div className="relative px-4 sm:px-8 pb-20 sm:pb-8 -mt-16 sm:-mt-24">
+              <div className="flex gap-4 sm:gap-5 mb-5">
                 {/* Poster */}
-                <div className="flex-shrink-0 w-28 sm:w-32 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-background bg-secondary shadow-xl">
+                <div className="flex-shrink-0 w-24 sm:w-32 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-background bg-secondary shadow-xl">
                   {posterUrl ? (
                     <img src={posterUrl} alt={title} className="h-full w-full object-cover" />
                   ) : (
