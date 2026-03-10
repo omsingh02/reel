@@ -1,4 +1,4 @@
-import { Home, List, TrendingUp, Film, Tv } from 'lucide-react';
+import { Home, List, Film, Tv } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
