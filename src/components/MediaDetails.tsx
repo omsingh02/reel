@@ -201,9 +201,9 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 h-10 w-10 rounded-full bg-secondary/80 hover:bg-secondary flex items-center justify-center transition-colors backdrop-blur-sm"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 h-10 w-10 sm:h-10 sm:w-10 rounded-full bg-background/80 sm:bg-secondary/80 hover:bg-secondary flex items-center justify-center transition-colors backdrop-blur-sm z-10 shadow-lg"
               >
-                <X className="h-5 w-5 text-secondary-foreground" />
+                <X className="h-5 w-5 text-foreground sm:text-secondary-foreground" />
               </button>
             </div>
 

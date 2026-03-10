@@ -66,7 +66,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
             variant="ghost"
             size="icon"
             className={cn(
-              "h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+              "h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
               !canScrollPrev && "invisible"
             )}
             onClick={scrollPrev}
@@ -77,7 +77,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
             variant="ghost"
             size="icon"
             className={cn(
-              "h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+              "h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
               !canScrollNext && "invisible"
             )}
             onClick={scrollNext}
@@ -97,7 +97,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
             return (
               <button
                 key={item.id}
-                className="flex-shrink-0 w-28 group/card cursor-pointer text-left"
+                className="flex-shrink-0 w-32 sm:w-28 group/card cursor-pointer text-left"
                 onClick={() => onSelect(item.id, mediaType)}
               >
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary mb-2">
