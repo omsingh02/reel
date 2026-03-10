@@ -66,7 +66,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
             variant="ghost"
             size="icon"
             className={cn(
-              "h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+              "h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
               !canScrollPrev && "invisible"
             )}
             onClick={scrollPrev}
