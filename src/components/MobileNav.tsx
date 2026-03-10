@@ -7,7 +7,6 @@ import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
   { name: 'Watchlist', href: '/watchlist', icon: List },
-  { name: 'Trending', href: '/trending', icon: TrendingUp },
   { name: 'Movies', href: '/movies', icon: Film },
   { name: 'TV', href: '/tv', icon: Tv },
 ];

@@ -9,7 +9,6 @@ import { UserMenu } from './UserMenu';
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
   { name: 'Watchlist', href: '/watchlist', icon: List },
-  { name: 'Trending', href: '/trending', icon: TrendingUp },
 ];
 
 const categories = [
