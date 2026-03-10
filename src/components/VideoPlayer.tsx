@@ -201,6 +201,7 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
         onClick={(e) => e.stopPropagation()}
         onMouseMove={resetControlsTimeout}
         onMouseEnter={() => setShowControls(true)}
+        onTouchStart={resetControlsTimeout}
       >
         {/* YouTube Player Container */}
         <div id="yt-player" className="w-full h-full" />

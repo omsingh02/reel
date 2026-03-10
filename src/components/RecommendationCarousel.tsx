@@ -97,7 +97,7 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
             return (
               <button
                 key={item.id}
-                className="flex-shrink-0 w-28 group/card cursor-pointer text-left"
+                className="flex-shrink-0 w-32 sm:w-28 group/card cursor-pointer text-left"
                 onClick={() => onSelect(item.id, mediaType)}
               >
                 <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary mb-2">
