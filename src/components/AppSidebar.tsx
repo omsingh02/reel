@@ -1,4 +1,4 @@
-import { Home, List, TrendingUp, Film, Tv } from 'lucide-react';
+import { Home, List, Film, Tv } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +9,6 @@ import { UserMenu } from './UserMenu';
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
   { name: 'Watchlist', href: '/watchlist', icon: List },
-  { name: 'Trending', href: '/trending', icon: TrendingUp },
 ];
 
 const categories = [

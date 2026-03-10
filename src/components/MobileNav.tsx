@@ -1,4 +1,4 @@
-import { Home, List, TrendingUp, Film, Tv, User } from 'lucide-react';
+import { Home, List, Film, Tv, User } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +7,6 @@ import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
   { name: 'Watchlist', href: '/watchlist', icon: List },
-  { name: 'Trending', href: '/trending', icon: TrendingUp },
   { name: 'Movies', href: '/movies', icon: Film },
   { name: 'TV', href: '/tv', icon: Tv },
 ];

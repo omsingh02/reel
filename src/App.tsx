@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Watchlist from "./pages/Watchlist";
-import Trending from "./pages/Trending";
+
 import Movies from "./pages/Movies";
 import TVShows from "./pages/TVShows";
 import Auth from "./pages/Auth";
@@ -33,7 +33,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/watchlist" element={<Watchlist />} />
-              <Route path="/trending" element={<Trending />} />
+              
               <Route path="/movies" element={<Movies />} />
               <Route path="/tv" element={<TVShows />} />
               <Route path="/auth" element={<Auth />} />
