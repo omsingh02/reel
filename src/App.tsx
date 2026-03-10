@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Watchlist from "./pages/Watchlist";
-import Trending from "./pages/Trending";
+
 import Movies from "./pages/Movies";
 import TVShows from "./pages/TVShows";
 import Auth from "./pages/Auth";
