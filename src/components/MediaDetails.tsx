@@ -584,6 +584,16 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
           onClose={() => setShowPlayer(false)}
         />
       )}
+
+      {/* Stream Player */}
+      {showStream && (
+        <StreamPlayer
+          tmdbId={id}
+          mediaType={mediaType}
+          title={title}
+          onClose={() => setShowStream(false)}
+        />
+      )}
     </>
   );
 }
