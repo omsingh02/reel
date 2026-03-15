@@ -306,6 +306,10 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     Trailer
                   </Button>
                 )}
+                <Button variant="outline" className="rounded-full px-6" onClick={() => setShowStream(true)}>
+                  <MonitorPlay className="h-4 w-4 mr-2" />
+                  Watch Now
+                </Button>
                 <ShareButton title={title} mediaType={mediaType} id={id} />
                 {externalLinks.map(link => (
                   <a
