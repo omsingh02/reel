@@ -59,7 +59,8 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
   useKeyboardShortcuts({
     onEscape: () => {
-      if (showPlayer) setShowPlayer(false);
+      if (showStream) setShowStream(false);
+      else if (showPlayer) setShowPlayer(false);
       else onClose();
     },
     enabled: true,
