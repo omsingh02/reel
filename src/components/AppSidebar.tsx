@@ -27,7 +27,7 @@ export function AppSidebar() {
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-sidebar-border lg:bg-sidebar-background">
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-sidebar-border lg:bg-sidebar-background lg:fixed lg:inset-y-0 lg:left-0 lg:z-30">
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
