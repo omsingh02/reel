@@ -45,6 +45,7 @@ function Chip({ children }: { children: React.ReactNode }) {
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
   const [showPlayer, setShowPlayer] = useState(false);
+  const [showStream, setShowStream] = useState(false);
 
   const { data, isLoading, error } = useQuery<TMDBMovieDetails | TMDBTVShowDetails>({
     queryKey: ['media-details', mediaType, id],
