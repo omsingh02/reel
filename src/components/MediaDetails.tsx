@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, Shield, MonitorPlay } from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
+import { StreamPlayer } from '@/components/StreamPlayer';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { VideoPlayer } from '@/components/VideoPlayer';
@@ -43,6 +44,7 @@ function Chip({ children }: { children: React.ReactNode }) {
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
   const [showPlayer, setShowPlayer] = useState(false);
+  const [showStream, setShowStream] = useState(false);
 
   const { data, isLoading, error } = useQuery<TMDBMovieDetails | TMDBTVShowDetails>({
     queryKey: ['media-details', mediaType, id],
@@ -56,7 +58,8 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
   useKeyboardShortcuts({
     onEscape: () => {
-      if (showPlayer) setShowPlayer(false);
+      if (showStream) setShowStream(false);
+      else if (showPlayer) setShowPlayer(false);
       else onClose();
     },
     enabled: true,
@@ -302,6 +305,10 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     Trailer
                   </Button>
                 )}
+                <Button variant="outline" className="rounded-full px-6" onClick={() => setShowStream(true)}>
+                  <MonitorPlay className="h-4 w-4 mr-2" />
+                  Watch Now
+                </Button>
                 <ShareButton title={title} mediaType={mediaType} id={id} />
                 {externalLinks.map(link => (
                   <a
@@ -574,6 +581,16 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
           videoKey={trailer.key}
           title={`${title} - ${trailer.name}`}
           onClose={() => setShowPlayer(false)}
+        />
+      )}
+
+      {/* Stream Player */}
+      {showStream && (
+        <StreamPlayer
+          tmdbId={id}
+          mediaType={mediaType}
+          title={title}
+          onClose={() => setShowStream(false)}
         />
       )}
     </>
