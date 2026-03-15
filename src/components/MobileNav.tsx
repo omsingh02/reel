@@ -1,4 +1,4 @@
-import { Home, List, Film, Tv, User } from 'lucide-react';
+import { Home, List, Film, Tv, User, LogIn } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,9 +6,9 @@ import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
-  { name: 'Watchlist', href: '/watchlist', icon: List },
   { name: 'Movies', href: '/movies', icon: Film },
   { name: 'TV', href: '/tv', icon: Tv },
+  { name: 'Watchlist', href: '/watchlist', icon: List },
 ];
 
 export function MobileNav() {
@@ -18,7 +18,7 @@ export function MobileNav() {
   const { watchlist } = useWatchlistDB();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-sm" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-md" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around h-16">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
@@ -30,18 +30,18 @@ export function MobileNav() {
                 "relative flex flex-col items-center justify-center h-full px-3 text-xs transition-colors",
                 isActive 
                   ? "text-primary" 
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground"
               )}
             >
               <div className={cn(
-                "flex items-center justify-center w-14 h-8 rounded-full mb-0.5 transition-colors",
-                isActive && "bg-primary/12"
+                "flex items-center justify-center w-12 h-8 rounded-full mb-0.5 transition-all duration-200",
+                isActive && "bg-primary/12 scale-110"
               )}>
                 <item.icon className="h-5 w-5" />
               </div>
-              <span className="text-[11px]">{item.name}</span>
+              <span className={cn("text-[11px]", isActive && "font-medium")}>{item.name}</span>
               {item.name === 'Watchlist' && user && watchlist.length > 0 && (
-                <span className="absolute top-1 right-0.5 h-4 min-w-4 text-[10px] bg-primary text-primary-foreground px-1 rounded-full flex items-center justify-center">
+                <span className="absolute top-1 right-0.5 h-4 min-w-4 text-[10px] bg-primary text-primary-foreground px-1 rounded-full flex items-center justify-center font-medium">
                   {watchlist.length}
                 </span>
               )}
@@ -49,21 +49,23 @@ export function MobileNav() {
           );
         })}
         <button
-          onClick={() => navigate('/auth')}
+          onClick={() => navigate(user ? '/auth' : '/auth')}
           className={cn(
             "flex flex-col items-center justify-center h-full px-3 text-xs transition-colors",
             location.pathname === '/auth'
               ? "text-primary"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground"
           )}
         >
           <div className={cn(
-            "flex items-center justify-center w-14 h-8 rounded-full mb-0.5 transition-colors",
-            location.pathname === '/auth' && "bg-primary/12"
+            "flex items-center justify-center w-12 h-8 rounded-full mb-0.5 transition-all duration-200",
+            location.pathname === '/auth' && "bg-primary/12 scale-110"
           )}>
-            <User className="h-5 w-5" />
+            {user ? <User className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
           </div>
-          <span className="text-[11px]">{user ? 'Account' : 'Sign In'}</span>
+          <span className={cn("text-[11px]", location.pathname === '/auth' && "font-medium")}>
+            {user ? 'Account' : 'Sign In'}
+          </span>
         </button>
       </div>
     </nav>

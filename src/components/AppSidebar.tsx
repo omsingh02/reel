@@ -1,10 +1,12 @@
-import { Home, List, Film, Tv } from 'lucide-react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Home, List, Film, Tv, LogIn, LogOut } from 'lucide-react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 import { ThemeToggle } from './ThemeToggle';
-import { UserMenu } from './UserMenu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
@@ -18,27 +20,26 @@ const categories = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const { watchlist } = useWatchlistDB();
 
+  const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
+
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-60 lg:border-r lg:border-sidebar-border lg:bg-sidebar-background">
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-sidebar-border lg:bg-sidebar-background">
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-5 border-b border-sidebar-border">
+      <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center">
+          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center">
             <Film className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-sidebar-foreground">Watchlist</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-          <UserMenu />
+          <span className="text-lg font-bold text-sidebar-foreground tracking-tight">Watchlist</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3">
+      <nav className="flex-1 py-5 px-3 space-y-6">
         <div className="space-y-1">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
@@ -47,16 +48,21 @@ export function AppSidebar() {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-full transition-colors",
+                  "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                   isActive 
-                    ? "bg-primary/12 text-primary" 
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                    ? "bg-primary text-primary-foreground shadow-sm" 
+                    : "text-sidebar-foreground hover:bg-sidebar-accent"
                 )}
               >
                 <item.icon className="h-4 w-4" />
                 {item.name}
                 {item.name === 'Watchlist' && user && watchlist.length > 0 && (
-                  <span className="ml-auto text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+                  <span className={cn(
+                    "ml-auto text-xs px-2 py-0.5 rounded-full font-medium",
+                    isActive 
+                      ? "bg-primary-foreground/20 text-primary-foreground" 
+                      : "bg-primary/10 text-primary"
+                  )}>
                     {watchlist.length}
                   </span>
                 )}
@@ -65,8 +71,8 @@ export function AppSidebar() {
           })}
         </div>
 
-        <div className="mt-6">
-          <h3 className="px-4 text-xs font-medium text-muted-foreground mb-2">
+        <div>
+          <h3 className="px-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Browse
           </h3>
           <div className="space-y-1">
@@ -77,10 +83,10 @@ export function AppSidebar() {
                   key={item.name}
                   to={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-full transition-colors",
+                    "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
                     isActive 
-                      ? "bg-primary/12 text-primary" 
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      ? "bg-primary text-primary-foreground shadow-sm" 
+                      : "text-sidebar-foreground hover:bg-sidebar-accent"
                   )}
                 >
                   <item.icon className="h-4 w-4" />
@@ -91,6 +97,46 @@ export function AppSidebar() {
           </div>
         </div>
       </nav>
+
+      {/* Bottom section */}
+      <div className="p-3 border-t border-sidebar-border space-y-2">
+        <div className="flex items-center justify-between px-2">
+          <ThemeToggle />
+        </div>
+
+        {user ? (
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-sidebar-accent/50">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-sidebar-foreground truncate">
+                {user.email}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive shrink-0"
+              onClick={() => signOut()}
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="default"
+            className="w-full rounded-xl h-10 gap-2"
+            onClick={() => navigate('/auth')}
+          >
+            <LogIn className="h-4 w-4" />
+            Sign In
+          </Button>
+        )}
+      </div>
     </aside>
   );
 }
