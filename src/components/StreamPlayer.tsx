@@ -22,6 +22,7 @@ interface StreamPlayerProps {
 interface StreamSource {
   name: string;
   getUrl: (tmdbId: number, mediaType: MediaType, season?: number, episode?: number) => string;
+  sandbox: boolean;
 }
 
 const sources: StreamSource[] = [
