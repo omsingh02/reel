@@ -170,8 +170,8 @@ export default function Index() {
               onItemClick={handleMediaClick}
             />
             
-            <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
-              {isFetchingMore && <LoadingSpinner size="sm" />}
+            <div ref={loadMoreRef} className="py-4">
+              {isFetchingMore && <MediaGridSkeleton count={6} />}
             </div>
           </>
         )}

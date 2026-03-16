@@ -97,8 +97,8 @@ export default function Trending() {
               onItemClick={handleMediaClick}
             />
             
-            <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
-              {isFetchingNextPage && <LoadingSpinner size="sm" />}
+            <div ref={loadMoreRef} className="py-4">
+              {isFetchingNextPage && <MediaGridSkeleton count={6} />}
             </div>
           </>
         )}
