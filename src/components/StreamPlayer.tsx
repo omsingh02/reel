@@ -22,6 +22,7 @@ interface StreamPlayerProps {
 interface StreamSource {
   name: string;
   getUrl: (tmdbId: number, mediaType: MediaType, season?: number, episode?: number) => string;
+  sandbox: boolean;
 }
 
 const sources: StreamSource[] = [
@@ -31,6 +32,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://vidsrc.xyz/embed/tv/${id}/${s}/${e}`
         : `https://vidsrc.xyz/embed/${type}/${id}`,
+    sandbox: true,
   },
   {
     name: 'Embed.su',
@@ -38,6 +40,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://embed.su/embed/${type}/${id}/${s}/${e}`
         : `https://embed.su/embed/${type}/${id}`,
+    sandbox: true,
   },
   {
     name: 'SmashyStream',
@@ -45,6 +48,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://player.smashy.stream/${type}/${id}?s=${s}&e=${e}`
         : `https://player.smashy.stream/${type}/${id}`,
+    sandbox: true,
   },
   {
     name: 'VidLink',
@@ -52,13 +56,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://vidlink.pro/tv/${id}/${s}/${e}`
         : `https://vidlink.pro/${type}/${id}`,
-  },
-  {
-    name: 'Filmex',
-    getUrl: (id, type, s, e) =>
-      type === 'tv' && s && e
-        ? `https://filmex.to/embed/${type}/${id}/${s}/${e}`
-        : `https://filmex.to/embed/${type}/${id}`,
+    sandbox: false,
   },
 ];
 
@@ -125,7 +123,7 @@ export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClos
             allowFullScreen
             allow="autoplay; encrypted-media; picture-in-picture"
             referrerPolicy="origin"
-            sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-presentation"
+            {...(activeSource.sandbox ? { sandbox: "allow-forms allow-scripts allow-same-origin allow-popups allow-presentation" } : {})}
           />
         </div>
       </div>
