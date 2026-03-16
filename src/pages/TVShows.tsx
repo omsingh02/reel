@@ -8,6 +8,7 @@ import { MediaDetails } from '@/components/MediaDetails';
 import { SortSelect, SortOption } from '@/components/SortSelect';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
 import { searchMedia, getPopular, sortMedia } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -130,8 +131,8 @@ export default function TVShows() {
               onItemClick={handleMediaClick}
             />
             
-            <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
-              {isFetchingMore && <LoadingSpinner size="sm" />}
+            <div ref={loadMoreRef} className="py-4">
+              {isFetchingMore && <MediaGridSkeleton count={6} />}
             </div>
           </>
         )}
