@@ -58,6 +58,46 @@ const sources: StreamSource[] = [
         : `https://vidlink.pro/${type}/${id}`,
     sandbox: false,
   },
+  {
+    name: '2Embed',
+    getUrl: (id, type, s, e) =>
+      type === 'tv' && s && e
+        ? `https://www.2embed.online/embed/tv/${id}/${s}/${e}`
+        : `https://www.2embed.online/embed/${type}/${id}`,
+    sandbox: true,
+  },
+  {
+    name: 'VidBinge',
+    getUrl: (id, type, s, e) =>
+      type === 'tv' && s && e
+        ? `https://vidbinge.to/tv/${id}/${s}/${e}`
+        : `https://vidbinge.to/${type}/${id}`,
+    sandbox: false,
+  },
+  {
+    name: 'VikingEmbed',
+    getUrl: (id, type, s, e) =>
+      type === 'tv' && s && e
+        ? `https://vembed.stream/play/${id}/${s}/${e}`
+        : `https://vembed.stream/play/${id}`,
+    sandbox: false,
+  },
+  {
+    name: 'AutoEmbed',
+    getUrl: (id, type, s, e) =>
+      type === 'tv' && s && e
+        ? `https://autoembed.co/${type}/tmdb/${id}-${s}-${e}`
+        : `https://autoembed.co/${type}/tmdb/${id}`,
+    sandbox: false,
+  },
+  {
+    name: 'NontonGo',
+    getUrl: (id, type, s, e) =>
+      type === 'tv' && s && e
+        ? `https://www.nontongo.win/embed/${type}/${id}/${s}/${e}`
+        : `https://www.nontongo.win/embed/${type}/${id}`,
+    sandbox: true,
+  },
 ];
 
 export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClose }: StreamPlayerProps) {
