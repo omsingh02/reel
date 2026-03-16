@@ -89,7 +89,7 @@ export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClos
                   <ChevronDown className="h-3.5 w-3.5 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-xl min-w-[140px]">
+              <DropdownMenuContent align="end" className="rounded-xl min-w-[140px] z-[70]">
                 {sources.map((source) => (
                   <DropdownMenuItem
                     key={source.name}
