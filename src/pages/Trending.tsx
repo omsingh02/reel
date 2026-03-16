@@ -8,6 +8,7 @@ import { MediaTypeFilter } from '@/components/MediaTypeFilter';
 import { SortSelect, SortOption } from '@/components/SortSelect';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
 import { getTrending, sortMedia } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
