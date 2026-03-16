@@ -90,14 +90,6 @@ const sources: StreamSource[] = [
         : `https://autoembed.co/${type}/tmdb/${id}`,
     sandbox: false,
   },
-  {
-    name: 'NontonGo',
-    getUrl: (id, type, s, e) =>
-      type === 'tv' && s && e
-        ? `https://www.nontongo.win/embed/${type}/${id}/${s}/${e}`
-        : `https://www.nontongo.win/embed/${type}/${id}`,
-    sandbox: true,
-  },
 ];
 
 export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClose }: StreamPlayerProps) {
