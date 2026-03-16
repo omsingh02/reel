@@ -31,6 +31,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://vidsrc.xyz/embed/tv/${id}/${s}/${e}`
         : `https://vidsrc.xyz/embed/${type}/${id}`,
+    sandbox: true,
   },
   {
     name: 'Embed.su',
@@ -38,6 +39,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://embed.su/embed/${type}/${id}/${s}/${e}`
         : `https://embed.su/embed/${type}/${id}`,
+    sandbox: true,
   },
   {
     name: 'SmashyStream',
@@ -45,6 +47,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://player.smashy.stream/${type}/${id}?s=${s}&e=${e}`
         : `https://player.smashy.stream/${type}/${id}`,
+    sandbox: true,
   },
   {
     name: 'VidLink',
@@ -52,13 +55,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://vidlink.pro/tv/${id}/${s}/${e}`
         : `https://vidlink.pro/${type}/${id}`,
-  },
-  {
-    name: 'Filmex',
-    getUrl: (id, type, s, e) =>
-      type === 'tv' && s && e
-        ? `https://filmex.to/embed/${type}/${id}/${s}/${e}`
-        : `https://filmex.to/embed/${type}/${id}`,
+    sandbox: false,
   },
 ];
 
