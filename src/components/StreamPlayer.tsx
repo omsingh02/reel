@@ -123,7 +123,7 @@ export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClos
             allowFullScreen
             allow="autoplay; encrypted-media; picture-in-picture"
             referrerPolicy="origin"
-            sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-presentation"
+            {...(activeSource.sandbox ? { sandbox: "allow-forms allow-scripts allow-same-origin allow-popups allow-presentation" } : {})}
           />
         </div>
       </div>
