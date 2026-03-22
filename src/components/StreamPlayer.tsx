@@ -48,7 +48,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://player.smashy.stream/${type}/${id}?s=${s}&e=${e}`
         : `https://player.smashy.stream/${type}/${id}`,
-    sandbox: true,
+    sandbox: false,
   },
   {
     name: 'VidLink',
