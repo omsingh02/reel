@@ -46,8 +46,8 @@ const sources: StreamSource[] = [
     name: 'SmashyStream',
     getUrl: (id, type, s, e) =>
       type === 'tv' && s && e
-        ? `https://player.smashy.stream/${type}/${id}?s=${s}&e=${e}`
-        : `https://player.smashy.stream/${type}/${id}`,
+        ? `https://embed.smashystream.com/playere.php?tmdb=${id}&sea=${s}&epi=${e}`
+        : `https://embed.smashystream.com/playere.php?tmdb=${id}`,
     sandbox: false,
   },
   {
@@ -75,14 +75,6 @@ const sources: StreamSource[] = [
     sandbox: false,
   },
   {
-    name: 'VikingEmbed',
-    getUrl: (id, type, s, e) =>
-      type === 'tv' && s && e
-        ? `https://vembed.stream/play/${id}/${s}/${e}`
-        : `https://vembed.stream/play/${id}`,
-    sandbox: false,
-  },
-  {
     name: 'AutoEmbed',
     getUrl: (id, type, s, e) =>
       type === 'tv' && s && e
@@ -96,14 +88,6 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`
         : `https://www.2embed.cc/embed/${id}`,
-    sandbox: false,
-  },
-  {
-    name: 'SuperEmbed',
-    getUrl: (id, type, s, e) =>
-      type === 'tv' && s && e
-        ? `https://multiembed.mov/?tmdb=1&video_id=${id}&s=${s}&e=${e}`
-        : `https://multiembed.mov/?tmdb=1&video_id=${id}`,
     sandbox: false,
   },
   {
