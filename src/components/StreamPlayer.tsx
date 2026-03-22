@@ -90,6 +90,30 @@ const sources: StreamSource[] = [
         : `https://autoembed.co/${type}/tmdb/${id}`,
     sandbox: false,
   },
+  {
+    name: '2Embed.cc',
+    getUrl: (id, type, s, e) =>
+      type === 'tv' && s && e
+        ? `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`
+        : `https://www.2embed.cc/embed/${id}`,
+    sandbox: false,
+  },
+  {
+    name: 'SuperEmbed',
+    getUrl: (id, type, s, e) =>
+      type === 'tv' && s && e
+        ? `https://multiembed.mov/?tmdb=1&video_id=${id}&s=${s}&e=${e}`
+        : `https://multiembed.mov/?tmdb=1&video_id=${id}`,
+    sandbox: false,
+  },
+  {
+    name: 'MoviesAPI',
+    getUrl: (id, type, s, e) =>
+      type === 'tv' && s && e
+        ? `https://moviesapi.club/tv/${id}-${s}-${e}`
+        : `https://moviesapi.club/movie/${id}`,
+    sandbox: false,
+  },
 ];
 
 export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClose }: StreamPlayerProps) {
