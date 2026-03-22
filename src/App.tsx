@@ -2,16 +2,18 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Index from "./pages/Index";
-import Watchlist from "./pages/Watchlist";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
-import Movies from "./pages/Movies";
-import TVShows from "./pages/TVShows";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
+const Index = lazy(() => import("./pages/Index"));
+const Watchlist = lazy(() => import("./pages/Watchlist"));
+const Movies = lazy(() => import("./pages/Movies"));
+const TVShows = lazy(() => import("./pages/TVShows"));
+const Auth = lazy(() => import("./pages/Auth"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,16 +32,17 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/watchlist" element={<Watchlist />} />
-              
-              <Route path="/movies" element={<Movies />} />
-              <Route path="/tv" element={<TVShows />} />
-              <Route path="/auth" element={<Auth />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><LoadingSpinner size="lg" /></div>}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/watchlist" element={<Watchlist />} />
+
+                <Route path="/movies" element={<Movies />} />
+                <Route path="/tv" element={<TVShows />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
