@@ -9,7 +9,7 @@ import { VideoPlayer } from '@/components/VideoPlayer';
 import { ShareButton } from '@/components/ShareButton';
 import { RecommendationCarousel } from '@/components/RecommendationCarousel';
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
-import { getMovieDetails, getTVShowDetails, getImageUrl } from '@/lib/tmdb';
+import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
