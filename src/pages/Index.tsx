@@ -10,7 +10,7 @@ import { SortSelect, SortOption } from '@/components/SortSelect';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
-import { searchMedia, getTrending, sortMedia } from '@/lib/tmdb';
+import { searchMedia, getTrending, sortMedia, cleanMediaList } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
