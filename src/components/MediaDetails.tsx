@@ -160,7 +160,10 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const backdrops = (data.images?.backdrops || []).slice(0, 6);
 
   // Similar titles
-  const similarItems = (data.similar?.results || []).slice(0, 10);
+  const recIds = new Set(recommendations.map(r => r.id));
+  const similarItems = cleanMediaList((data.similar?.results || []) as (TMDBMovie | TMDBTVShow)[])
+    .filter(s => !recIds.has(s.id))
+    .slice(0, 12);
 
   const imdbId = data.external_ids?.imdb_id || (isMovie ? movieData?.imdb_id : null);
   const externalLinks = [
