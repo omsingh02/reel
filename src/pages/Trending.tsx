@@ -39,11 +39,12 @@ export default function Trending() {
   });
 
   const rawItems = useMemo(() => {
-    return data?.pages.flatMap(page => page.results) || [];
+    const flat = data?.pages.flatMap(page => page.results) || [];
+    return cleanMediaList(flat as (TMDBMovie | TMDBTVShow)[]);
   }, [data]);
 
   const items = useMemo(() => {
-    return sortMedia(rawItems as (TMDBMovie | TMDBTVShow)[], sortBy);
+    return sortMedia(rawItems, sortBy);
   }, [rawItems, sortBy]);
 
   const { loadMoreRef } = useInfiniteScroll({
