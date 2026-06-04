@@ -117,10 +117,21 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   if (error || !data) {
     return (
       <Shell>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">Failed to load details</p>
-            <Button variant="outline" className="rounded-full" onClick={onClose}>Close</Button>
+        <div className="flex items-center justify-center h-full p-6">
+          <div className="text-center max-w-sm">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
+              <X className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="text-base font-semibold mb-1">Couldn't load details</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Something went wrong fetching this title. It might be a temporary network issue.
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => refetch()} disabled={isFetching} className="rounded-full">
+                {isFetching ? 'Retrying…' : 'Try again'}
+              </Button>
+              <Button variant="outline" className="rounded-full" onClick={onClose}>Close</Button>
+            </div>
           </div>
         </div>
       </Shell>
