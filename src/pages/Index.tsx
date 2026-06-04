@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useTransition } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { Layout } from '@/components/Layout';
