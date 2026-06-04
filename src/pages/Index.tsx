@@ -164,12 +164,20 @@ export default function Index() {
         </div>
 
         {isLoading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+          <MediaGridSkeleton count={12} />
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load results"
+            description="Something went wrong reaching the catalog. Check your connection and try again."
+          >
+            <Button onClick={() => refetch()} className="rounded-full">Try again</Button>
+          </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState
             icon={Search}
-            title="No results found"
-            description={searchQuery ? `Try a different search term` : 'Start searching for movies and TV shows'}
+            title={searchQuery ? 'No results found' : 'Nothing to show yet'}
+            description={searchQuery ? `No matches for "${searchQuery}". Try a different search term.` : 'Start searching for movies and TV shows.'}
           />
         ) : (
           <>
@@ -181,6 +189,9 @@ export default function Index() {
             
             <div ref={loadMoreRef} className="py-4">
               {isFetchingMore && <MediaGridSkeleton count={6} />}
+              {!hasMore && items.length > 12 && (
+                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
+              )}
             </div>
           </>
         )}
