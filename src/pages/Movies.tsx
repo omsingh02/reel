@@ -125,12 +125,20 @@ export default function Movies() {
         </div>
 
         {isLoading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+          <MediaGridSkeleton count={12} />
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load movies"
+            description="Something went wrong reaching the catalog. Check your connection and try again."
+          >
+            <Button onClick={() => refetch()} className="rounded-full">Try again</Button>
+          </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState
             icon={Film}
             title="No movies found"
-            description={searchQuery ? 'Try a different search term' : 'Check back later'}
+            description={searchQuery ? `No matches for "${searchQuery}". Try a different search term.` : 'Check back later.'}
           />
         ) : (
           <>
@@ -142,6 +150,9 @@ export default function Movies() {
             
             <div ref={loadMoreRef} className="py-4">
               {isFetchingMore && <MediaGridSkeleton count={6} />}
+              {!hasMore && items.length > 12 && (
+                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
+              )}
             </div>
           </>
         )}
