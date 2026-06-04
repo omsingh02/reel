@@ -22,6 +22,8 @@ export default function TVShows() {
   const {
     data: popularData,
     isLoading: popularLoading,
+    isError: popularError,
+    refetch: refetchPopular,
     fetchNextPage: fetchNextPopular,
     hasNextPage: hasMorePopular,
     isFetchingNextPage: isFetchingPopular,
@@ -37,11 +39,14 @@ export default function TVShows() {
     initialPageParam: 1,
     enabled: !searchQuery,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const {
     data: searchData,
     isLoading: searchLoading,
+    isError: searchError,
+    refetch: refetchSearch,
     fetchNextPage: fetchNextSearch,
     hasNextPage: hasMoreSearch,
     isFetchingNextPage: isFetchingSearch,
@@ -57,9 +62,12 @@ export default function TVShows() {
     initialPageParam: 1,
     enabled: !!searchQuery,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const isLoading = searchQuery ? searchLoading : popularLoading;
+  const isError = searchQuery ? searchError : popularError;
+  const refetch = searchQuery ? refetchSearch : refetchPopular;
   const isFetchingMore = searchQuery ? isFetchingSearch : isFetchingPopular;
   const hasMore = searchQuery ? hasMoreSearch : hasMorePopular;
   const fetchMore = searchQuery ? fetchNextSearch : fetchNextPopular;
