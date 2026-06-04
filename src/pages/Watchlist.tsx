@@ -5,6 +5,7 @@ import { Layout } from '@/components/Layout';
 import { WatchlistCard } from '@/components/WatchlistCard';
 import { MediaDetails } from '@/components/MediaDetails';
 import { EmptyState } from '@/components/EmptyState';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlistDB } from '@/hooks/useWatchlistDB';
@@ -44,10 +45,8 @@ export default function Watchlist() {
               Sign In
             </Button>
           </EmptyState>
-        ) : isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          </div>
+        ) : isLoading || authLoading ? (
+          <LoadingSpinner className="py-20" size="lg" />
         ) : watchlist.length === 0 ? (
           <EmptyState
             icon={List}

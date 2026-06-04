@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, AlertTriangle } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { MediaGrid } from '@/components/MediaGrid';
 import { MediaDetails } from '@/components/MediaDetails';
 import { MediaTypeFilter } from '@/components/MediaTypeFilter';
 import { SortSelect, SortOption } from '@/components/SortSelect';
 import { EmptyState } from '@/components/EmptyState';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Button } from '@/components/ui/button';
 import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
 import { getTrending, sortMedia, cleanMediaList } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -22,6 +22,8 @@ export default function Trending() {
   const {
     data,
     isLoading,
+    isError,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -36,6 +38,7 @@ export default function Trending() {
     },
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const rawItems = useMemo(() => {
@@ -83,12 +86,20 @@ export default function Trending() {
 
       <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
         {isLoading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+          <MediaGridSkeleton count={12} />
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load trending"
+            description="Something went wrong reaching the catalog. Check your connection and try again."
+          >
+            <Button onClick={() => refetch()} className="rounded-full">Try again</Button>
+          </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState
             icon={TrendingUp}
             title="No trending content"
-            description="Check back later for trending movies and TV shows"
+            description="Check back later for trending movies and TV shows."
           />
         ) : (
           <>
@@ -100,6 +111,9 @@ export default function Trending() {
             
             <div ref={loadMoreRef} className="py-4">
               {isFetchingNextPage && <MediaGridSkeleton count={6} />}
+              {!hasNextPage && items.length > 12 && (
+                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
+              )}
             </div>
           </>
         )}

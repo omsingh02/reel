@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { Search, AlertTriangle } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { SearchBar } from '@/components/SearchBar';
 import { MediaGrid } from '@/components/MediaGrid';
@@ -8,7 +8,7 @@ import { MediaDetails } from '@/components/MediaDetails';
 import { MediaTypeFilter } from '@/components/MediaTypeFilter';
 import { SortSelect, SortOption } from '@/components/SortSelect';
 import { EmptyState } from '@/components/EmptyState';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Button } from '@/components/ui/button';
 import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
 import { searchMedia, getTrending, sortMedia, cleanMediaList } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -36,6 +36,8 @@ export default function Index() {
   const {
     data: trendingData,
     isLoading: trendingLoading,
+    isError: trendingError,
+    refetch: refetchTrending,
     fetchNextPage: fetchNextTrending,
     hasNextPage: hasMoreTrending,
     isFetchingNextPage: isFetchingTrending,
@@ -51,11 +53,14 @@ export default function Index() {
     initialPageParam: 1,
     enabled: !searchQuery,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const {
     data: searchData,
     isLoading: searchLoading,
+    isError: searchError,
+    refetch: refetchSearch,
     fetchNextPage: fetchNextSearch,
     hasNextPage: hasMoreSearch,
     isFetchingNextPage: isFetchingSearch,
@@ -71,9 +76,12 @@ export default function Index() {
     initialPageParam: 1,
     enabled: !!searchQuery,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const isLoading = searchQuery ? searchLoading : trendingLoading;
+  const isError = searchQuery ? searchError : trendingError;
+  const refetch = searchQuery ? refetchSearch : refetchTrending;
   const isFetchingMore = searchQuery ? isFetchingSearch : isFetchingTrending;
   const hasMore = searchQuery ? hasMoreSearch : hasMoreTrending;
   const fetchMore = searchQuery ? fetchNextSearch : fetchNextTrending;
@@ -156,12 +164,20 @@ export default function Index() {
         </div>
 
         {isLoading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+          <MediaGridSkeleton count={12} />
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load results"
+            description="Something went wrong reaching the catalog. Check your connection and try again."
+          >
+            <Button onClick={() => refetch()} className="rounded-full">Try again</Button>
+          </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState
             icon={Search}
-            title="No results found"
-            description={searchQuery ? `Try a different search term` : 'Start searching for movies and TV shows'}
+            title={searchQuery ? 'No results found' : 'Nothing to show yet'}
+            description={searchQuery ? `No matches for "${searchQuery}". Try a different search term.` : 'Start searching for movies and TV shows.'}
           />
         ) : (
           <>
@@ -173,6 +189,9 @@ export default function Index() {
             
             <div ref={loadMoreRef} className="py-4">
               {isFetchingMore && <MediaGridSkeleton count={6} />}
+              {!hasMore && items.length > 12 && (
+                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
+              )}
             </div>
           </>
         )}

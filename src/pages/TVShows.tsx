@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Tv } from 'lucide-react';
+import { Tv, AlertTriangle } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { SearchBar } from '@/components/SearchBar';
 import { MediaGrid } from '@/components/MediaGrid';
 import { MediaDetails } from '@/components/MediaDetails';
 import { SortSelect, SortOption } from '@/components/SortSelect';
 import { EmptyState } from '@/components/EmptyState';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Button } from '@/components/ui/button';
 import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
 import { searchMedia, getPopular, sortMedia, cleanMediaList } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -22,6 +22,8 @@ export default function TVShows() {
   const {
     data: popularData,
     isLoading: popularLoading,
+    isError: popularError,
+    refetch: refetchPopular,
     fetchNextPage: fetchNextPopular,
     hasNextPage: hasMorePopular,
     isFetchingNextPage: isFetchingPopular,
@@ -37,11 +39,14 @@ export default function TVShows() {
     initialPageParam: 1,
     enabled: !searchQuery,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const {
     data: searchData,
     isLoading: searchLoading,
+    isError: searchError,
+    refetch: refetchSearch,
     fetchNextPage: fetchNextSearch,
     hasNextPage: hasMoreSearch,
     isFetchingNextPage: isFetchingSearch,
@@ -57,9 +62,12 @@ export default function TVShows() {
     initialPageParam: 1,
     enabled: !!searchQuery,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const isLoading = searchQuery ? searchLoading : popularLoading;
+  const isError = searchQuery ? searchError : popularError;
+  const refetch = searchQuery ? refetchSearch : refetchPopular;
   const isFetchingMore = searchQuery ? isFetchingSearch : isFetchingPopular;
   const hasMore = searchQuery ? hasMoreSearch : hasMorePopular;
   const fetchMore = searchQuery ? fetchNextSearch : fetchNextPopular;
@@ -117,12 +125,20 @@ export default function TVShows() {
         </div>
 
         {isLoading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+          <MediaGridSkeleton count={12} />
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load TV shows"
+            description="Something went wrong reaching the catalog. Check your connection and try again."
+          >
+            <Button onClick={() => refetch()} className="rounded-full">Try again</Button>
+          </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState
             icon={Tv}
             title="No TV shows found"
-            description={searchQuery ? 'Try a different search term' : 'Check back later'}
+            description={searchQuery ? `No matches for "${searchQuery}". Try a different search term.` : 'Check back later.'}
           />
         ) : (
           <>
@@ -134,6 +150,9 @@ export default function TVShows() {
             
             <div ref={loadMoreRef} className="py-4">
               {isFetchingMore && <MediaGridSkeleton count={6} />}
+              {!hasMore && items.length > 12 && (
+                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
+              )}
             </div>
           </>
         )}
