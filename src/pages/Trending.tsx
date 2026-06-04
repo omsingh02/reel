@@ -86,12 +86,20 @@ export default function Trending() {
 
       <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
         {isLoading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+          <MediaGridSkeleton count={12} />
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load trending"
+            description="Something went wrong reaching the catalog. Check your connection and try again."
+          >
+            <Button onClick={() => refetch()} className="rounded-full">Try again</Button>
+          </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState
             icon={TrendingUp}
             title="No trending content"
-            description="Check back later for trending movies and TV shows"
+            description="Check back later for trending movies and TV shows."
           />
         ) : (
           <>
@@ -103,6 +111,9 @@ export default function Trending() {
             
             <div ref={loadMoreRef} className="py-4">
               {isFetchingNextPage && <MediaGridSkeleton count={6} />}
+              {!hasNextPage && items.length > 12 && (
+                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
+              )}
             </div>
           </>
         )}
