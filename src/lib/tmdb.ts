@@ -149,19 +149,43 @@ export function sortMedia<T extends TMDBMovie | TMDBTVShow>(
   return [...items].sort((a, b) => {
     switch (sortBy) {
       case 'popularity':
-        return b.popularity - a.popularity;
+        return (b.popularity ?? 0) - (a.popularity ?? 0);
       case 'rating':
-        return b.vote_average - a.vote_average;
-      case 'release_date':
+        return (b.vote_average ?? 0) - (a.vote_average ?? 0);
+      case 'release_date': {
         const dateA = getReleaseDate(a);
         const dateB = getReleaseDate(b);
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
-      case 'title':
-        const titleA = getTitle(a);
-        const titleB = getTitle(b);
+        const tA = dateA ? new Date(dateA).getTime() : 0;
+        const tB = dateB ? new Date(dateB).getTime() : 0;
+        return (isNaN(tB) ? 0 : tB) - (isNaN(tA) ? 0 : tA);
+      }
+      case 'title': {
+        const titleA = getTitle(a) || '';
+        const titleB = getTitle(b) || '';
         return titleA.localeCompare(titleB);
+      }
       default:
         return 0;
     }
   });
+}
+
+/**
+ * Dedupe a TMDB list by id and drop low-quality entries (missing poster).
+ * TMDB pagination commonly returns the same item across pages — without
+ * this, the grid renders duplicate cards.
+ */
+export function cleanMediaList<T extends { id: number; poster_path?: string | null; adult?: boolean }>(
+  items: T[]
+): T[] {
+  const seen = new Set<number>();
+  const out: T[] = [];
+  for (const item of items) {
+    if (!item || typeof item.id !== 'number' || seen.has(item.id)) continue;
+    if (!item.poster_path) continue;
+    if (item.adult) continue;
+    seen.add(item.id);
+    out.push(item);
+  }
+  return out;
 }

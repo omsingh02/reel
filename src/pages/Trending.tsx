@@ -9,7 +9,7 @@ import { SortSelect, SortOption } from '@/components/SortSelect';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
-import { getTrending, sortMedia } from '@/lib/tmdb';
+import { getTrending, sortMedia, cleanMediaList } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
@@ -39,11 +39,12 @@ export default function Trending() {
   });
 
   const rawItems = useMemo(() => {
-    return data?.pages.flatMap(page => page.results) || [];
+    const flat = data?.pages.flatMap(page => page.results) || [];
+    return cleanMediaList(flat as (TMDBMovie | TMDBTVShow)[]);
   }, [data]);
 
   const items = useMemo(() => {
-    return sortMedia(rawItems as (TMDBMovie | TMDBTVShow)[], sortBy);
+    return sortMedia(rawItems, sortBy);
   }, [rawItems, sortBy]);
 
   const { loadMoreRef } = useInfiniteScroll({

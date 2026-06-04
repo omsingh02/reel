@@ -9,7 +9,7 @@ import { VideoPlayer } from '@/components/VideoPlayer';
 import { ShareButton } from '@/components/ShareButton';
 import { RecommendationCarousel } from '@/components/RecommendationCarousel';
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
-import { getMovieDetails, getTVShowDetails, getImageUrl } from '@/lib/tmdb';
+import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
@@ -141,7 +141,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const director = isMovie ? data.credits?.crew.find(c => c.job === 'Director') : null;
   const writers = isMovie ? data.credits?.crew.filter(c => c.department === 'Writing').slice(0, 3) : [];
   const cast = data.credits?.cast.slice(0, 8) || [];
-  const recommendations = (data.recommendations?.results || []).slice(0, 10);
+  const recommendations = cleanMediaList((data.recommendations?.results || []) as (TMDBMovie | TMDBTVShow)[]).slice(0, 12);
 
   // Watch providers (US region, fallback to first available)
   const watchProviders = data['watch/providers']?.results;
@@ -160,7 +160,10 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const backdrops = (data.images?.backdrops || []).slice(0, 6);
 
   // Similar titles
-  const similarItems = (data.similar?.results || []).slice(0, 10);
+  const recIds = new Set(recommendations.map(r => r.id));
+  const similarItems = cleanMediaList((data.similar?.results || []) as (TMDBMovie | TMDBTVShow)[])
+    .filter(s => !recIds.has(s.id))
+    .slice(0, 12);
 
   const imdbId = data.external_ids?.imdb_id || (isMovie ? movieData?.imdb_id : null);
   const externalLinks = [
