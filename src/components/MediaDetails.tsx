@@ -141,7 +141,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const director = isMovie ? data.credits?.crew.find(c => c.job === 'Director') : null;
   const writers = isMovie ? data.credits?.crew.filter(c => c.department === 'Writing').slice(0, 3) : [];
   const cast = data.credits?.cast.slice(0, 8) || [];
-  const recommendations = (data.recommendations?.results || []).slice(0, 10);
+  const recommendations = cleanMediaList((data.recommendations?.results || []) as never).slice(0, 12);
 
   // Watch providers (US region, fallback to first available)
   const watchProviders = data['watch/providers']?.results;
