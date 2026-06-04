@@ -46,12 +46,13 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const [showPlayer, setShowPlayer] = useState(false);
   const [showStream, setShowStream] = useState(false);
 
-  const { data, isLoading, error } = useQuery<TMDBMovieDetails | TMDBTVShowDetails>({
+  const { data, isLoading, error, refetch, isFetching } = useQuery<TMDBMovieDetails | TMDBTVShowDetails>({
     queryKey: ['media-details', mediaType, id],
     queryFn: async () => {
       if (mediaType === 'movie') return getMovieDetails(id);
       return getTVShowDetails(id);
     },
+    retry: 1,
   });
 
   const inWatchlist = data ? isInWatchlist(id, mediaType) : false;
