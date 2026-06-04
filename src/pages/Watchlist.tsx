@@ -5,6 +5,7 @@ import { Layout } from '@/components/Layout';
 import { WatchlistCard } from '@/components/WatchlistCard';
 import { MediaDetails } from '@/components/MediaDetails';
 import { EmptyState } from '@/components/EmptyState';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlistDB } from '@/hooks/useWatchlistDB';
