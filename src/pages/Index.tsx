@@ -36,6 +36,8 @@ export default function Index() {
   const {
     data: trendingData,
     isLoading: trendingLoading,
+    isError: trendingError,
+    refetch: refetchTrending,
     fetchNextPage: fetchNextTrending,
     hasNextPage: hasMoreTrending,
     isFetchingNextPage: isFetchingTrending,
@@ -51,11 +53,14 @@ export default function Index() {
     initialPageParam: 1,
     enabled: !searchQuery,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const {
     data: searchData,
     isLoading: searchLoading,
+    isError: searchError,
+    refetch: refetchSearch,
     fetchNextPage: fetchNextSearch,
     hasNextPage: hasMoreSearch,
     isFetchingNextPage: isFetchingSearch,
@@ -71,9 +76,12 @@ export default function Index() {
     initialPageParam: 1,
     enabled: !!searchQuery,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const isLoading = searchQuery ? searchLoading : trendingLoading;
+  const isError = searchQuery ? searchError : trendingError;
+  const refetch = searchQuery ? refetchSearch : refetchTrending;
   const isFetchingMore = searchQuery ? isFetchingSearch : isFetchingTrending;
   const hasMore = searchQuery ? hasMoreSearch : hasMoreTrending;
   const fetchMore = searchQuery ? fetchNextSearch : fetchNextTrending;
