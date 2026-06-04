@@ -22,6 +22,8 @@ export default function Trending() {
   const {
     data,
     isLoading,
+    isError,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -36,6 +38,7 @@ export default function Trending() {
     },
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const rawItems = useMemo(() => {
