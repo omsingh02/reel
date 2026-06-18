@@ -190,7 +190,7 @@ export default function Index() {
             
             <div ref={loadMoreRef} className="py-4">
               {isFetchingMore && <MediaGridSkeleton count={6} />}
-              {!hasMore && items.length > 12 && (
+              {!hasMore && items.length > 0 && (
                 <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
               )}
             </div>
