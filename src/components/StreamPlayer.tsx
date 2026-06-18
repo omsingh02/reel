@@ -86,7 +86,7 @@ const sources: StreamSource[] = [
     name: '2Embed.cc',
     getUrl: (id, type, s, e) =>
       type === 'tv' && s && e
-        ? `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`
+        ? `https://www.2embed.cc/embedtv/${id}?s=${s}&e=${e}`
         : `https://www.2embed.cc/embed/${id}`,
     sandbox: false,
   },

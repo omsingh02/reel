@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, Shield, MonitorPlay } from 'lucide-react';
+import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, MonitorPlay } from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
 import { StreamPlayer } from '@/components/StreamPlayer';
 import { Button } from '@/components/ui/button';
@@ -89,11 +89,11 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     }
   };
 
-  // Scrim + modal shell shared across all states
-  const Shell = ({ children }: { children: React.ReactNode }) => (
+  // Modal shell shared across loading / error / loaded states
+  const Shell = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div
-        className="fixed inset-2 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-2xl sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in"
+        className={`fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in ${className}`}
         onClick={e => e.stopPropagation()}
       >
         {children}
@@ -183,13 +183,31 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     data.homepage && { name: 'Official Site', url: data.homepage },
   ].filter(Boolean) as { name: string; url: string }[];
 
+  const ProviderRow = ({ label, items }: { label: string; items: typeof streamingProviders }) =>
+    items.length === 0 ? null : (
+      <div className="mb-3 last:mb-0">
+        <p className="text-xs text-muted-foreground mb-1.5">{label}</p>
+        <div className="flex flex-wrap gap-2">
+          {items.map(p => (
+            <a
+              key={p.provider_id}
+              href={watchProvidersLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={p.provider_name}
+              className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform"
+            >
+              <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-        <div
-          className="fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in flex flex-col"
-          onClick={e => e.stopPropagation()}
-        >
+      <Shell className="flex flex-col">
+
           {/* Drag handle (mobile) */}
           <div className="sm:hidden flex justify-center pt-2 pb-1 flex-shrink-0">
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
@@ -505,45 +523,9 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
                     <MonitorPlay className="h-3.5 w-3.5" />Where to Watch
                   </div>
-                  {streamingProviders.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-xs text-muted-foreground mb-1.5">Stream</p>
-                      <div className="flex flex-wrap gap-2">
-                        {streamingProviders.map(p => (
-                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
-                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
-                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {rentProviders.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-xs text-muted-foreground mb-1.5">Rent</p>
-                      <div className="flex flex-wrap gap-2">
-                        {rentProviders.map(p => (
-                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
-                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
-                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {buyProviders.length > 0 && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">Buy</p>
-                      <div className="flex flex-wrap gap-2">
-                        {buyProviders.map(p => (
-                          <a key={p.provider_id} href={watchProvidersLink} target="_blank" rel="noopener noreferrer" title={p.provider_name}
-                            className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform">
-                            <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <ProviderRow label="Stream" items={streamingProviders} />
+                  <ProviderRow label="Rent" items={rentProviders} />
+                  <ProviderRow label="Buy" items={buyProviders} />
                 </div>
               )}
 
@@ -587,8 +569,9 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               )}
             </div>
           </div>
-        </div>
-      </div>
+      </Shell>
+
+
 
       {/* Video Player */}
       {showPlayer && trailer && (

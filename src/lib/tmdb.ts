@@ -24,15 +24,17 @@ async function fetchTMDB<T>(params: Record<string, string>): Promise<T> {
     }
   };
 
-  // Always prefer a valid user token, otherwise fall back to anon key
+  // Use the user's access token when a non-expired session exists.
+  // For guests (no session), fall back to anon key without triggering a
+  // pointless refresh round-trip on every request.
   let token = anonKey;
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     const sessionToken = sessionData?.session?.access_token;
-
     if (sessionToken && !isTokenExpired(sessionToken)) {
       token = sessionToken;
-    } else {
+    } else if (sessionData?.session) {
+      // Only refresh when we actually have a (stale) session to refresh.
       const { data: refreshData } = await supabase.auth.refreshSession();
       const refreshedToken = refreshData?.session?.access_token;
       if (refreshedToken && !isTokenExpired(refreshedToken)) {
