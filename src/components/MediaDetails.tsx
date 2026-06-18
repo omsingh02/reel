@@ -603,8 +603,10 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   }}
                 />
               )}
-        </div>
+            </div>
+          </div>
       </Shell>
+
 
 
       {/* Video Player */}
