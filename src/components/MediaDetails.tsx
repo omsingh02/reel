@@ -183,13 +183,31 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     data.homepage && { name: 'Official Site', url: data.homepage },
   ].filter(Boolean) as { name: string; url: string }[];
 
+  const ProviderRow = ({ label, items }: { label: string; items: typeof streamingProviders }) =>
+    items.length === 0 ? null : (
+      <div className="mb-3 last:mb-0">
+        <p className="text-xs text-muted-foreground mb-1.5">{label}</p>
+        <div className="flex flex-wrap gap-2">
+          {items.map(p => (
+            <a
+              key={p.provider_id}
+              href={watchProvidersLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={p.provider_name}
+              className="h-10 w-10 rounded-xl overflow-hidden bg-secondary border border-border/30 hover:scale-110 transition-transform"
+            >
+              <img src={`https://image.tmdb.org/t/p/w92${p.logo_path}`} alt={p.provider_name} className="h-full w-full object-cover" />
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-        <div
-          className="fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in flex flex-col"
-          onClick={e => e.stopPropagation()}
-        >
+      <Shell className="flex flex-col">
+
           {/* Drag handle (mobile) */}
           <div className="sm:hidden flex justify-center pt-2 pb-1 flex-shrink-0">
             <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
