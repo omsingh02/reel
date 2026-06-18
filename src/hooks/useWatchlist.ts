@@ -1,19 +1,29 @@
-import { useCallback } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 import type { TMDBMovie, TMDBTVShow, MediaType, WatchlistItem } from '@/types/tmdb';
-import { getWatchlist, addToWatchlist as addLocal, removeFromWatchlist as removeLocal, isInWatchlist as checkLocal } from '@/lib/watchlist';
+import {
+  getWatchlist,
+  subscribeWatchlist,
+  addToWatchlist as addLocal,
+  removeFromWatchlist as removeLocal,
+  isInWatchlist as checkLocal,
+} from '@/lib/watchlist';
 
-// This hook provides a unified interface for watchlist operations
-// Uses database when authenticated, localStorage when not
+// Unified watchlist interface: DB when authenticated, localStorage otherwise.
+// The localStorage path subscribes via useSyncExternalStore so guest cards
+// re-render immediately when items are added/removed.
 export function useWatchlist() {
   const { user } = useAuth();
   const dbWatchlist = useWatchlistDB();
 
-  // For unauthenticated users, use localStorage
-  const localWatchlist = getWatchlist();
-  
-  const watchlist: WatchlistItem[] = user 
+  const localWatchlist = useSyncExternalStore(
+    subscribeWatchlist,
+    getWatchlist,
+    getWatchlist,
+  );
+
+  const watchlist: WatchlistItem[] = user
     ? dbWatchlist.watchlist.map(item => ({
         id: item.tmdb_id,
         mediaType: item.tmdb_type,
@@ -26,25 +36,17 @@ export function useWatchlist() {
     : localWatchlist;
 
   const addToWatchlist = useCallback((media: TMDBMovie | TMDBTVShow, mediaType: MediaType) => {
-    if (user) {
-      dbWatchlist.addToWatchlist(media, mediaType);
-    } else {
-      addLocal(media, mediaType);
-    }
+    if (user) dbWatchlist.addToWatchlist(media, mediaType);
+    else addLocal(media, mediaType);
   }, [user, dbWatchlist]);
 
   const removeFromWatchlist = useCallback((id: number, mediaType: MediaType) => {
-    if (user) {
-      dbWatchlist.removeFromWatchlist(id, mediaType);
-    } else {
-      removeLocal(id, mediaType);
-    }
+    if (user) dbWatchlist.removeFromWatchlist(id, mediaType);
+    else removeLocal(id, mediaType);
   }, [user, dbWatchlist]);
 
   const isInWatchlist = useCallback((id: number, mediaType: MediaType) => {
-    if (user) {
-      return dbWatchlist.isInWatchlist(id, mediaType);
-    }
+    if (user) return dbWatchlist.isInWatchlist(id, mediaType);
     return checkLocal(id, mediaType);
   }, [user, dbWatchlist]);
 
