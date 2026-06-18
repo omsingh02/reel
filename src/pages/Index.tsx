@@ -23,14 +23,15 @@ export default function Index() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const movieId = params.get('movie');
-    const tvId = params.get('tv');
-    
-    if (movieId) {
-      setSelectedMedia({ id: parseInt(movieId), type: 'movie' });
-    } else if (tvId) {
-      setSelectedMedia({ id: parseInt(tvId), type: 'tv' });
-    }
+    const parseId = (v: string | null) => {
+      if (!v) return NaN;
+      const n = parseInt(v, 10);
+      return Number.isFinite(n) && n > 0 ? n : NaN;
+    };
+    const movieId = parseId(params.get('movie'));
+    const tvId = parseId(params.get('tv'));
+    if (!Number.isNaN(movieId)) setSelectedMedia({ id: movieId, type: 'movie' });
+    else if (!Number.isNaN(tvId)) setSelectedMedia({ id: tvId, type: 'tv' });
   }, []);
 
   const {
