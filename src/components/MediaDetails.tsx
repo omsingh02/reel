@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, Shield, MonitorPlay } from 'lucide-react';
+import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, MonitorPlay } from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
 import { StreamPlayer } from '@/components/StreamPlayer';
 import { Button } from '@/components/ui/button';
