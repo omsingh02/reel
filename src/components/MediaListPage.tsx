@@ -42,7 +42,7 @@ export interface MediaListPageProps {
 
 const PAGE_CAP = 10;
 
-function buildPageParam(lastPage: { page: number; total_pages: number }) {
+function buildPageParam(lastPage: { page: number; total_pages: number; results: unknown[] }) {
   if (lastPage.page < lastPage.total_pages && lastPage.page < PAGE_CAP) {
     return lastPage.page + 1;
   }
