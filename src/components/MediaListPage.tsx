@@ -151,9 +151,13 @@ export function MediaListPage({
 
   return (
     <Layout>
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
+      <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border/60">
         <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          {!allowSwitch && <h1 className="text-xl font-semibold hidden sm:block">{title}</h1>}
+          {!allowSwitch && (
+            <h1 className="text-xl font-extrabold italic tracking-tight uppercase hidden sm:block">
+              {title}<span className="text-primary">.</span>
+            </h1>
+          )}
           <SearchBar
             onSearch={setSearchQuery}
             placeholder={searchPlaceholder}
@@ -170,23 +174,26 @@ export function MediaListPage({
         </div>
       </header>
 
-      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
+      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-8">
+        <div className="mb-8 flex items-end justify-between gap-4 border-b border-border/40 pb-5">
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-2">
+              {searchQuery ? 'Search // Results' : source === 'trending' ? 'Index // Trending Now' : 'Index // Popular'}
+            </p>
             {allowSwitch ? (
-              <h1 className="text-xl font-semibold">{headingPrefix}</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold italic tracking-tight uppercase truncate">
+                {headingPrefix}<span className="text-primary">.</span>
+              </h1>
             ) : (
-              <>
-                <h2 className="text-xl font-semibold sm:hidden">{title}</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {searchQuery ? headingPrefix : defaultSubtitle}
-                  {!isLoading && items.length > 0 && ` • ${items.length} results`}
-                </p>
-              </>
+              <h2 className="text-2xl sm:text-3xl font-extrabold italic tracking-tight uppercase truncate sm:hidden">
+                {title}<span className="text-primary">.</span>
+              </h2>
             )}
-            {allowSwitch && !isLoading && items.length > 0 && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {items.length} {items.length === 1 ? 'result' : 'results'}
+            {!isLoading && items.length > 0 && (
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-2">
+                {searchQuery && !allowSwitch ? `"${searchQuery}" · ` : ''}
+                {items.length} {items.length === 1 ? 'title' : 'titles'}
+                {!searchQuery && !allowSwitch ? ` · ${defaultSubtitle}` : ''}
               </p>
             )}
           </div>
@@ -194,6 +201,7 @@ export function MediaListPage({
             <SortSelect value={sortBy} onChange={setSortBy} className="w-32 sm:hidden" />
           )}
         </div>
+
 
         {isLoading ? (
           <MediaGridSkeleton count={12} />
