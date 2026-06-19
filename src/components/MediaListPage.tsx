@@ -229,10 +229,11 @@ export function MediaListPage({
             <div ref={loadMoreRef} className="py-4">
               {isFetchingNextPage && <MediaGridSkeleton count={6} />}
               {!hasNextPage && items.length > 0 && (
-                <p className="text-center text-xs text-muted-foreground py-2">
-                  You've reached the end
+                <p className="text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground py-4">
+                  — End of archive —
                 </p>
               )}
+
             </div>
           </>
         )}
