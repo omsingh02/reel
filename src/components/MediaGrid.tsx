@@ -22,10 +22,9 @@ export const MediaGrid = memo(forwardRef<HTMLDivElement, MediaGridProps>(functio
 
   return (
     <div ref={ref} className={cn(
-      "grid gap-x-4 gap-y-10 sm:gap-x-5 sm:gap-y-12 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+      "grid gap-2 sm:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
       className
     )}>
-
       {items.map((item) => (
         <MediaCard
           key={`${mediaType}-${item.id}`}
