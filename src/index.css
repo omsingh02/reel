@@ -128,4 +128,19 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Mobile safe-area helpers (iOS notch / home indicator). */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .top-safe { top: max(env(safe-area-inset-top), 0.75rem); }
+
+  /* Prevent rubber-banding under modals on iOS. */
+  .overscroll-contain-y { overscroll-behavior-y: contain; }
+}
+
+@layer base {
+  /* Kill the iOS 300ms tap delay & double-tap zoom on tappable controls. */
+  button, a, [role="button"], input, select, textarea {
+    touch-action: manipulation;
+  }
 }

@@ -225,7 +225,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
           </div>
 
           {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain-y">
             {/* Hero */}
             <div className="relative h-44 sm:h-56 lg:h-72 bg-secondary overflow-hidden">
               {backdropUrl && (
@@ -233,29 +233,34 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/20" />
 
-              {/* Play button on hero */}
+              {/* Centered trailer play button — scoped so it doesn't hijack
+                  the entire hero on mobile (was a full-area button that
+                  caused accidental taps when scrolling). */}
               {trailer && (
-                <button
-                  onClick={() => setShowPlayer(true)}
-                  className="absolute inset-0 flex items-center justify-center group cursor-pointer"
-                >
-                  <div className="h-16 w-16 rounded-full bg-primary/90 flex items-center justify-center group-hover:bg-primary group-hover:scale-110 transition-all shadow-lg">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <button
+                    onClick={() => setShowPlayer(true)}
+                    aria-label="Play trailer"
+                    className="pointer-events-auto h-16 w-16 rounded-full bg-primary/90 flex items-center justify-center hover:bg-primary active:scale-95 hover:scale-110 transition-all shadow-lg"
+                  >
                     <Play className="h-7 w-7 text-primary-foreground ml-1" />
-                  </div>
-                </button>
+                  </button>
+                </div>
               )}
 
-              {/* Close button */}
+              {/* Close button — larger tap target on mobile, respects iOS notch. */}
               <button
                 onClick={onClose}
-                className="absolute top-3 right-3 sm:top-4 sm:right-4 h-10 w-10 sm:h-10 sm:w-10 rounded-full bg-background/80 sm:bg-secondary/80 hover:bg-secondary flex items-center justify-center transition-colors backdrop-blur-sm z-10 shadow-lg"
+                aria-label="Close"
+                className="absolute right-3 sm:right-4 top-safe sm:top-4 h-11 w-11 sm:h-10 sm:w-10 rounded-full bg-background/80 sm:bg-secondary/80 hover:bg-secondary active:scale-95 flex items-center justify-center transition-all backdrop-blur-sm z-10 shadow-lg"
               >
                 <X className="h-5 w-5 text-foreground sm:text-secondary-foreground" />
               </button>
             </div>
 
+
             {/* Content */}
-            <div className="relative px-4 sm:px-8 pb-20 sm:pb-8 -mt-16 sm:-mt-24">
+            <div className="relative px-4 sm:px-8 pb-24 sm:pb-8 -mt-16 sm:-mt-24 pb-safe">
               <div className="flex gap-4 sm:gap-5 mb-5">
                 {/* Poster */}
                 <div className="flex-shrink-0 w-24 sm:w-32 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-background bg-secondary shadow-xl">
