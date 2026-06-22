@@ -18,7 +18,6 @@ import {
   cleanMediaList,
 } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 
 type Source = 'trending' | 'popular';
@@ -138,10 +137,9 @@ export function MediaListPage({
     }
   }, [enableDeepLinks]);
 
-  useKeyboardShortcuts({
-    onEscape: handleCloseDetails,
-    enabled: !!selectedMedia,
-  });
+  // Note: Escape handling for the open modal is owned by MediaDetails itself
+  // (it needs to close nested layers like the trailer/StreamPlayer first).
+  // A duplicate listener here would close the whole modal on the same keypress.
 
   const headingPrefix = searchQuery
     ? `Results for "${searchQuery}"`

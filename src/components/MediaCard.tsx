@@ -16,7 +16,12 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  
+  // Cached images may already be complete before React attaches onLoad —
+  // detect that on mount so we don't leave the poster invisible.
+  const imgRefCallback = useCallback((node: HTMLImageElement | null) => {
+    if (node && node.complete && node.naturalWidth > 0) setImageLoaded(true);
+  }, []);
+
   const inWatchlist = isInWatchlist(media.id, mediaType);
   const title = getTitle(media);
   const releaseDate = getReleaseDate(media);
@@ -42,6 +47,7 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
       <div className="relative aspect-[2/3] bg-secondary overflow-hidden rounded-xl m-1.5 mb-0">
         {!imageError && posterUrl ? (
           <img
+            ref={imgRefCallback}
             src={posterUrl}
             alt={title}
             loading="lazy"

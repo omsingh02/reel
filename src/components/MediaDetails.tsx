@@ -41,6 +41,29 @@ function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Hoisted out of MediaDetails so it isn't recreated on every render
+// (which would remount the entire modal subtree and lose scroll/focus).
+function Shell({
+  children,
+  className = '',
+  onClose,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+      <div
+        className={`fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in ${className}`}
+        onClick={e => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
   const [showPlayer, setShowPlayer] = useState(false);
@@ -89,21 +112,9 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     }
   };
 
-  // Modal shell shared across loading / error / loaded states
-  const Shell = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-      <div
-        className={`fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in ${className}`}
-        onClick={e => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>
-  );
-
   if (isLoading) {
     return (
-      <Shell>
+      <Shell onClose={onClose}>
         <div className="p-6 space-y-4">
           <Skeleton className="h-56 w-full rounded-2xl" />
           <Skeleton className="h-8 w-3/4" />
@@ -116,7 +127,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
   if (error || !data) {
     return (
-      <Shell>
+      <Shell onClose={onClose}>
         <div className="flex items-center justify-center h-full p-6">
           <div className="text-center max-w-sm">
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
@@ -206,7 +217,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
   return (
     <>
-      <Shell className="flex flex-col">
+      <Shell onClose={onClose} className="flex flex-col">
 
           {/* Drag handle (mobile) */}
           <div className="sm:hidden flex justify-center pt-2 pb-1 flex-shrink-0">
