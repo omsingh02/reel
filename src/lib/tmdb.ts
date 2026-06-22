@@ -11,73 +11,121 @@ import type { SortOption } from "@/components/SortSelect";
 
 const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb`;
 
+// Dedupe identical concurrent requests. Two components mounting at the same
+// time often ask for the same trending page or details payload — without this
+// we'd fire duplicate network calls.
+const inflight = new Map<string, Promise<unknown>>();
+
+function isTokenExpired(jwt: string): boolean {
+  try {
+    const payload = JSON.parse(atob(jwt.split('.')[1]));
+    return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+async function resolveToken(anonKey: string): Promise<string> {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (token && !isTokenExpired(token)) return token;
+    if (data?.session) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const t = refreshed?.session?.access_token;
+      if (t && !isTokenExpired(t)) return t;
+    }
+  } catch {
+    /* fall through to anon */
+  }
+  return anonKey;
+}
+
 async function fetchTMDB<T>(params: Record<string, string>): Promise<T> {
   const searchParams = new URLSearchParams(params);
   const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const url = `${EDGE_FUNCTION_URL}?${searchParams}`;
+  const cacheKey = url;
 
-  const isTokenExpired = (jwt: string): boolean => {
-    try {
-      const payload = JSON.parse(atob(jwt.split('.')[1]));
-      return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now();
-    } catch {
-      return true;
-    }
-  };
+  const existing = inflight.get(cacheKey) as Promise<T> | undefined;
+  if (existing) return existing;
 
-  // Use the user's access token when a non-expired session exists.
-  // For guests (no session), fall back to anon key without triggering a
-  // pointless refresh round-trip on every request.
-  let token = anonKey;
-  try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const sessionToken = sessionData?.session?.access_token;
-    if (sessionToken && !isTokenExpired(sessionToken)) {
-      token = sessionToken;
-    } else if (sessionData?.session) {
-      // Only refresh when we actually have a (stale) session to refresh.
-      const { data: refreshData } = await supabase.auth.refreshSession();
-      const refreshedToken = refreshData?.session?.access_token;
-      if (refreshedToken && !isTokenExpired(refreshedToken)) {
-        token = refreshedToken;
-      }
-    }
-  } catch {
-    // Use anon key on any auth error
-  }
+  const run = (async (): Promise<T> => {
+    const started = performance.now();
+    let attempt = 0;
+    const maxAttempts = 3;
+    let lastError: unknown;
 
-  const response = await fetch(`${EDGE_FUNCTION_URL}?${searchParams}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': anonKey,
-      'Authorization': `Bearer ${token}`
-    }
-  });
-
-  if (!response.ok) {
-    // If 401, try once more with refreshed token
-    if (response.status === 401) {
+    while (attempt < maxAttempts) {
+      attempt++;
       try {
-        const { data: refreshData } = await supabase.auth.refreshSession();
-        const freshToken = refreshData?.session?.access_token || anonKey;
-        const retryResponse = await fetch(`${EDGE_FUNCTION_URL}?${searchParams}`, {
+        const token = await resolveToken(anonKey);
+        const response = await fetch(url, {
           headers: {
             'Content-Type': 'application/json',
-            'apikey': anonKey,
-            'Authorization': `Bearer ${freshToken}`
-          }
+            apikey: anonKey,
+            Authorization: `Bearer ${token}`,
+          },
         });
-        if (retryResponse.ok) {
-          return retryResponse.json();
+
+        // 401 once: force-refresh and retry without counting against backoff.
+        if (response.status === 401 && attempt === 1) {
+          try {
+            const { data } = await supabase.auth.refreshSession();
+            const fresh = data?.session?.access_token || anonKey;
+            const retry = await fetch(url, {
+              headers: {
+                'Content-Type': 'application/json',
+                apikey: anonKey,
+                Authorization: `Bearer ${fresh}`,
+              },
+            });
+            if (retry.ok) return retry.json();
+          } catch { /* fall through */ }
         }
-      } catch {
-        // Fall through to original error
+
+        if (response.ok) {
+          const elapsed = performance.now() - started;
+          if (elapsed > 2000) {
+            console.warn(`[tmdb] slow request ${elapsed | 0}ms: ${params.endpoint}/${params.type || ''}`);
+          }
+          return response.json();
+        }
+
+        // 4xx (except 408/429) — don't retry, surface immediately.
+        if (response.status >= 400 && response.status < 500 && response.status !== 408 && response.status !== 429) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || `Request failed (${response.status})`);
+        }
+
+        // Retryable (5xx, 408, 429, opaque network). Honor Retry-After when present.
+        const retryAfter = Number(response.headers.get('retry-after'));
+        const backoff = Number.isFinite(retryAfter) && retryAfter > 0
+          ? retryAfter * 1000
+          : Math.min(2000, 250 * 2 ** (attempt - 1)) + Math.random() * 150;
+        lastError = new Error(`Request failed (${response.status})`);
+        if (attempt < maxAttempts) await sleep(backoff);
+      } catch (e) {
+        // Network/abort — retry with backoff.
+        lastError = e;
+        if (attempt < maxAttempts) {
+          await sleep(Math.min(2000, 250 * 2 ** (attempt - 1)) + Math.random() * 150);
+        }
       }
     }
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to fetch from TMDB');
-  }
 
-  return response.json();
+    console.error('[tmdb] failed after retries', params, lastError);
+    throw lastError instanceof Error ? lastError : new Error('Failed to fetch from TMDB');
+  })();
+
+  inflight.set(cacheKey, run);
+  try {
+    return await run;
+  } finally {
+    inflight.delete(cacheKey);
+  }
 }
 
 export async function searchMedia(
