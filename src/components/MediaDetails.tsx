@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, MonitorPlay } from 'lucide-react';
+import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, MonitorPlay, CheckCircle2 } from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
 import { StreamPlayer } from '@/components/StreamPlayer';
 import { Button } from '@/components/ui/button';
@@ -8,10 +8,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { ShareButton } from '@/components/ShareButton';
 import { RecommendationCarousel } from '@/components/RecommendationCarousel';
+import { SeasonEpisodes } from '@/components/SeasonEpisodes';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+
 
 interface MediaDetailsProps {
   id: number;
@@ -65,9 +68,15 @@ function Shell({
 }
 
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
-  const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
+  const { addToWatchlist, removeFromWatchlist, isInWatchlist, setWatched, watchlist } = useWatchlist();
   const [showPlayer, setShowPlayer] = useState(false);
   const [showStream, setShowStream] = useState(false);
+  const [region, setRegion] = useState<string>(() => {
+    try { return localStorage.getItem('tmdb-region') || 'US'; } catch { return 'US'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('tmdb-region', region); } catch { /* ignore */ }
+  }, [region]);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery<TMDBMovieDetails | TMDBTVShowDetails>({
     queryKey: ['media-details', mediaType, id],
@@ -166,9 +175,12 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const cast = data.credits?.cast.slice(0, 8) || [];
   const recommendations = cleanMediaList((data.recommendations?.results || []) as (TMDBMovie | TMDBTVShow)[]).slice(0, 12);
 
-  // Watch providers (US region, fallback to first available)
+  // Watch providers — user-selectable region with sensible fallback.
   const watchProviders = data['watch/providers']?.results;
-  const regionProviders = watchProviders?.['US'] || watchProviders?.['GB'] || (watchProviders ? Object.values(watchProviders)[0] : null);
+  const availableRegions = watchProviders ? Object.keys(watchProviders).sort() : [];
+  const effectiveRegion = watchProviders && (watchProviders[region] ? region
+    : (watchProviders['US'] ? 'US' : availableRegions[0])) || region;
+  const regionProviders = watchProviders?.[effectiveRegion] || null;
   const streamingProviders = regionProviders?.flatrate || [];
   const rentProviders = regionProviders?.rent || [];
   const buyProviders = regionProviders?.buy || [];
@@ -348,6 +360,26 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     <><Plus className="h-4 w-4 mr-2" />Add to Watchlist</>
                   )}
                 </Button>
+                {inWatchlist && (() => {
+                  const item = watchlist.find(w => w.id === id && w.mediaType === mediaType);
+                  const watchedNow = item?.status === 'watched';
+                  return (
+                    <Button
+                      variant={watchedNow ? "default" : "outline"}
+                      className="rounded-full px-6"
+                      onClick={() =>
+                        setWatched(id, mediaType, {
+                          status: watchedNow ? 'watchlist' : 'watched',
+                          watchedAt: watchedNow ? null : new Date().toISOString(),
+                          runtime: runtime || null,
+                        })
+                      }
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      {watchedNow ? 'Watched' : 'Mark watched'}
+                    </Button>
+                  );
+                })()}
                 {trailer && (
                   <Button variant="secondary" className="rounded-full px-6" onClick={() => setShowPlayer(true)}>
                     <Play className="h-4 w-4 mr-2" />
@@ -375,6 +407,36 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   </a>
                 ))}
               </div>
+
+              {/* Your rating — visible only if watched */}
+              {(() => {
+                const item = watchlist.find(w => w.id === id && w.mediaType === mediaType);
+                if (item?.status !== 'watched') return null;
+                return (
+                  <div className="flex items-center gap-2 mb-6 text-sm">
+                    <Star className="h-4 w-4 text-rating fill-rating" />
+                    <span className="text-muted-foreground">Your rating:</span>
+                    <Select
+                      value={item.rating ? String(item.rating) : 'none'}
+                      onValueChange={(v) =>
+                        setWatched(id, mediaType, {
+                          status: 'watched',
+                          rating: v === 'none' ? null : Number(v),
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-8 w-24 rounded-full"><SelectValue placeholder="Rate" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                          <SelectItem key={n} value={String(n)}>{n}/10</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })()}
+
 
               {/* Tagline */}
               {data.tagline && (
@@ -504,44 +566,48 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 </div>
               )}
 
-              {/* Seasons (TV) */}
+              {/* Seasons & Episodes (TV) */}
               {tvData?.seasons && tvData.seasons.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Seasons</h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
                     {tvData.seasons
                       .filter(s => s.season_number > 0)
                       .map(season => (
-                        <div key={season.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/50 border border-border/30">
-                          <div className="w-12 h-16 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
-                            {season.poster_path ? (
-                              <img src={getImageUrl(season.poster_path, 'w92') || ''} alt={season.name} className="h-full w-full object-cover" />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">S{season.season_number}</div>
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium">{season.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {season.episode_count} episodes
-                              {season.air_date && ` • ${new Date(season.air_date).getFullYear()}`}
-                            </p>
-                          </div>
-                        </div>
+                        <SeasonEpisodes key={season.id} tvId={id} season={season} />
                       ))}
                   </div>
                 </div>
               )}
 
+
               {/* Watch Providers */}
-              {(streamingProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
+              {availableRegions.length > 0 && (
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                    <MonitorPlay className="h-3.5 w-3.5" />Where to Watch
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <MonitorPlay className="h-3.5 w-3.5" />Where to Watch
+                    </div>
+                    <Select value={effectiveRegion} onValueChange={setRegion}>
+                      <SelectTrigger className="h-8 w-24 rounded-full text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {availableRegions.map(r => (
+                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <ProviderRow label="Stream" items={streamingProviders} />
-                  <ProviderRow label="Rent" items={rentProviders} />
-                  <ProviderRow label="Buy" items={buyProviders} />
+                  {(streamingProviders.length + rentProviders.length + buyProviders.length) === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No providers listed for {effectiveRegion}. Try another region.
+                    </p>
+                  ) : (
+                    <>
+                      <ProviderRow label="Stream" items={streamingProviders} />
+                      <ProviderRow label="Rent" items={rentProviders} />
+                      <ProviderRow label="Buy" items={buyProviders} />
+                    </>
+                  )}
                 </div>
               )}
 

@@ -176,6 +176,8 @@ export interface TMDBTVShowDetails extends TMDBTVShow {
 
 export type MediaType = 'movie' | 'tv';
 
+export type WatchlistStatus = 'watchlist' | 'watched';
+
 export interface WatchlistItem {
   id: number;
   mediaType: MediaType;
@@ -184,4 +186,21 @@ export interface WatchlistItem {
   releaseDate: string;
   voteAverage: number;
   addedAt: string;
+  status?: WatchlistStatus;
+  rating?: number | null;
+  watchedAt?: string | null;
+  runtime?: number | null;
+}
+
+export interface HiddenItem {
+  id: number;
+  mediaType: MediaType;
+  hiddenAt: string;
+}
+
+export interface EpisodeProgressItem {
+  tmdbId: number;
+  season: number;
+  episode: number;
+  watchedAt: string;
 }

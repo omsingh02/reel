@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
-const ALLOWED_ENDPOINTS = ['search', 'details', 'trending', 'popular'];
+const ALLOWED_ENDPOINTS = ['search', 'details', 'trending', 'popular', 'season'];
 const ALLOWED_MEDIA_TYPES = ['movie', 'tv'];
 
 serve(async (req) => {
@@ -121,6 +121,24 @@ serve(async (req) => {
       case 'popular':
         tmdbUrl = `${TMDB_BASE_URL}/${mediaType}/popular?api_key=${apiKey}&page=${page}`;
         break;
+      case 'season': {
+        if (mediaType !== 'tv') {
+          return new Response(
+            JSON.stringify({ error: 'Season endpoint requires type=tv' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        const tvId = parseInt(idStr || '', 10);
+        const seasonNum = parseInt(url.searchParams.get('season') || '', 10);
+        if (isNaN(tvId) || tvId < 1 || isNaN(seasonNum) || seasonNum < 0) {
+          return new Response(
+            JSON.stringify({ error: 'Valid id and season parameters required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        tmdbUrl = `${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNum}?api_key=${apiKey}`;
+        break;
+      }
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid endpoint' }),

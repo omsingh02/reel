@@ -12,6 +12,8 @@ const Index = lazy(() => import("./pages/Index"));
 const Watchlist = lazy(() => import("./pages/Watchlist"));
 const Movies = lazy(() => import("./pages/Movies"));
 const TVShows = lazy(() => import("./pages/TVShows"));
+const Upcoming = lazy(() => import("./pages/Upcoming"));
+const Stats = lazy(() => import("./pages/Stats"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -39,6 +41,8 @@ const App = () => (
 
                 <Route path="/movies" element={<Movies />} />
                 <Route path="/tv" element={<TVShows />} />
+                <Route path="/upcoming" element={<Upcoming />} />
+                <Route path="/stats" element={<Stats />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

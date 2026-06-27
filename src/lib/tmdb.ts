@@ -179,6 +179,35 @@ export async function getPopular(
   });
 }
 
+export interface TMDBSeasonDetails {
+  id: number;
+  name: string;
+  season_number: number;
+  air_date: string | null;
+  overview: string;
+  poster_path: string | null;
+  episodes: {
+    id: number;
+    name: string;
+    overview: string;
+    air_date: string | null;
+    episode_number: number;
+    season_number: number;
+    runtime: number | null;
+    still_path: string | null;
+    vote_average: number;
+  }[];
+}
+
+export async function getSeason(tvId: number, seasonNumber: number): Promise<TMDBSeasonDetails> {
+  return fetchTMDB({
+    endpoint: 'season',
+    type: 'tv',
+    id: tvId.toString(),
+    season: seasonNumber.toString(),
+  });
+}
+
 export function getImageUrl(path: string | null, size: 'w92' | 'w154' | 'w185' | 'w342' | 'w500' | 'w780' | 'original' = 'w342'): string | null {
   if (!path) return null;
   return `https://image.tmdb.org/t/p/${size}${path}`;
