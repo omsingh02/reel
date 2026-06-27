@@ -68,9 +68,15 @@ function Shell({
 }
 
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
-  const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
+  const { addToWatchlist, removeFromWatchlist, isInWatchlist, setWatched, watchlist } = useWatchlist();
   const [showPlayer, setShowPlayer] = useState(false);
   const [showStream, setShowStream] = useState(false);
+  const [region, setRegion] = useState<string>(() => {
+    try { return localStorage.getItem('tmdb-region') || 'US'; } catch { return 'US'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('tmdb-region', region); } catch { /* ignore */ }
+  }, [region]);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery<TMDBMovieDetails | TMDBTVShowDetails>({
     queryKey: ['media-details', mediaType, id],
