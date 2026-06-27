@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, MonitorPlay } from 'lucide-react';
+import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, MonitorPlay, CheckCircle2 } from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
 import { StreamPlayer } from '@/components/StreamPlayer';
 import { Button } from '@/components/ui/button';
@@ -8,10 +8,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { ShareButton } from '@/components/ShareButton';
 import { RecommendationCarousel } from '@/components/RecommendationCarousel';
+import { SeasonEpisodes } from '@/components/SeasonEpisodes';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+
 
 interface MediaDetailsProps {
   id: number;
