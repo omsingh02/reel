@@ -18,6 +18,7 @@ import {
   cleanMediaList,
 } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useHidden } from '@/hooks/useHidden';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 
 type Source = 'trending' | 'popular';
