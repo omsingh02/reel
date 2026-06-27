@@ -1,4 +1,4 @@
-import { Home, List, Film, Tv, LogIn, LogOut } from 'lucide-react';
+import { Home, List, Film, Tv, LogIn, LogOut, CalendarDays, BarChart3 } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +11,8 @@ import { Separator } from '@/components/ui/separator';
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
   { name: 'Watchlist', href: '/watchlist', icon: List },
+  { name: 'Upcoming', href: '/upcoming', icon: CalendarDays },
+  { name: 'Stats', href: '/stats', icon: BarChart3 },
 ];
 
 const categories = [
