@@ -16,7 +16,7 @@ export interface WatchlistItemDB {
   release_date: string | null;
   vote_average: number | null;
   added_at: string;
-  status: WatchlistStatus;
+  status: string;
   rating: number | null;
   watched_at: string | null;
   runtime: number | null;
