@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-import { List, LogIn, Filter as FilterIcon } from 'lucide-react';
+import { List, LogIn, Filter as FilterIcon, CalendarDays, BarChart3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { WatchlistCard } from '@/components/WatchlistCard';
