@@ -175,9 +175,12 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const cast = data.credits?.cast.slice(0, 8) || [];
   const recommendations = cleanMediaList((data.recommendations?.results || []) as (TMDBMovie | TMDBTVShow)[]).slice(0, 12);
 
-  // Watch providers (US region, fallback to first available)
+  // Watch providers — user-selectable region with sensible fallback.
   const watchProviders = data['watch/providers']?.results;
-  const regionProviders = watchProviders?.['US'] || watchProviders?.['GB'] || (watchProviders ? Object.values(watchProviders)[0] : null);
+  const availableRegions = watchProviders ? Object.keys(watchProviders).sort() : [];
+  const effectiveRegion = watchProviders && (watchProviders[region] ? region
+    : (watchProviders['US'] ? 'US' : availableRegions[0])) || region;
+  const regionProviders = watchProviders?.[effectiveRegion] || null;
   const streamingProviders = regionProviders?.flatrate || [];
   const rentProviders = regionProviders?.rent || [];
   const buyProviders = regionProviders?.buy || [];
