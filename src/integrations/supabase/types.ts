@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      episode_progress: {
+        Row: {
+          episode: number
+          id: string
+          season: number
+          tmdb_id: number
+          user_id: string
+          watched_at: string
+        }
+        Insert: {
+          episode: number
+          id?: string
+          season: number
+          tmdb_id: number
+          user_id: string
+          watched_at?: string
+        }
+        Update: {
+          episode?: number
+          id?: string
+          season?: number
+          tmdb_id?: number
+          user_id?: string
+          watched_at?: string
+        }
+        Relationships: []
+      }
+      hidden_items: {
+        Row: {
+          hidden_at: string
+          id: string
+          tmdb_id: number
+          tmdb_type: string
+          user_id: string
+        }
+        Insert: {
+          hidden_at?: string
+          id?: string
+          tmdb_id: number
+          tmdb_type: string
+          user_id: string
+        }
+        Update: {
+          hidden_at?: string
+          id?: string
+          tmdb_id?: number
+          tmdb_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -46,34 +97,46 @@ export type Database = {
           added_at: string
           id: string
           poster_path: string | null
+          rating: number | null
           release_date: string | null
+          runtime: number | null
+          status: string
           title: string
           tmdb_id: number
           tmdb_type: string
           user_id: string
           vote_average: number | null
+          watched_at: string | null
         }
         Insert: {
           added_at?: string
           id?: string
           poster_path?: string | null
+          rating?: number | null
           release_date?: string | null
+          runtime?: number | null
+          status?: string
           title: string
           tmdb_id: number
           tmdb_type: string
           user_id: string
           vote_average?: number | null
+          watched_at?: string | null
         }
         Update: {
           added_at?: string
           id?: string
           poster_path?: string | null
+          rating?: number | null
           release_date?: string | null
+          runtime?: number | null
+          status?: string
           title?: string
           tmdb_id?: number
           tmdb_type?: string
           user_id?: string
           vote_average?: number | null
+          watched_at?: string | null
         }
         Relationships: []
       }
