@@ -24,13 +24,13 @@ export function useWatchlist() {
   const watchlist: WatchlistItem[] = user
     ? dbWatchlist.watchlist.map(item => ({
         id: item.tmdb_id,
-        mediaType: item.tmdb_type,
+        mediaType: item.tmdb_type as MediaType,
         title: item.title,
         posterPath: item.poster_path,
         releaseDate: item.release_date || '',
         voteAverage: item.vote_average || 0,
         addedAt: item.added_at,
-        status: item.status ?? 'watchlist',
+        status: (item.status as WatchlistStatus) ?? 'watchlist',
         rating: item.rating,
         watchedAt: item.watched_at,
         runtime: item.runtime,
