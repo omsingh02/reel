@@ -1,18 +1,16 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlistDB } from '@/hooks/useWatchlistDB';
-import type { TMDBMovie, TMDBTVShow, MediaType, WatchlistItem } from '@/types/tmdb';
+import type { TMDBMovie, TMDBTVShow, MediaType, WatchlistItem, WatchlistStatus } from '@/types/tmdb';
 import {
   getWatchlist,
   subscribeWatchlist,
   addToWatchlist as addLocal,
   removeFromWatchlist as removeLocal,
   isInWatchlist as checkLocal,
+  setWatchedStatus as setLocalStatus,
 } from '@/lib/watchlist';
 
-// Unified watchlist interface: DB when authenticated, localStorage otherwise.
-// The localStorage path subscribes via useSyncExternalStore so guest cards
-// re-render immediately when items are added/removed.
 export function useWatchlist() {
   const { user } = useAuth();
   const dbWatchlist = useWatchlistDB();
@@ -32,6 +30,10 @@ export function useWatchlist() {
         releaseDate: item.release_date || '',
         voteAverage: item.vote_average || 0,
         addedAt: item.added_at,
+        status: item.status ?? 'watchlist',
+        rating: item.rating,
+        watchedAt: item.watched_at,
+        runtime: item.runtime,
       }))
     : localWatchlist;
 
@@ -50,11 +52,32 @@ export function useWatchlist() {
     return checkLocal(id, mediaType);
   }, [user, dbWatchlist]);
 
+  const setWatched = useCallback(
+    (
+      id: number,
+      mediaType: MediaType,
+      patch: { status?: WatchlistStatus; rating?: number | null; watchedAt?: string | null; runtime?: number | null }
+    ) => {
+      if (user) {
+        dbWatchlist.updateItem(id, mediaType, {
+          status: patch.status,
+          rating: patch.rating ?? null,
+          watched_at: patch.watchedAt ?? null,
+          runtime: patch.runtime ?? null,
+        });
+      } else {
+        setLocalStatus(id, mediaType, patch);
+      }
+    },
+    [user, dbWatchlist]
+  );
+
   return {
     watchlist,
     addToWatchlist,
     removeFromWatchlist,
     isInWatchlist,
+    setWatched,
     isLoading: user ? dbWatchlist.isLoading : false,
   };
 }
