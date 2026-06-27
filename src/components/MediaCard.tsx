@@ -1,10 +1,17 @@
 import { memo, useCallback, useState, forwardRef } from 'react';
-import { Plus, Check, Star, Film, Tv } from 'lucide-react';
+import { Plus, Check, Star, Film, Tv, MoreVertical, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import type { TMDBMovie, TMDBTVShow, MediaType } from '@/types/tmdb';
 import { getImageUrl, getTitle, getReleaseDate } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { useHidden } from '@/hooks/useHidden';
 
 interface MediaCardProps {
   media: TMDBMovie | TMDBTVShow;
@@ -12,12 +19,14 @@ interface MediaCardProps {
   onClick?: () => void;
 }
 
-export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(function MediaCard({ media, mediaType, onClick }, ref) {
+export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(function MediaCard(
+  { media, mediaType, onClick },
+  ref
+) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
+  const { hide } = useHidden();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  // Cached images may already be complete before React attaches onLoad —
-  // detect that on mount so we don't leave the poster invisible.
   const imgRefCallback = useCallback((node: HTMLImageElement | null) => {
     if (node && node.complete && node.naturalWidth > 0) setImageLoaded(true);
   }, []);
@@ -30,20 +39,21 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
 
   const handleWatchlistClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    if (inWatchlist) {
-      removeFromWatchlist(media.id, mediaType);
-    } else {
-      addToWatchlist(media, mediaType);
-    }
+    if (inWatchlist) removeFromWatchlist(media.id, mediaType);
+    else addToWatchlist(media, mediaType);
   }, [inWatchlist, media, mediaType, addToWatchlist, removeFromWatchlist]);
 
+  const handleHide = useCallback((e: Event) => {
+    e.preventDefault();
+    hide(media.id, mediaType);
+  }, [media.id, mediaType, hide]);
+
   return (
-    <div 
+    <div
       ref={ref}
       className="group relative flex flex-col overflow-hidden rounded-2xl bg-card border border-border/50 cursor-pointer shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
       onClick={onClick}
     >
-      {/* Poster */}
       <div className="relative aspect-[2/3] bg-secondary overflow-hidden rounded-xl m-1.5 mb-0">
         {!imageError && posterUrl ? (
           <img
@@ -63,27 +73,46 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
             {mediaType === 'movie' ? <Film className="h-12 w-12" /> : <Tv className="h-12 w-12" />}
           </div>
         )}
-        
-        {/* Media type badge */}
+
         <span className="absolute top-2 left-2 text-xs font-medium bg-secondary/90 backdrop-blur-sm text-secondary-foreground px-2.5 py-1 rounded-full">
           {mediaType === 'movie' ? 'Movie' : 'TV'}
         </span>
 
-        {/* Watchlist button */}
-        <Button
-          size="sm"
-          variant={inWatchlist ? "default" : "secondary"}
-          className={cn(
-            "absolute top-2 right-2 h-8 w-8 p-0 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
-            inWatchlist && "opacity-100 bg-primary"
-          )}
-          onClick={handleWatchlistClick}
-        >
-          {inWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-        </Button>
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          <Button
+            size="sm"
+            variant={inWatchlist ? "default" : "secondary"}
+            className={cn(
+              "h-8 w-8 p-0 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
+              inWatchlist && "opacity-100 bg-primary"
+            )}
+            onClick={handleWatchlistClick}
+            aria-label={inWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
+          >
+            {inWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-8 w-8 p-0 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="More actions"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onSelect={handleHide}>
+                <EyeOff className="h-4 w-4 mr-2" />
+                Not interested
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {/* Info */}
       <div className="flex flex-col gap-1 p-4">
         <h3 className="font-semibold text-sm leading-tight line-clamp-2" title={title}>
           {title}
