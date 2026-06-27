@@ -566,34 +566,20 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 </div>
               )}
 
-              {/* Seasons (TV) */}
+              {/* Seasons & Episodes (TV) */}
               {tvData?.seasons && tvData.seasons.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Seasons</h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
                     {tvData.seasons
                       .filter(s => s.season_number > 0)
                       .map(season => (
-                        <div key={season.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/50 border border-border/30">
-                          <div className="w-12 h-16 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
-                            {season.poster_path ? (
-                              <img src={getImageUrl(season.poster_path, 'w92') || ''} alt={season.name} className="h-full w-full object-cover" />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">S{season.season_number}</div>
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium">{season.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {season.episode_count} episodes
-                              {season.air_date && ` • ${new Date(season.air_date).getFullYear()}`}
-                            </p>
-                          </div>
-                        </div>
+                        <SeasonEpisodes key={season.id} tvId={id} season={season} />
                       ))}
                   </div>
                 </div>
               )}
+
 
               {/* Watch Providers */}
               {(streamingProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
