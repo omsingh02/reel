@@ -360,6 +360,26 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     <><Plus className="h-4 w-4 mr-2" />Add to Watchlist</>
                   )}
                 </Button>
+                {inWatchlist && (() => {
+                  const item = watchlist.find(w => w.id === id && w.mediaType === mediaType);
+                  const watchedNow = item?.status === 'watched';
+                  return (
+                    <Button
+                      variant={watchedNow ? "default" : "outline"}
+                      className="rounded-full px-6"
+                      onClick={() =>
+                        setWatched(id, mediaType, {
+                          status: watchedNow ? 'watchlist' : 'watched',
+                          watchedAt: watchedNow ? null : new Date().toISOString(),
+                          runtime: runtime || null,
+                        })
+                      }
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      {watchedNow ? 'Watched' : 'Mark watched'}
+                    </Button>
+                  );
+                })()}
                 {trailer && (
                   <Button variant="secondary" className="rounded-full px-6" onClick={() => setShowPlayer(true)}>
                     <Play className="h-4 w-4 mr-2" />
