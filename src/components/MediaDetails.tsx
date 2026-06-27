@@ -408,6 +408,36 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 ))}
               </div>
 
+              {/* Your rating — visible only if watched */}
+              {(() => {
+                const item = watchlist.find(w => w.id === id && w.mediaType === mediaType);
+                if (item?.status !== 'watched') return null;
+                return (
+                  <div className="flex items-center gap-2 mb-6 text-sm">
+                    <Star className="h-4 w-4 text-rating fill-rating" />
+                    <span className="text-muted-foreground">Your rating:</span>
+                    <Select
+                      value={item.rating ? String(item.rating) : 'none'}
+                      onValueChange={(v) =>
+                        setWatched(id, mediaType, {
+                          status: 'watched',
+                          rating: v === 'none' ? null : Number(v),
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-8 w-24 rounded-full"><SelectValue placeholder="Rate" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">—</SelectItem>
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                          <SelectItem key={n} value={String(n)}>{n}/10</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })()}
+
+
               {/* Tagline */}
               {data.tagline && (
                 <p className="text-sm italic text-muted-foreground mb-5 border-l-2 border-primary pl-3">
