@@ -106,10 +106,14 @@ export function MediaListPage({
   const active = searchQuery ? searchQueryResult : baseQuery;
   const { isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage, data } = active;
 
+  const { isHidden } = useHidden();
+
   const rawItems = useMemo(() => {
     const flat = data?.pages.flatMap(page => page.results) || [];
-    return cleanMediaList(flat as (TMDBMovie | TMDBTVShow)[]);
-  }, [data]);
+    const cleaned = cleanMediaList(flat as (TMDBMovie | TMDBTVShow)[]);
+    // Filter out items the user has marked "not interested".
+    return cleaned.filter(it => !isHidden(it.id, mediaType));
+  }, [data, isHidden, mediaType]);
 
   const items = useMemo(() => sortMedia(rawItems, sortBy), [rawItems, sortBy]);
 
