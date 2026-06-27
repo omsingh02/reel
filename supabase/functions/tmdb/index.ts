@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
-const ALLOWED_ENDPOINTS = ['search', 'details', 'trending', 'popular'];
+const ALLOWED_ENDPOINTS = ['search', 'details', 'trending', 'popular', 'season'];
 const ALLOWED_MEDIA_TYPES = ['movie', 'tv'];
 
 serve(async (req) => {
