@@ -63,13 +63,27 @@ export default function Watchlist() {
   return (
     <Layout>
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
+        <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">My Watchlist</h1>
           {watchlist.length > 0 && (
-            <span className="ml-2 text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               ({watchlist.length} · {watchedCount} watched)
             </span>
           )}
+          <div className="ml-auto flex items-center gap-1">
+            <Link
+              to="/upcoming"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm px-3 py-1.5 rounded-full hover:bg-secondary transition-colors"
+            >
+              <CalendarDays className="h-4 w-4" /> <span className="hidden sm:inline">Upcoming</span>
+            </Link>
+            <Link
+              to="/stats"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm px-3 py-1.5 rounded-full hover:bg-secondary transition-colors"
+            >
+              <BarChart3 className="h-4 w-4" /> <span className="hidden sm:inline">Stats</span>
+            </Link>
+          </div>
         </div>
       </header>
 
