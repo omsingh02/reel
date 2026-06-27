@@ -582,14 +582,32 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
 
               {/* Watch Providers */}
-              {(streamingProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
+              {availableRegions.length > 0 && (
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                    <MonitorPlay className="h-3.5 w-3.5" />Where to Watch
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <MonitorPlay className="h-3.5 w-3.5" />Where to Watch
+                    </div>
+                    <Select value={effectiveRegion} onValueChange={setRegion}>
+                      <SelectTrigger className="h-8 w-24 rounded-full text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {availableRegions.map(r => (
+                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <ProviderRow label="Stream" items={streamingProviders} />
-                  <ProviderRow label="Rent" items={rentProviders} />
-                  <ProviderRow label="Buy" items={buyProviders} />
+                  {(streamingProviders.length + rentProviders.length + buyProviders.length) === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No providers listed for {effectiveRegion}. Try another region.
+                    </p>
+                  ) : (
+                    <>
+                      <ProviderRow label="Stream" items={streamingProviders} />
+                      <ProviderRow label="Rent" items={rentProviders} />
+                      <ProviderRow label="Buy" items={buyProviders} />
+                    </>
+                  )}
                 </div>
               )}
 
