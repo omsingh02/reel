@@ -13,7 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+
 
 
 interface MediaDetailsProps {
@@ -69,6 +71,7 @@ function Shell({
 
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist, setWatched, watchlist } = useWatchlist();
+  const { isWatched } = useEpisodeProgress();
   const [showPlayer, setShowPlayer] = useState(false);
   const [showStream, setShowStream] = useState(false);
   const [region, setRegion] = useState<string>(() => {
@@ -102,6 +105,26 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
+
+  // Browser back button should close the modal — push a history entry on mount
+  // and pop it on close. Without this, back navigates away from the entire page.
+  // Deps are intentionally empty: we push once per modal lifetime, not per
+  // recommendation navigation (that would trigger nested pushes / popstate loops).
+  useEffect(() => {
+    window.history.pushState({ __mediaModal: true }, '');
+    let closedByPop = false;
+    const onPop = () => { closedByPop = true; onClose(); };
+    window.addEventListener('popstate', onPop);
+    return () => {
+      window.removeEventListener('popstate', onPop);
+      if (!closedByPop) {
+        try { window.history.back(); } catch { /* ignore */ }
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
   const handleWatchlistClick = () => {
     if (!data) return;
@@ -665,14 +688,39 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
       )}
 
       {/* Stream Player */}
-      {showStream && (
-        <StreamPlayer
-          tmdbId={id}
-          mediaType={mediaType}
-          title={title}
-          onClose={() => setShowStream(false)}
-        />
-      )}
+      {showStream && (() => {
+        // For TV, default to the first unwatched episode (falls back to S1E1).
+        let startS: number | undefined;
+        let startE: number | undefined;
+        const tvSeasons = tvData?.seasons?.filter(s => s.season_number > 0 && s.episode_count > 0) || [];
+        if (tvData && tvSeasons.length > 0) {
+          outer: for (const s of tvSeasons) {
+            for (let e = 1; e <= s.episode_count; e++) {
+              if (!isWatched(id, s.season_number, e)) {
+                startS = s.season_number;
+                startE = e;
+                break outer;
+              }
+            }
+          }
+          if (startS === undefined) {
+            startS = tvSeasons[0].season_number;
+            startE = 1;
+          }
+        }
+        return (
+          <StreamPlayer
+            tmdbId={id}
+            mediaType={mediaType}
+            title={title}
+            seasons={tvSeasons}
+            season={startS}
+            episode={startE}
+            onClose={() => setShowStream(false)}
+          />
+        );
+      })()}
+
     </>
   );
 }
