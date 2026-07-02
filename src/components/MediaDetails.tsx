@@ -13,7 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+
 
 
 interface MediaDetailsProps {
