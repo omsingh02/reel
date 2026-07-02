@@ -127,10 +127,15 @@ export function MediaListPage({
     setSelectedMedia({ id, type });
     if (enableDeepLinks) {
       const url = new URL(window.location.href);
+      // Clear both to avoid stale ?movie=X&tv=Y when navigating across types
+      // via recommendations.
+      url.searchParams.delete('movie');
+      url.searchParams.delete('tv');
       url.searchParams.set(type, id.toString());
       window.history.replaceState({}, '', url);
     }
   }, [enableDeepLinks]);
+
 
   const handleCloseDetails = useCallback(() => {
     setSelectedMedia(null);
