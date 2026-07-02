@@ -688,14 +688,39 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
       )}
 
       {/* Stream Player */}
-      {showStream && (
-        <StreamPlayer
-          tmdbId={id}
-          mediaType={mediaType}
-          title={title}
-          onClose={() => setShowStream(false)}
-        />
-      )}
+      {showStream && (() => {
+        // For TV, default to the first unwatched episode (falls back to S1E1).
+        let startS: number | undefined;
+        let startE: number | undefined;
+        const tvSeasons = tvData?.seasons?.filter(s => s.season_number > 0 && s.episode_count > 0) || [];
+        if (tvData && tvSeasons.length > 0) {
+          outer: for (const s of tvSeasons) {
+            for (let e = 1; e <= s.episode_count; e++) {
+              if (!isWatched(id, s.season_number, e)) {
+                startS = s.season_number;
+                startE = e;
+                break outer;
+              }
+            }
+          }
+          if (startS === undefined) {
+            startS = tvSeasons[0].season_number;
+            startE = 1;
+          }
+        }
+        return (
+          <StreamPlayer
+            tmdbId={id}
+            mediaType={mediaType}
+            title={title}
+            seasons={tvSeasons}
+            season={startS}
+            episode={startE}
+            onClose={() => setShowStream(false)}
+          />
+        );
+      })()}
+
     </>
   );
 }
