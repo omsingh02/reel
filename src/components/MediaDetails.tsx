@@ -108,22 +108,22 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
   // Browser back button should close the modal — push a history entry on mount
   // and pop it on close. Without this, back navigates away from the entire page.
+  // Deps are intentionally empty: we push once per modal lifetime, not per
+  // recommendation navigation (that would trigger nested pushes / popstate loops).
   useEffect(() => {
-    const marker = { __mediaModal: `${mediaType}:${id}` };
-    window.history.pushState(marker, '');
+    window.history.pushState({ __mediaModal: true }, '');
     let closedByPop = false;
     const onPop = () => { closedByPop = true; onClose(); };
     window.addEventListener('popstate', onPop);
     return () => {
       window.removeEventListener('popstate', onPop);
       if (!closedByPop) {
-        // Explicit close (button / esc / backdrop) — remove the entry we added
-        // so the URL history stays clean.
         try { window.history.back(); } catch { /* ignore */ }
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, mediaType]);
+  }, []);
+
 
 
   const handleWatchlistClick = () => {
