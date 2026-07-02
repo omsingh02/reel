@@ -71,6 +71,7 @@ function Shell({
 
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist, setWatched, watchlist } = useWatchlist();
+  const { forShow, isWatched } = useEpisodeProgress();
   const [showPlayer, setShowPlayer] = useState(false);
   const [showStream, setShowStream] = useState(false);
   const [region, setRegion] = useState<string>(() => {
@@ -104,6 +105,26 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
+
+  // Browser back button should close the modal — push a history entry on mount
+  // and pop it on close. Without this, back navigates away from the entire page.
+  useEffect(() => {
+    const marker = { __mediaModal: `${mediaType}:${id}` };
+    window.history.pushState(marker, '');
+    let closedByPop = false;
+    const onPop = () => { closedByPop = true; onClose(); };
+    window.addEventListener('popstate', onPop);
+    return () => {
+      window.removeEventListener('popstate', onPop);
+      if (!closedByPop) {
+        // Explicit close (button / esc / backdrop) — remove the entry we added
+        // so the URL history stays clean.
+        try { window.history.back(); } catch { /* ignore */ }
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, mediaType]);
+
 
   const handleWatchlistClick = () => {
     if (!data) return;
