@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { X, MonitorPlay, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,13 +7,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import type { MediaType } from '@/types/tmdb';
+
+interface SeasonInfo {
+  season_number: number;
+  episode_count: number;
+  name?: string;
+}
 
 interface StreamPlayerProps {
   tmdbId: number;
   mediaType: MediaType;
   title: string;
+  /** For TV shows: list of seasons (excluding specials) so users can pick S/E. */
+  seasons?: SeasonInfo[];
+  /** Optional starting season/episode. */
   season?: number;
   episode?: number;
   onClose: () => void;
@@ -100,10 +112,36 @@ const sources: StreamSource[] = [
   },
 ];
 
-export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClose }: StreamPlayerProps) {
+export function StreamPlayer({ tmdbId, mediaType, title, seasons, season, episode, onClose }: StreamPlayerProps) {
   const [activeSource, setActiveSource] = useState(sources[0]);
 
-  const embedUrl = activeSource.getUrl(tmdbId, mediaType, season, episode);
+  const validSeasons = useMemo(
+    () => (seasons || []).filter(s => s.season_number > 0 && s.episode_count > 0),
+    [seasons]
+  );
+
+  const initialSeason = season ?? validSeasons[0]?.season_number ?? 1;
+  const [currentSeason, setCurrentSeason] = useState<number>(initialSeason);
+  const [currentEpisode, setCurrentEpisode] = useState<number>(episode ?? 1);
+
+  const activeSeasonInfo = validSeasons.find(s => s.season_number === currentSeason);
+  const episodeCount = activeSeasonInfo?.episode_count ?? 24;
+
+  const isTv = mediaType === 'tv';
+  const embedUrl = activeSource.getUrl(
+    tmdbId,
+    mediaType,
+    isTv ? currentSeason : undefined,
+    isTv ? currentEpisode : undefined
+  );
+
+  const handleSeasonChange = (value: string) => {
+    const s = parseInt(value, 10);
+    if (Number.isFinite(s)) {
+      setCurrentSeason(s);
+      setCurrentEpisode(1);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[60] bg-black flex flex-col" onClick={onClose}>
@@ -112,13 +150,53 @@ export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClos
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top bar */}
-        <div className="flex items-center justify-between px-4 py-3 shrink-0">
+        <div className="flex items-center justify-between gap-2 px-4 py-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <MonitorPlay className="h-5 w-5 text-primary shrink-0" />
-            <h3 className="text-sm font-medium text-white truncate">{title}</h3>
+            <h3 className="text-sm font-medium text-white truncate">
+              {title}
+              {isTv && (
+                <span className="ml-2 text-white/60">
+                  S{currentSeason}·E{currentEpisode}
+                </span>
+              )}
+            </h3>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* TV season/episode selectors */}
+            {isTv && validSeasons.length > 0 && (
+              <>
+                <Select value={String(currentSeason)} onValueChange={handleSeasonChange}>
+                  <SelectTrigger className="h-8 w-[92px] rounded-lg text-xs bg-white/10 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[70] max-h-72">
+                    {validSeasons.map(s => (
+                      <SelectItem key={s.season_number} value={String(s.season_number)}>
+                        Season {s.season_number}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={String(currentEpisode)}
+                  onValueChange={(v) => setCurrentEpisode(parseInt(v, 10) || 1)}
+                >
+                  <SelectTrigger className="h-8 w-[92px] rounded-lg text-xs bg-white/10 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[70] max-h-72">
+                    {Array.from({ length: episodeCount }, (_, i) => i + 1).map(n => (
+                      <SelectItem key={n} value={String(n)}>
+                        Episode {n}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+
             {/* Source selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -148,6 +226,7 @@ export function StreamPlayer({ tmdbId, mediaType, title, season, episode, onClos
               size="sm"
               className="text-white hover:bg-white/10 h-8 w-8 p-0 rounded-lg"
               onClick={onClose}
+              aria-label="Close player"
             >
               <X className="h-5 w-5" />
             </Button>
