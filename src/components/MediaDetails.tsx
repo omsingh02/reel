@@ -71,7 +71,7 @@ function Shell({
 
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist, setWatched, watchlist } = useWatchlist();
-  const { forShow, isWatched } = useEpisodeProgress();
+  const { isWatched } = useEpisodeProgress();
   const [showPlayer, setShowPlayer] = useState(false);
   const [showStream, setShowStream] = useState(false);
   const [region, setRegion] = useState<string>(() => {
