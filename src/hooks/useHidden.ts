@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -77,10 +77,13 @@ export function useHidden() {
     else guestUnhide(id, mediaType);
   }, [user, removeMutation]);
 
-  const isHidden = useCallback(
-    (id: number, mediaType: MediaType) =>
-      items.some(i => i.id === id && i.mediaType === mediaType),
+  const hiddenKeys = useMemo(
+    () => new Set(items.map(i => `${i.mediaType}:${i.id}`)),
     [items]
+  );
+  const isHidden = useCallback(
+    (id: number, mediaType: MediaType) => hiddenKeys.has(`${mediaType}:${id}`),
+    [hiddenKeys]
   );
 
   return { items, hide, unhide, isHidden };
