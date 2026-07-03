@@ -59,12 +59,15 @@ export function useWatchlist() {
       patch: { status?: WatchlistStatus; rating?: number | null; watchedAt?: string | null; runtime?: number | null }
     ) => {
       if (user) {
-        dbWatchlist.updateItem(id, mediaType, {
-          status: patch.status,
-          rating: patch.rating ?? null,
-          watched_at: patch.watchedAt ?? null,
-          runtime: patch.runtime ?? null,
-        });
+        // Only forward fields the caller explicitly set — otherwise toggling
+        // "watched" would null out an existing rating, and rating an item
+        // would null out its watched_at timestamp.
+        const dbPatch: Partial<{ status: WatchlistStatus; rating: number | null; watched_at: string | null; runtime: number | null }> = {};
+        if (patch.status !== undefined) dbPatch.status = patch.status;
+        if (patch.rating !== undefined) dbPatch.rating = patch.rating;
+        if (patch.watchedAt !== undefined) dbPatch.watched_at = patch.watchedAt;
+        if (patch.runtime !== undefined) dbPatch.runtime = patch.runtime;
+        dbWatchlist.updateItem(id, mediaType, dbPatch);
       } else {
         setLocalStatus(id, mediaType, patch);
       }
