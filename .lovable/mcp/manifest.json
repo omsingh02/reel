@@ -1,0 +1,222 @@
+{
+  "version": 1,
+  "sdk_version": "0.22.2",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://wcbmcqfvvxwlksnakiuk.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "watchlist-mcp",
+      "version": "0.1.0",
+      "title": "Watchlist"
+    },
+    "tools": [
+      {
+        "name": "search_media",
+        "title": "Search movies and TV shows",
+        "description": "Search TMDB for movies and TV shows by title. Returns up to 10 matches with id, type, title, year, rating, and overview.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Title to search for."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "movie",
+                "tv",
+                "multi"
+              ],
+              "description": "Restrict results to movies, TV shows, or both (default: multi)."
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_watchlist",
+        "title": "Get watchlist",
+        "description": "Return the signed-in user's watchlist items, optionally filtered by status (watchlist, watching, watched).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "watchlist",
+                "watching",
+                "watched"
+              ],
+              "description": "Filter by status. Omit to return all items."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "description": "Max items to return (default 100)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "add_to_watchlist",
+        "title": "Add to watchlist",
+        "description": "Add a movie or TV show to the signed-in user's watchlist. Provide the TMDB id and type; title/metadata are fetched automatically.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "tmdb_id": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "description": "TMDB numeric id."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "movie",
+                "tv"
+              ],
+              "description": "Media type."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "watchlist",
+                "watching",
+                "watched"
+              ],
+              "description": "Initial status (default: watchlist)."
+            }
+          },
+          "required": [
+            "tmdb_id",
+            "type"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "remove_from_watchlist",
+        "title": "Remove from watchlist",
+        "description": "Remove a movie or TV show from the signed-in user's watchlist by TMDB id and type.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "tmdb_id": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "movie",
+                "tv"
+              ]
+            }
+          },
+          "required": [
+            "tmdb_id",
+            "type"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_watchlist_item",
+        "title": "Update watchlist item",
+        "description": "Update the status and/or personal rating of an existing watchlist item. Setting status to 'watched' stamps the watched_at time.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "tmdb_id": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "movie",
+                "tv"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "watchlist",
+                "watching",
+                "watched"
+              ]
+            },
+            "rating": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 10
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Personal rating from 1-10. Pass null to clear."
+            }
+          },
+          "required": [
+            "tmdb_id",
+            "type"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
