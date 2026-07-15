@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Film, Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,11 @@ export default function Auth() {
   const { user, loading, signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Same-origin relative path only — reject external URLs and protocol-relative "//host".
+  const rawNext = searchParams.get('next') ?? '';
+  const nextPath = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/';
 
   if (loading) {
     return (
@@ -32,7 +37,7 @@ export default function Auth() {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={nextPath} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent, mode: 'signin' | 'signup') => {
@@ -52,7 +57,8 @@ export default function Auth() {
 
     try {
       if (mode === 'signup') {
-        const { error } = await signUp(email, password);
+        const emailRedirect = window.location.origin + nextPath;
+        const { error } = await signUp(email, password, emailRedirect);
         if (error) throw error;
         toast({
           title: 'Account created!',
@@ -61,7 +67,7 @@ export default function Auth() {
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
-        navigate('/');
+        navigate(nextPath);
       }
     } catch (error: any) {
       toast({
