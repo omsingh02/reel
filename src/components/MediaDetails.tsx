@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-  X, Star, Plus, Check, Play, MonitorPlay, CheckCircle2, Share2,
+  X, Star, Plus, Check, Play, MonitorPlay, CheckCircle2,
 } from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
 import { StreamPlayer } from '@/components/StreamPlayer';
