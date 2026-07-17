@@ -237,8 +237,8 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const watchedNow = watchlistItem?.status === 'watched';
   const currentRating = watchlistItem?.rating ?? null;
 
-  // TV "Up Next" — first unwatched episode.
-  const upNext = useMemo(() => {
+  // TV "Up Next" — first unwatched episode. Cheap loop, no memo needed.
+  const upNext = (() => {
     if (!tvData) return null;
     const seasons = tvData.seasons?.filter(s => s.season_number > 0 && s.episode_count > 0) || [];
     for (const s of seasons) {
@@ -247,7 +247,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
       }
     }
     return null;
-  }, [tvData, id, isWatched]);
+  })();
 
   const ProviderRow = ({ label, items }: { label: string; items: typeof streamingProviders }) =>
     items.length === 0 ? null : (
