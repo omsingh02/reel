@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Star, Clock, Calendar, Plus, Check, DollarSign, Globe, Building2, Tv2, Play, Image, MonitorPlay, CheckCircle2 } from 'lucide-react';
+import {
+  X, Star, Plus, Check, Play, MonitorPlay, CheckCircle2, Share2,
+} from 'lucide-react';
 import { BrandIcon } from '@/components/BrandIcon';
 import { StreamPlayer } from '@/components/StreamPlayer';
 import { Button } from '@/components/ui/button';
@@ -15,8 +17,6 @@ import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList } from '
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-
-
 
 interface MediaDetailsProps {
   id: number;
@@ -38,16 +38,16 @@ function formatRuntime(minutes: number): string {
   return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 }
 
-function Chip({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-      {children}
-    </span>
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{children}</h3>
+      {right}
+    </div>
   );
 }
 
-// Hoisted out of MediaDetails so it isn't recreated on every render
-// (which would remount the entire modal subtree and lose scroll/focus).
+// Hoisted so it isn't recreated per render (would remount subtree).
 function Shell({
   children,
   className = '',
@@ -58,9 +58,9 @@ function Shell({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div
-        className={`fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[12vw] xl:inset-x-[18vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl animate-scale-in ${className}`}
+        className={`fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[8vw] xl:inset-x-[10vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl border border-border/40 animate-scale-in ${className}`}
         onClick={e => e.stopPropagation()}
       >
         {children}
@@ -106,10 +106,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     return () => { document.body.style.overflow = ''; };
   }, []);
 
-  // Browser back button should close the modal — push a history entry on mount
-  // and pop it on close. Without this, back navigates away from the entire page.
-  // Deps are intentionally empty: we push once per modal lifetime, not per
-  // recommendation navigation (that would trigger nested pushes / popstate loops).
+  // Browser back closes the modal.
   useEffect(() => {
     window.history.pushState({ __mediaModal: true }, '');
     let closedByPop = false;
@@ -123,8 +120,6 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-
 
   const handleWatchlistClick = () => {
     if (!data) return;
@@ -147,11 +142,19 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   if (isLoading) {
     return (
       <Shell onClose={onClose}>
-        <div className="p-6 space-y-4">
-          <Skeleton className="h-56 w-full rounded-2xl" />
-          <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-          <Skeleton className="h-32 w-full rounded-2xl" />
+        <div className="h-full overflow-hidden">
+          <Skeleton className="h-[45vh] w-full rounded-none" />
+          <div className="p-6 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="lg:col-span-8 space-y-6">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-32 w-full rounded-2xl" />
+            </div>
+            <div className="lg:col-span-4 space-y-6">
+              <Skeleton className="h-32 w-full rounded-2xl" />
+              <Skeleton className="h-40 w-full rounded-2xl" />
+            </div>
+          </div>
         </div>
       </Shell>
     );
@@ -188,17 +191,21 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const title = movieData?.title ?? tvData?.name ?? '';
   const releaseDate = movieData?.release_date ?? tvData?.first_air_date ?? '';
   const runtime = movieData?.runtime ?? tvData?.episode_run_time?.[0];
-  const backdropUrl = getImageUrl(data.backdrop_path, 'w780');
+  const backdropUrl = getImageUrl(data.backdrop_path, 'w1280');
   const posterUrl = getImageUrl(data.poster_path, 'w342');
   const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
+  const endYear = tvData?.last_air_date ? new Date(tvData.last_air_date).getFullYear() : null;
+  const yearLabel = tvData
+    ? (endYear && endYear !== year ? `${year}–${endYear}` : `${year}${tvData.in_production ? '–Present' : ''}`)
+    : year;
 
   const trailer = data.videos?.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
   const director = isMovie ? data.credits?.crew.find(c => c.job === 'Director') : null;
   const writers = isMovie ? data.credits?.crew.filter(c => c.department === 'Writing').slice(0, 3) : [];
-  const cast = data.credits?.cast.slice(0, 8) || [];
+  const cast = data.credits?.cast.slice(0, 10) || [];
   const recommendations = cleanMediaList((data.recommendations?.results || []) as (TMDBMovie | TMDBTVShow)[]).slice(0, 12);
 
-  // Watch providers — user-selectable region with sensible fallback.
+  // Watch providers
   const watchProviders = data['watch/providers']?.results;
   const availableRegions = watchProviders ? Object.keys(watchProviders).sort() : [];
   const effectiveRegion = watchProviders && (watchProviders[region] ? region
@@ -209,15 +216,12 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const buyProviders = regionProviders?.buy || [];
   const watchProvidersLink = regionProviders?.link;
 
-  // Certification
   const certification = isMovie
     ? movieData?.release_dates?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.find(rd => rd.certification)?.certification
     : tvData?.content_ratings?.results?.find(r => r.iso_3166_1 === 'US')?.rating;
 
-  // Images (top backdrops)
   const backdrops = (data.images?.backdrops || []).slice(0, 6);
 
-  // Similar titles
   const recIds = new Set(recommendations.map(r => r.id));
   const similarItems = cleanMediaList((data.similar?.results || []) as (TMDBMovie | TMDBTVShow)[])
     .filter(s => !recIds.has(s.id))
@@ -229,10 +233,26 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     data.homepage && { name: 'Official Site', url: data.homepage },
   ].filter(Boolean) as { name: string; url: string }[];
 
+  const watchlistItem = watchlist.find(w => w.id === id && w.mediaType === mediaType);
+  const watchedNow = watchlistItem?.status === 'watched';
+  const currentRating = watchlistItem?.rating ?? null;
+
+  // TV "Up Next" — first unwatched episode.
+  const upNext = useMemo(() => {
+    if (!tvData) return null;
+    const seasons = tvData.seasons?.filter(s => s.season_number > 0 && s.episode_count > 0) || [];
+    for (const s of seasons) {
+      for (let e = 1; e <= s.episode_count; e++) {
+        if (!isWatched(id, s.season_number, e)) return { season: s.season_number, episode: e, seasonName: s.name };
+      }
+    }
+    return null;
+  }, [tvData, id, isWatched]);
+
   const ProviderRow = ({ label, items }: { label: string; items: typeof streamingProviders }) =>
     items.length === 0 ? null : (
       <div className="mb-3 last:mb-0">
-        <p className="text-xs text-muted-foreground mb-1.5">{label}</p>
+        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">{label}</p>
         <div className="flex flex-wrap gap-2">
           {items.map(p => (
             <a
@@ -250,170 +270,142 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
       </div>
     );
 
+  const heroHeight = 'h-[55vh] min-h-[380px] max-h-[560px]';
+
   return (
     <>
       <Shell onClose={onClose} className="flex flex-col">
+        {/* Mobile drag handle */}
+        <div className="sm:hidden flex justify-center pt-2 pb-1 flex-shrink-0">
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+        </div>
 
-          {/* Drag handle (mobile) */}
-          <div className="sm:hidden flex justify-center pt-2 pb-1 flex-shrink-0">
-            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-          </div>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain-y">
+          {/* CINEMATIC HERO */}
+          <div className={`relative w-full ${heroHeight}`}>
+            {backdropUrl && (
+              <img src={backdropUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
 
-          {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain-y">
-            {/* Hero */}
-            <div className="relative h-44 sm:h-56 lg:h-72 bg-secondary overflow-hidden">
-              {backdropUrl && (
-                <img src={backdropUrl} alt="" className="h-full w-full object-cover" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/20" />
+            {/* Close */}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute right-4 top-4 sm:top-6 h-11 w-11 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/10 flex items-center justify-center text-white transition-all z-20"
+            >
+              <X className="h-5 w-5" />
+            </button>
 
-              {/* Centered trailer play button — scoped so it doesn't hijack
-                  the entire hero on mobile (was a full-area button that
-                  caused accidental taps when scrolling). */}
-              {trailer && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <button
-                    onClick={() => setShowPlayer(true)}
-                    aria-label="Play trailer"
-                    className="pointer-events-auto h-16 w-16 rounded-full bg-primary/90 flex items-center justify-center hover:bg-primary active:scale-95 hover:scale-110 transition-all shadow-lg"
-                  >
-                    <Play className="h-7 w-7 text-primary-foreground ml-1" />
-                  </button>
-                </div>
-              )}
+            {/* Centered trailer play */}
+            {trailer && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <button
+                  onClick={() => setShowPlayer(true)}
+                  aria-label="Play trailer"
+                  className="pointer-events-auto h-16 w-16 rounded-full bg-primary/95 flex items-center justify-center hover:bg-primary active:scale-95 hover:scale-105 transition-all shadow-2xl ring-4 ring-white/10"
+                >
+                  <Play className="h-7 w-7 text-primary-foreground ml-1" fill="currentColor" />
+                </button>
+              </div>
+            )}
 
-              {/* Close button — larger tap target on mobile, respects iOS notch. */}
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="absolute right-3 sm:right-4 top-safe sm:top-4 h-11 w-11 sm:h-10 sm:w-10 rounded-full bg-background/80 sm:bg-secondary/80 hover:bg-secondary active:scale-95 flex items-center justify-center transition-all backdrop-blur-sm z-10 shadow-lg"
-              >
-                <X className="h-5 w-5 text-foreground sm:text-secondary-foreground" />
-              </button>
-            </div>
-
-
-            {/* Content */}
-            <div className="relative px-4 sm:px-8 pb-24 sm:pb-8 -mt-16 sm:-mt-24 pb-safe">
-              <div className="flex gap-4 sm:gap-5 mb-5">
-                {/* Poster */}
-                <div className="flex-shrink-0 w-24 sm:w-32 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-background bg-secondary shadow-xl">
-                  {posterUrl ? (
-                    <img src={posterUrl} alt={title} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-muted-foreground text-xs">No poster</div>
-                  )}
-                </div>
-
-                {/* Title & meta */}
-                <div className="flex-1 min-w-0 pt-16 sm:pt-24">
-                  <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                    <Chip>{isMovie ? 'Movie' : 'TV Series'}</Chip>
-                    <Chip>{data.status}</Chip>
-                    {certification && (
-                      <span className="inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
-                        {certification}
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3 break-words text-foreground">{title}</h2>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                    {year && (
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {year}
-                      </span>
-                    )}
-                    {runtime && runtime > 0 && (
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="h-3.5 w-3.5" />
-                        {formatRuntime(runtime)}
-                      </span>
-                    )}
-                    {data.vote_average > 0 && (
-                      <span className="flex items-center gap-1.5">
-                        <Star className="h-3.5 w-3.5 fill-rating text-rating" />
-                        {data.vote_average.toFixed(1)}
-                        <span className="text-xs">({data.vote_count.toLocaleString()})</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
+            {/* Hero title block */}
+            <div className="absolute bottom-6 sm:bottom-10 left-4 sm:left-8 lg:left-10 right-4 sm:right-8 lg:right-10 flex flex-col sm:flex-row items-start sm:items-end gap-5 sm:gap-8">
+              {/* Poster */}
+              <div className="hidden sm:block w-32 lg:w-44 shrink-0 aspect-[2/3] rounded-xl overflow-hidden border border-white/10 shadow-2xl bg-secondary">
+                {posterUrl ? (
+                  <img src={posterUrl} alt={title} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-muted-foreground text-xs">No poster</div>
+                )}
               </div>
 
-              {/* TV-specific info */}
-              {tvData && (
-                <div className="flex flex-wrap gap-3 mb-4 text-sm">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Tv2 className="h-4 w-4" />
-                    <span>{tvData.number_of_seasons} season{tvData.number_of_seasons !== 1 ? 's' : ''}</span>
-                    <span>•</span>
-                    <span>{tvData.number_of_episodes} episodes</span>
-                  </div>
-                  {tvData.networks && tvData.networks.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      {tvData.networks.slice(0, 2).map(network => (
-                        <Chip key={network.id}>{network.name}</Chip>
-                      ))}
-                    </div>
+              <div className="flex-1 min-w-0 space-y-3">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-tight drop-shadow-lg">
+                  {title}
+                </h1>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-zinc-300">
+                  <span className="px-2 py-0.5 rounded border border-white/25 font-mono text-[11px] uppercase tracking-wider text-white">
+                    {isMovie ? 'Movie' : 'TV Series'}
+                  </span>
+                  {yearLabel && <span>{yearLabel}</span>}
+                  {runtime && runtime > 0 && <span>{formatRuntime(runtime)}</span>}
+                  {data.vote_average > 0 && (
+                    <span className="flex items-center gap-1.5 text-rating">
+                      <Star className="h-4 w-4 fill-current" />
+                      <span className="text-white font-semibold">{data.vote_average.toFixed(1)}</span>
+                      <span className="text-xs text-zinc-400">({data.vote_count.toLocaleString()})</span>
+                    </span>
+                  )}
+                  {certification && (
+                    <span className="px-2 py-0.5 rounded border border-white/25 text-[11px] font-bold text-white">
+                      {certification}
+                    </span>
+                  )}
+                  {data.genres?.slice(0, 3).map(g => g.name).join(' • ') && (
+                    <span className="text-zinc-300">{data.genres.slice(0, 3).map(g => g.name).join(' • ')}</span>
                   )}
                 </div>
-              )}
+              </div>
+            </div>
+          </div>
 
-              {/* Genres */}
-              {data.genres && data.genres.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-5">
-                  {data.genres.map(genre => (
-                    <Chip key={genre.id}>{genre.name}</Chip>
-                  ))}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex flex-wrap gap-2 mb-6">
+          {/* ACTION BAR */}
+          <div className="px-4 sm:px-8 lg:px-10 pt-6 pb-2 border-b border-border/50">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              <Button
+                size="lg"
+                className="rounded-xl h-12 px-6 sm:px-8 font-bold gap-2 shadow-lg"
+                onClick={() => setShowStream(true)}
+              >
+                <Play className="h-5 w-5" fill="currentColor" />
+                Watch Now
+              </Button>
+              <Button
+                variant={inWatchlist ? "outline" : "secondary"}
+                size="lg"
+                className="rounded-xl h-12 px-5 gap-2"
+                onClick={handleWatchlistClick}
+              >
+                {inWatchlist ? <><Check className="h-5 w-5" />In Watchlist</> : <><Plus className="h-5 w-5" />Watchlist</>}
+              </Button>
+              {trailer && (
                 <Button
-                  className="rounded-full px-6"
-                  variant={inWatchlist ? "outline" : "default"}
-                  onClick={handleWatchlistClick}
+                  variant="secondary"
+                  size="lg"
+                  className="rounded-xl h-12 px-5 gap-2"
+                  onClick={() => setShowPlayer(true)}
                 >
-                  {inWatchlist ? (
-                    <><Check className="h-4 w-4 mr-2" />In Watchlist</>
-                  ) : (
-                    <><Plus className="h-4 w-4 mr-2" />Add to Watchlist</>
-                  )}
+                  <MonitorPlay className="h-5 w-5" />
+                  Trailer
                 </Button>
-                {inWatchlist && (() => {
-                  const item = watchlist.find(w => w.id === id && w.mediaType === mediaType);
-                  const watchedNow = item?.status === 'watched';
-                  return (
-                    <Button
-                      variant={watchedNow ? "default" : "outline"}
-                      className="rounded-full px-6"
-                      onClick={() =>
-                        setWatched(id, mediaType, {
-                          status: watchedNow ? 'watchlist' : 'watched',
-                          watchedAt: watchedNow ? null : new Date().toISOString(),
-                          runtime: runtime || null,
-                        })
-                      }
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      {watchedNow ? 'Watched' : 'Mark watched'}
-                    </Button>
-                  );
-                })()}
-                {trailer && (
-                  <Button variant="secondary" className="rounded-full px-6" onClick={() => setShowPlayer(true)}>
-                    <Play className="h-4 w-4 mr-2" />
-                    Trailer
+              )}
+              {inWatchlist && (
+                <Button
+                  variant={watchedNow ? "default" : "secondary"}
+                  size="lg"
+                  className={`rounded-xl h-12 px-5 gap-2 ${watchedNow ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : ''}`}
+                  onClick={() =>
+                    setWatched(id, mediaType, {
+                      status: watchedNow ? 'watchlist' : 'watched',
+                      watchedAt: watchedNow ? null : new Date().toISOString(),
+                      runtime: runtime || null,
+                    })
+                  }
+                >
+                  <CheckCircle2 className="h-5 w-5" />
+                  {watchedNow ? 'Watched' : 'Mark watched'}
+                </Button>
+              )}
+              <div className="flex-1" />
+              <div className="flex items-center gap-2">
+                <ShareButton title={title} mediaType={mediaType} id={id}>
+                  <Button variant="ghost" size="icon" className="h-12 w-12 rounded-xl" aria-label="Share">
+                    <Share2 className="h-5 w-5" />
                   </Button>
-                )}
-                <Button variant="outline" className="rounded-full px-6" onClick={() => setShowStream(true)}>
-                  <MonitorPlay className="h-4 w-4 mr-2" />
-                  Watch Now
-                </Button>
-                <ShareButton title={title} mediaType={mediaType} id={id} />
+                </ShareButton>
                 {externalLinks.map(link => (
                   <a
                     key={link.name}
@@ -421,198 +413,168 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                     target="_blank"
                     rel="noopener noreferrer"
                     title={link.name}
-                    className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-secondary hover:bg-secondary/80 transition-colors group"
+                    className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-secondary hover:bg-secondary/70 transition-colors"
                   >
-                    <BrandIcon
-                      name={link.name}
-                      className="h-5 w-5 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-200"
-                    />
+                    <BrandIcon name={link.name} className="h-5 w-5 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
                   </a>
                 ))}
               </div>
+            </div>
+          </div>
 
-              {/* Your rating — visible only if watched */}
-              {(() => {
-                const item = watchlist.find(w => w.id === id && w.mediaType === mediaType);
-                if (item?.status !== 'watched') return null;
-                return (
-                  <div className="flex items-center gap-2 mb-6 text-sm">
-                    <Star className="h-4 w-4 text-rating fill-rating" />
-                    <span className="text-muted-foreground">Your rating:</span>
-                    <Select
-                      value={item.rating ? String(item.rating) : 'none'}
-                      onValueChange={(v) =>
-                        setWatched(id, mediaType, {
-                          status: 'watched',
-                          rating: v === 'none' ? null : Number(v),
-                        })
-                      }
-                    >
-                      <SelectTrigger className="h-8 w-24 rounded-full"><SelectValue placeholder="Rate" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">—</SelectItem>
-                        {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                          <SelectItem key={n} value={String(n)}>{n}/10</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                );
-              })()}
-
-
-              {/* Tagline */}
+          {/* MAIN CONTENT — editorial two-column */}
+          <div className="px-4 sm:px-8 lg:px-10 py-8 lg:py-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 pb-safe">
+            {/* Story column */}
+            <div className="lg:col-span-8 space-y-10 lg:space-y-12 min-w-0">
               {data.tagline && (
-                <p className="text-sm italic text-muted-foreground mb-5 border-l-2 border-primary pl-3">
+                <p className="text-lg italic text-muted-foreground border-l-2 border-primary pl-4">
                   "{data.tagline}"
                 </p>
               )}
 
-              {/* Overview */}
               {data.overview && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Overview</h3>
-                  <p className="text-sm leading-relaxed break-words">{data.overview}</p>
-                </div>
-              )}
-
-              {/* Financial info (Movie) */}
-              {movieData && (movieData.budget > 0 || movieData.revenue > 0) && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                  {movieData.budget > 0 && (
-                    <div className="p-4 rounded-2xl bg-secondary/50 border border-border/30">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                        <DollarSign className="h-3.5 w-3.5" />Budget
-                      </div>
-                      <p className="text-lg font-semibold">{formatCurrency(movieData.budget)}</p>
-                    </div>
-                  )}
-                  {movieData.revenue > 0 && (
-                    <div className="p-4 rounded-2xl bg-secondary/50 border border-border/30">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                        <DollarSign className="h-3.5 w-3.5" />Box Office
-                      </div>
-                      <p className="text-lg font-semibold">{formatCurrency(movieData.revenue)}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Languages */}
-              {data.spoken_languages && data.spoken_languages.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <Globe className="h-3.5 w-3.5" />Languages
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {data.spoken_languages.map(lang => (
-                      <Chip key={lang.iso_639_1}>{lang.english_name}</Chip>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Production Companies */}
-              {data.production_companies && data.production_companies.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <Building2 className="h-3.5 w-3.5" />Production
-                  </div>
-                  <p className="text-sm break-words">
-                    {data.production_companies.map(c => c.name).join(' • ')}
+                <section>
+                  <SectionLabel>The Story</SectionLabel>
+                  <p className="text-foreground/90 leading-relaxed text-lg font-light">
+                    {data.overview}
                   </p>
-                </div>
+                </section>
               )}
 
-              {/* Next Episode (TV) */}
+              {/* TV Up Next */}
+              {tvData && upNext && (
+                <section>
+                  <SectionLabel right={<span className="text-xs text-muted-foreground font-mono">S{upNext.season} • E{upNext.episode}</span>}>
+                    Up Next
+                  </SectionLabel>
+                  <button
+                    onClick={() => setShowStream(true)}
+                    className="group w-full text-left rounded-2xl bg-secondary/40 hover:bg-secondary/70 border border-border/40 p-4 flex items-center gap-4 transition-all"
+                  >
+                    <div className="h-14 w-14 rounded-xl bg-primary/90 group-hover:bg-primary flex items-center justify-center flex-shrink-0 shadow-lg">
+                      <Play className="h-6 w-6 text-primary-foreground ml-0.5" fill="currentColor" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-0.5">
+                        {upNext.seasonName} · Episode {upNext.episode}
+                      </p>
+                      <p className="font-semibold text-foreground">Continue watching</p>
+                    </div>
+                  </button>
+                </section>
+              )}
+
+              {/* Next Episode airing */}
               {tvData?.next_episode_to_air && (
-                <div className="mb-6 p-4 rounded-2xl border border-primary/20 bg-primary/5">
-                  <h3 className="text-sm font-medium mb-2">Next Episode</h3>
-                  <p className="text-sm font-medium">
-                    S{tvData.next_episode_to_air.season_number}E{tvData.next_episode_to_air.episode_number}: {tvData.next_episode_to_air.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(tvData.next_episode_to_air.air_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                  </p>
-                </div>
-              )}
-
-              {/* Director/Writers (Movie) */}
-              {isMovie && (director || (writers && writers.length > 0)) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  {director && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Director</h3>
-                      <p className="text-sm">{director.name}</p>
-                    </div>
-                  )}
-                  {writers && writers.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Writers</h3>
-                      <p className="text-sm">{writers.map(w => w.name).join(', ')}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Creators (TV) */}
-              {tvData?.created_by && tvData.created_by.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Created by</h3>
-                  <p className="text-sm">{tvData.created_by.map(c => c.name).join(', ')}</p>
-                </div>
+                <section>
+                  <SectionLabel>Next Airing</SectionLabel>
+                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                    <p className="font-semibold">
+                      S{tvData.next_episode_to_air.season_number}E{tvData.next_episode_to_air.episode_number}: {tvData.next_episode_to_air.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(tvData.next_episode_to_air.air_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  </div>
+                </section>
               )}
 
               {/* Cast */}
               {cast.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Cast</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <section>
+                  <SectionLabel>Cast</SectionLabel>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-6">
                     {cast.map(person => (
-                      <div key={person.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-secondary/50 border border-border/30">
-                        <div className="h-10 w-10 rounded-full bg-secondary overflow-hidden flex-shrink-0">
+                      <div key={person.id} className="space-y-2">
+                        <div className="aspect-square rounded-full overflow-hidden border-2 border-border bg-secondary">
                           {person.profile_path ? (
-                            <img src={getImageUrl(person.profile_path, 'w92') || ''} alt={person.name} className="h-full w-full object-cover" />
+                            <img src={getImageUrl(person.profile_path, 'w185') || ''} alt={person.name} className="h-full w-full object-cover" loading="lazy" />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground font-medium">
+                            <div className="h-full w-full flex items-center justify-center text-lg text-muted-foreground font-medium">
                               {person.name[0]}
                             </div>
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{person.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{person.character}</p>
+                        <div className="text-center">
+                          <p className="text-xs sm:text-sm font-semibold truncate">{person.name}</p>
+                          <p className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-tight truncate">{person.character}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
 
-              {/* Seasons & Episodes (TV) */}
-              {tvData?.seasons && tvData.seasons.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Seasons</h3>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
+              {/* Seasons (TV) */}
+              {tvData?.seasons && tvData.seasons.filter(s => s.season_number > 0).length > 0 && (
+                <section>
+                  <SectionLabel>Episodes</SectionLabel>
+                  <div className="space-y-2">
                     {tvData.seasons
                       .filter(s => s.season_number > 0)
                       .map(season => (
                         <SeasonEpisodes key={season.id} tvId={id} season={season} />
                       ))}
                   </div>
-                </div>
+                </section>
               )}
 
+              {/* Gallery */}
+              {backdrops.length > 0 && (
+                <section>
+                  <SectionLabel>Images</SectionLabel>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {backdrops.map((img, i) => (
+                      <div key={i} className="aspect-video rounded-xl overflow-hidden bg-secondary border border-border/30">
+                        <img src={getImageUrl(img.file_path, 'w500') || ''} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
 
-              {/* Watch Providers */}
+            {/* Sidebar */}
+            <aside className="lg:col-span-4 space-y-8 lg:space-y-10 min-w-0">
+              {/* Rate */}
+              {inWatchlist && watchedNow && (
+                <section>
+                  <SectionLabel>Your Rating</SectionLabel>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map(n => {
+                      const active = currentRating === n;
+                      return (
+                        <button
+                          key={n}
+                          onClick={() =>
+                            setWatched(id, mediaType, {
+                              rating: active ? null : n,
+                            })
+                          }
+                          className={`h-10 rounded-lg font-mono text-sm font-semibold transition-all ${
+                            active
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-secondary text-foreground/70 hover:bg-secondary/70 border border-border/40'
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {currentRating && (
+                    <p className="text-xs text-muted-foreground mt-2">You rated this {currentRating}/10</p>
+                  )}
+                </section>
+              )}
+
+              {/* Providers */}
               {availableRegions.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <MonitorPlay className="h-3.5 w-3.5" />Where to Watch
-                    </div>
+                <section className="p-5 rounded-2xl bg-secondary/40 border border-border/40 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Available On</h3>
                     <Select value={effectiveRegion} onValueChange={setRegion}>
-                      <SelectTrigger className="h-8 w-24 rounded-full text-xs"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-7 w-20 rounded-md text-xs font-mono"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {availableRegions.map(r => (
                           <SelectItem key={r} value={r}>{r}</SelectItem>
@@ -625,60 +587,129 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                       No providers listed for {effectiveRegion}. Try another region.
                     </p>
                   ) : (
-                    <>
+                    <div>
                       <ProviderRow label="Stream" items={streamingProviders} />
                       <ProviderRow label="Rent" items={rentProviders} />
                       <ProviderRow label="Buy" items={buyProviders} />
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {/* Specifications */}
+              <section>
+                <SectionLabel>Specifications</SectionLabel>
+                <dl className="grid grid-cols-2 gap-y-4 font-mono">
+                  {isMovie && director && (
+                    <div className="col-span-2 space-y-1">
+                      <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Director</dt>
+                      <dd className="text-sm">{director.name}</dd>
+                    </div>
+                  )}
+                  {isMovie && writers && writers.length > 0 && (
+                    <div className="col-span-2 space-y-1">
+                      <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Writers</dt>
+                      <dd className="text-sm">{writers.map(w => w.name).join(', ')}</dd>
+                    </div>
+                  )}
+                  {tvData?.created_by && tvData.created_by.length > 0 && (
+                    <div className="col-span-2 space-y-1">
+                      <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Created By</dt>
+                      <dd className="text-sm">{tvData.created_by.map(c => c.name).join(', ')}</dd>
+                    </div>
+                  )}
+                  {tvData && (
+                    <>
+                      <div className="space-y-1">
+                        <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Seasons</dt>
+                        <dd className="text-sm">{tvData.number_of_seasons}</dd>
+                      </div>
+                      <div className="space-y-1">
+                        <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Episodes</dt>
+                        <dd className="text-sm">{tvData.number_of_episodes}</dd>
+                      </div>
                     </>
                   )}
-                </div>
-              )}
-
-              {/* Backdrops Gallery */}
-              {backdrops.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                    <Image className="h-3.5 w-3.5" />Images
+                  {tvData?.networks && tvData.networks.length > 0 && (
+                    <div className="col-span-2 space-y-1">
+                      <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Network</dt>
+                      <dd className="text-sm">{tvData.networks.slice(0, 2).map(n => n.name).join(', ')}</dd>
+                    </div>
+                  )}
+                  {movieData && movieData.budget > 0 && (
+                    <div className="space-y-1">
+                      <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Budget</dt>
+                      <dd className="text-sm">{formatCurrency(movieData.budget)}</dd>
+                    </div>
+                  )}
+                  {movieData && movieData.revenue > 0 && (
+                    <div className="space-y-1">
+                      <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Box Office</dt>
+                      <dd className="text-sm">{formatCurrency(movieData.revenue)}</dd>
+                    </div>
+                  )}
+                  {data.spoken_languages && data.spoken_languages.length > 0 && (
+                    <div className="col-span-2 space-y-1">
+                      <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Languages</dt>
+                      <dd className="text-sm">{data.spoken_languages.map(l => l.english_name).join(', ')}</dd>
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Status</dt>
+                    <dd className="text-sm">{data.status}</dd>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {backdrops.map((img, i) => (
-                      <div key={i} className="aspect-video rounded-xl overflow-hidden bg-secondary border border-border/30">
-                        <img src={getImageUrl(img.file_path, 'w500') || ''} alt="" className="h-full w-full object-cover" loading="lazy" />
-                      </div>
+                  {data.production_companies && data.production_companies.length > 0 && (
+                    <div className="col-span-2 space-y-1">
+                      <dt className="text-[10px] text-muted-foreground uppercase tracking-wider">Production</dt>
+                      <dd className="text-sm break-words">{data.production_companies.slice(0, 4).map(c => c.name).join(' · ')}</dd>
+                    </div>
+                  )}
+                </dl>
+              </section>
+
+              {/* External footer */}
+              {(externalLinks.length > 0 || data.id) && (
+                <div className="flex items-center justify-between pt-6 border-t border-border/50">
+                  <div className="flex gap-4">
+                    {externalLinks.map(link => (
+                      <a
+                        key={link.name}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-bold text-muted-foreground hover:text-foreground transition-colors tracking-widest uppercase"
+                      >
+                        {link.name === 'IMDb' ? 'IMDB' : link.name}
+                      </a>
                     ))}
                   </div>
+                  <span className="text-[10px] font-mono text-muted-foreground/60">TMDB {data.id}</span>
                 </div>
               )}
-
-              {/* Recommendations */}
-              {recommendations.length > 0 && (
-                <RecommendationCarousel
-                  items={recommendations}
-                  mediaType={mediaType}
-                  onSelect={(recId, recType) => {
-                    if (onNavigate) onNavigate(recId, recType);
-                  }}
-                />
-              )}
-
-              {/* Similar Titles */}
-              {similarItems.length > 0 && (
-                <RecommendationCarousel
-                  items={similarItems}
-                  mediaType={mediaType}
-                  title="Similar Titles"
-                  onSelect={(recId, recType) => {
-                    if (onNavigate) onNavigate(recId, recType);
-                  }}
-                />
-              )}
-            </div>
+            </aside>
           </div>
+
+          {/* Related rails — full width below columns */}
+          <div className="px-4 sm:px-8 lg:px-10 pb-10 space-y-8">
+            {recommendations.length > 0 && (
+              <RecommendationCarousel
+                items={recommendations}
+                mediaType={mediaType}
+                onSelect={(recId, recType) => onNavigate?.(recId, recType)}
+              />
+            )}
+            {similarItems.length > 0 && (
+              <RecommendationCarousel
+                items={similarItems}
+                mediaType={mediaType}
+                title="Similar Titles"
+                onSelect={(recId, recType) => onNavigate?.(recId, recType)}
+              />
+            )}
+          </div>
+        </div>
       </Shell>
 
-
-
-      {/* Video Player */}
       {showPlayer && trailer && (
         <VideoPlayer
           videoKey={trailer.key}
@@ -687,26 +718,13 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
         />
       )}
 
-      {/* Stream Player */}
       {showStream && (() => {
-        // For TV, default to the first unwatched episode (falls back to S1E1).
         let startS: number | undefined;
         let startE: number | undefined;
         const tvSeasons = tvData?.seasons?.filter(s => s.season_number > 0 && s.episode_count > 0) || [];
         if (tvData && tvSeasons.length > 0) {
-          outer: for (const s of tvSeasons) {
-            for (let e = 1; e <= s.episode_count; e++) {
-              if (!isWatched(id, s.season_number, e)) {
-                startS = s.season_number;
-                startE = e;
-                break outer;
-              }
-            }
-          }
-          if (startS === undefined) {
-            startS = tvSeasons[0].season_number;
-            startE = 1;
-          }
+          if (upNext) { startS = upNext.season; startE = upNext.episode; }
+          else { startS = tvSeasons[0].season_number; startE = 1; }
         }
         return (
           <StreamPlayer
@@ -720,7 +738,6 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
           />
         );
       })()}
-
     </>
   );
 }
