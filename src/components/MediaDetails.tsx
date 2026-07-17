@@ -191,7 +191,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const title = movieData?.title ?? tvData?.name ?? '';
   const releaseDate = movieData?.release_date ?? tvData?.first_air_date ?? '';
   const runtime = movieData?.runtime ?? tvData?.episode_run_time?.[0];
-  const backdropUrl = getImageUrl(data.backdrop_path, 'w1280');
+  const backdropUrl = getImageUrl(data.backdrop_path, 'w780');
   const posterUrl = getImageUrl(data.poster_path, 'w342');
   const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
   const endYear = tvData?.last_air_date ? new Date(tvData.last_air_date).getFullYear() : null;
