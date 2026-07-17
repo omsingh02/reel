@@ -401,11 +401,8 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               )}
               <div className="flex-1" />
               <div className="flex items-center gap-2">
-                <ShareButton title={title} mediaType={mediaType} id={id}>
-                  <Button variant="ghost" size="icon" className="h-12 w-12 rounded-xl" aria-label="Share">
-                    <Share2 className="h-5 w-5" />
-                  </Button>
-                </ShareButton>
+                <ShareButton title={title} mediaType={mediaType} id={id} />
+
                 {externalLinks.map(link => (
                   <a
                     key={link.name}
