@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ScrollToTop } from "@/components/ScrollToTop";
+
 
 const Index = lazy(() => import("./pages/Index"));
 const Watchlist = lazy(() => import("./pages/Watchlist"));
@@ -35,7 +37,9 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><LoadingSpinner size="lg" /></div>}>
+
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/watchlist" element={<Watchlist />} />
