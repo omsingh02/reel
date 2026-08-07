@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ScrollToTop } from "@/components/ScrollToTop";
+
 
 const Index = lazy(() => import("./pages/Index"));
 const Watchlist = lazy(() => import("./pages/Watchlist"));
