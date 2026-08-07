@@ -35,7 +35,9 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><LoadingSpinner size="lg" /></div>}>
+
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/watchlist" element={<Watchlist />} />
