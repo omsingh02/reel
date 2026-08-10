@@ -105,6 +105,8 @@ export const RecommendationCarousel = React.forwardRef<HTMLDivElement, Recommend
                     <img
                       src={posterUrl}
                       alt={title}
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover transition-transform group-hover/card:scale-105"
                     />
                   ) : (

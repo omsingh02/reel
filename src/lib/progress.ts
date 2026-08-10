@@ -17,7 +17,11 @@ function read(): EpisodeProgressItem[] {
 
 function write(next: EpisodeProgressItem[]) {
   cache = next;
-  localStorage.setItem(KEY, JSON.stringify(next));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    // Storage full or unavailable (Safari private mode) — keep in-memory state.
+  }
   listeners.forEach(l => l());
 }
 

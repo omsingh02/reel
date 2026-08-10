@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { AlertTriangle, type LucideIcon } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -36,8 +36,6 @@ export interface MediaListPageProps {
   searchPlaceholder?: string;
   /** Subtitle prefix when not searching (e.g. "Popular movies right now"). */
   defaultSubtitle: string;
-  /** Sync ?movie= / ?tv= deep links to the open details modal. */
-  enableDeepLinks?: boolean;
 }
 
 const PAGE_CAP = 10;
@@ -56,7 +54,6 @@ export function MediaListPage({
   emptyIcon: EmptyIcon,
   searchPlaceholder,
   defaultSubtitle,
-  enableDeepLinks = false,
 }: MediaListPageProps) {
   const [switchableType, setSwitchableType] = useState<MediaType>('movie');
   const mediaType = fixedMediaType ?? switchableType;
@@ -65,21 +62,6 @@ export function MediaListPage({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('popularity');
   const [selectedMedia, setSelectedMedia] = useState<{ id: number; type: MediaType } | null>(null);
-
-  // Deep-link parsing (Index page only)
-  useEffect(() => {
-    if (!enableDeepLinks) return;
-    const params = new URLSearchParams(window.location.search);
-    const parseId = (v: string | null) => {
-      if (!v) return NaN;
-      const n = parseInt(v, 10);
-      return Number.isFinite(n) && n > 0 ? n : NaN;
-    };
-    const movieId = parseId(params.get('movie'));
-    const tvId = parseId(params.get('tv'));
-    if (!Number.isNaN(movieId)) setSelectedMedia({ id: movieId, type: 'movie' });
-    else if (!Number.isNaN(tvId)) setSelectedMedia({ id: tvId, type: 'tv' });
-  }, [enableDeepLinks]);
 
   const baseFetcher = source === 'trending' ? getTrending : getPopular;
 
@@ -125,27 +107,11 @@ export function MediaListPage({
 
   const handleMediaClick = useCallback((id: number, type: MediaType) => {
     setSelectedMedia({ id, type });
-    if (enableDeepLinks) {
-      const url = new URL(window.location.href);
-      // Clear both to avoid stale ?movie=X&tv=Y when navigating across types
-      // via recommendations.
-      url.searchParams.delete('movie');
-      url.searchParams.delete('tv');
-      url.searchParams.set(type, id.toString());
-      window.history.replaceState({}, '', url);
-    }
-  }, [enableDeepLinks]);
-
+  }, []);
 
   const handleCloseDetails = useCallback(() => {
     setSelectedMedia(null);
-    if (enableDeepLinks) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('movie');
-      url.searchParams.delete('tv');
-      window.history.replaceState({}, '', url);
-    }
-  }, [enableDeepLinks]);
+  }, []);
 
   // Note: Escape handling for the open modal is owned by MediaDetails itself
   // (it needs to close nested layers like the trailer/StreamPlayer first).

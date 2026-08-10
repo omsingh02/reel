@@ -36,7 +36,11 @@ function read(): WatchlistItem[] {
 
 function write(next: WatchlistItem[]): void {
   cache = next;
-  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(next));
+  try {
+    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(next));
+  } catch {
+    // Storage full or unavailable (Safari private mode) — keep in-memory state.
+  }
   listeners.forEach(l => l());
 }
 

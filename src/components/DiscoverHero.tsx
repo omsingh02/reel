@@ -40,6 +40,8 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
             aria-hidden
             className="absolute inset-0 h-full w-full object-cover"
             loading="eager"
+            // @ts-expect-error - fetchpriority is valid HTML but not yet typed in React 18
+            fetchpriority="high"
           />
         )}
         {/* Layered gradients for legibility */}
