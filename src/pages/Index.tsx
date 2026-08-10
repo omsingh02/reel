@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, AlertTriangle } from 'lucide-react';
 import { Layout } from '@/components/Layout';
+import { Seo } from '@/components/Seo';
 import { SearchBar } from '@/components/SearchBar';
 import { MediaRail } from '@/components/MediaRail';
 import { DiscoverHero } from '@/components/DiscoverHero';
@@ -152,6 +153,7 @@ export default function Index() {
 
   return (
     <Layout>
+      <Seo title="Watchlist — Track Movies & TV Shows" description="Discover trending movies and TV shows, build your personal watchlist, and never miss what to watch next." path="/" jsonLd={{"@context":"https://schema.org","@type":"WebSite","name":"Watchlist","url":"https://wat.lovable.app/","potentialAction":{"@type":"SearchAction","target":"https://wat.lovable.app/?q={search_term_string}","query-input":"required name=search_term_string"}}} />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold hidden sm:block">Discover</h1>

@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
+import { Seo } from '@/components/Seo';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }).max(255),
@@ -84,6 +85,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <Seo
+        title="Sign In to Watchlist"
+        description="Sign in or create a free Watchlist account to sync your saved movies and TV shows across all of your devices."
+        path="/auth"
+        noindex
+      />
       <div className="w-full max-w-md">
         <button
           onClick={() => navigate('/')}
@@ -98,7 +105,7 @@ export default function Auth() {
           <div className="mx-auto h-14 w-14 rounded-2xl bg-primary flex items-center justify-center mb-4">
             <Film className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold">Welcome to Watchlist</h1>
+          <h1 className="text-2xl font-bold">{activeTab === 'signup' ? 'Create your Watchlist account' : 'Sign in to Watchlist'}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Sign in to save your watchlist and sync across devices
           </p>

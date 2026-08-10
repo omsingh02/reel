@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { CalendarDays } from 'lucide-react';
 import { Layout } from '@/components/Layout';
+import { Seo } from '@/components/Seo';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { MediaDetails } from '@/components/MediaDetails';
@@ -92,6 +93,7 @@ export default function Upcoming() {
 
   return (
     <Layout>
+      <Seo title="Upcoming Releases — Watchlist" description="See upcoming movie releases and TV episode air dates for the titles saved in your watchlist." path="/upcoming" />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">Upcoming</h1>

@@ -449,6 +449,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   </SectionLabel>
                   <button
                     onClick={() => setShowStream(true)}
+                    aria-label="Play next unwatched episode"
                     className="group w-full text-left rounded-2xl bg-secondary/40 hover:bg-secondary/70 border border-border/40 p-4 flex items-center gap-4 transition-all"
                   >
                     <div className="h-14 w-14 rounded-xl bg-primary/90 group-hover:bg-primary flex items-center justify-center flex-shrink-0 shadow-lg">
