@@ -60,7 +60,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://embed.smashystream.com/playere.php?tmdb=${id}&sea=${s}&epi=${e}`
         : `https://embed.smashystream.com/playere.php?tmdb=${id}`,
-    sandbox: false,
+    sandbox: true,
   },
   {
     name: 'VidLink',
@@ -68,7 +68,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://vidlink.pro/tv/${id}/${s}/${e}`
         : `https://vidlink.pro/${type}/${id}`,
-    sandbox: false,
+    sandbox: true,
   },
   {
     name: '2Embed',
@@ -84,7 +84,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://vidbinge.to/tv/${id}/${s}/${e}`
         : `https://vidbinge.to/${type}/${id}`,
-    sandbox: false,
+    sandbox: true,
   },
   {
     name: 'AutoEmbed',
@@ -92,7 +92,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://autoembed.co/${type}/tmdb/${id}-${s}-${e}`
         : `https://autoembed.co/${type}/tmdb/${id}`,
-    sandbox: false,
+    sandbox: true,
   },
   {
     name: '2Embed.cc',
@@ -100,7 +100,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://www.2embed.cc/embedtv/${id}?s=${s}&e=${e}`
         : `https://www.2embed.cc/embed/${id}`,
-    sandbox: false,
+    sandbox: true,
   },
   {
     name: 'MoviesAPI',
@@ -108,7 +108,7 @@ const sources: StreamSource[] = [
       type === 'tv' && s && e
         ? `https://moviesapi.club/tv/${id}-${s}-${e}`
         : `https://moviesapi.club/movie/${id}`,
-    sandbox: false,
+    sandbox: true,
   },
 ];
 

@@ -2,7 +2,7 @@ import { Home, List, Film, Tv, User, LogIn } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWatchlistDB } from '@/hooks/useWatchlistDB';
+import { useWatchlist } from '@/hooks/useWatchlist';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
@@ -15,7 +15,7 @@ export function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { watchlist } = useWatchlistDB();
+  const { watchlist } = useWatchlist();
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-md" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -40,7 +40,7 @@ export function MobileNav() {
                 <item.icon className="h-5 w-5" />
               </div>
               <span className={cn("text-[11px]", isActive && "font-medium")}>{item.name}</span>
-              {item.name === 'Watchlist' && user && watchlist.length > 0 && (
+              {item.name === 'Watchlist' && watchlist.length > 0 && (
                 <span className="absolute top-1 right-0.5 h-4 min-w-4 text-[10px] bg-primary text-primary-foreground px-1 rounded-full flex items-center justify-center font-medium">
                   {watchlist.length}
                 </span>

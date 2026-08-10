@@ -2,7 +2,7 @@ import { Home, List, Film, Tv, LogIn, LogOut, CalendarDays, BarChart3 } from 'lu
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWatchlistDB } from '@/hooks/useWatchlistDB';
+import { useWatchlist } from '@/hooks/useWatchlist';
 import { ThemeToggle } from './ThemeToggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { watchlist } = useWatchlistDB();
+  const { watchlist } = useWatchlist();
 
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
 
@@ -58,7 +58,7 @@ export function AppSidebar() {
               >
                 <item.icon className="h-4 w-4" />
                 {item.name}
-                {item.name === 'Watchlist' && user && watchlist.length > 0 && (
+                {item.name === 'Watchlist' && watchlist.length > 0 && (
                   <span className={cn(
                     "ml-auto text-xs px-2 py-0.5 rounded-full font-medium",
                     isActive 
