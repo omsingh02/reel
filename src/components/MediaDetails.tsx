@@ -60,6 +60,9 @@ function Shell({
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Title details"
         className={`fixed inset-0 sm:inset-6 lg:inset-y-[4vh] lg:inset-x-[8vw] xl:inset-x-[10vw] rounded-none sm:rounded-3xl bg-background overflow-hidden shadow-2xl border border-border/40 animate-scale-in ${className}`}
         onClick={e => e.stopPropagation()}
       >
