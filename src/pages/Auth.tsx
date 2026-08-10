@@ -85,6 +85,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <Seo
+        title="Sign In to Watchlist"
+        description="Sign in or create a free Watchlist account to sync your saved movies and TV shows across all of your devices."
+        path="/auth"
+        noindex
+      />
       <div className="w-full max-w-md">
         <button
           onClick={() => navigate('/')}
