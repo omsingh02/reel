@@ -3,6 +3,7 @@ import { List, LogIn, Filter as FilterIcon, CalendarDays, BarChart3 } from 'luci
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
+import { Seo } from '@/components/Seo';
 import { WatchlistCard } from '@/components/WatchlistCard';
 import { MediaDetails } from '@/components/MediaDetails';
 import { EmptyState } from '@/components/EmptyState';
@@ -62,6 +63,7 @@ export default function Watchlist() {
 
   return (
     <Layout>
+      <Seo title="My Watchlist — Watchlist" description="Your saved movies and TV shows, with watched status, ratings and filters to decide what to watch next." path="/watchlist" noindex />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">My Watchlist</h1>
