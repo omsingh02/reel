@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
+import { Seo } from '@/components/Seo';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email address' }).max(255),
