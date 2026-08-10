@@ -36,8 +36,6 @@ export interface MediaListPageProps {
   searchPlaceholder?: string;
   /** Subtitle prefix when not searching (e.g. "Popular movies right now"). */
   defaultSubtitle: string;
-  /** Sync ?movie= / ?tv= deep links to the open details modal. */
-  enableDeepLinks?: boolean;
 }
 
 const PAGE_CAP = 10;
