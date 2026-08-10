@@ -114,9 +114,9 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
       </div>
 
       <div className="flex flex-col gap-1 p-4">
-        <h3 className="font-semibold text-sm leading-tight line-clamp-2" title={title}>
+        <h2 className="font-semibold text-sm leading-tight line-clamp-2" title={title}>
           {title}
-        </h3>
+        </h2>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{year || 'TBA'}</span>
           {media.vote_average > 0 && (

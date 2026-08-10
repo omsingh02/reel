@@ -98,7 +98,7 @@ export default function Auth() {
           <div className="mx-auto h-14 w-14 rounded-2xl bg-primary flex items-center justify-center mb-4">
             <Film className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold">Welcome to Watchlist</h1>
+          <h1 className="text-2xl font-bold">{activeTab === 'signup' ? 'Create your Watchlist account' : 'Sign in to Watchlist'}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Sign in to save your watchlist and sync across devices
           </p>
