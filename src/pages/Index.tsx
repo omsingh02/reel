@@ -167,9 +167,9 @@ export default function Index() {
 
       {isSearching ? (
         <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6 space-y-8">
-          <p className="text-sm text-muted-foreground">
-            Results for <span className="text-foreground font-medium">"{query}"</span>
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight">
+            Results for "{query}"
+          </h1>
           {searchMovies.isLoading || searchTV.isLoading ? (
             <MediaGridSkeleton count={12} />
           ) : searchMovies.isError && searchTV.isError ? (
