@@ -207,6 +207,9 @@ export default function Index() {
         </div>
       ) : (
         <div className="flex-1 py-2 pb-8 space-y-8">
+          <h1 className="px-3 sm:px-5 lg:px-8 pt-4 text-2xl sm:text-3xl font-semibold tracking-tight">
+            Discover Movies and TV Shows
+          </h1>
           {isDiscoverError ? (
             <div className="px-3 sm:px-5 lg:px-8 py-10">
               <EmptyState
