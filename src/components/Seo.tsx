@@ -23,6 +23,7 @@ export function Seo({ title, description, path, jsonLd, noindex }: SeoProps) {
       <meta property="og:description" content={description} />
       <meta property="og:type" content="website" />
       <meta property="og:url" content={url} />
+      <meta property="og:image" content={`${SITE_URL}/og-image.jpg`} />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       {jsonLd && (
