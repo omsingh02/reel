@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Layout } from "@/components/Layout";
+import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
@@ -12,6 +13,12 @@ const NotFound = () => {
 
   return (
     <Layout>
+      <Seo
+        title="Page Not Found — Watchlist"
+        description="This page doesn't exist or has moved. Head back to Watchlist to keep discovering movies and TV shows to watch."
+        path={location.pathname}
+        noindex
+      />
       <div className="flex flex-1 items-center justify-center px-6 py-20">
         <div className="text-center">
           <p className="text-sm font-mono text-muted-foreground mb-2">404</p>

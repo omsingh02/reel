@@ -93,7 +93,7 @@ export default function Upcoming() {
 
   return (
     <Layout>
-      <Seo title="Upcoming Releases — Watchlist" description="See upcoming movie releases and TV episode air dates for the titles saved in your watchlist." path="/upcoming" />
+      <Seo title="Upcoming Releases — Watchlist" description="See upcoming movie releases and TV episode air dates for the titles saved in your watchlist." path="/upcoming" jsonLd={{"@context":"https://schema.org","@type":"CollectionPage","name":"Upcoming Releases","description":"Upcoming movie releases and TV episode air dates for titles saved in your watchlist.","url":"https://wat.lovable.app/upcoming"}} />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">Upcoming</h1>

@@ -156,7 +156,7 @@ export default function Index() {
       <Seo title="Watchlist — Track Movies & TV Shows" description="Discover trending movies and TV shows, build your personal watchlist, and never miss what to watch next." path="/" jsonLd={{"@context":"https://schema.org","@type":"WebSite","name":"Watchlist","url":"https://wat.lovable.app/","potentialAction":{"@type":"SearchAction","target":"https://wat.lovable.app/?q={search_term_string}","query-input":"required name=search_term_string"}}} />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          <h1 className="text-xl font-semibold hidden sm:block">Discover</h1>
+          <span className="text-xl font-semibold hidden sm:block">Discover</span>
           <SearchBar
             onSearch={setQuery}
             placeholder="Search movies and TV shows..."
@@ -167,9 +167,9 @@ export default function Index() {
 
       {isSearching ? (
         <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6 space-y-8">
-          <p className="text-sm text-muted-foreground">
-            Results for <span className="text-foreground font-medium">"{query}"</span>
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight">
+            Results for "{query}"
+          </h1>
           {searchMovies.isLoading || searchTV.isLoading ? (
             <MediaGridSkeleton count={12} />
           ) : searchMovies.isError && searchTV.isError ? (
@@ -207,6 +207,9 @@ export default function Index() {
         </div>
       ) : (
         <div className="flex-1 py-2 pb-8 space-y-8">
+          <h1 className="px-3 sm:px-5 lg:px-8 pt-4 text-2xl sm:text-3xl font-semibold tracking-tight">
+            Discover Movies and TV Shows
+          </h1>
           {isDiscoverError ? (
             <div className="px-3 sm:px-5 lg:px-8 py-10">
               <EmptyState

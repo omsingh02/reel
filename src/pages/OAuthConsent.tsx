@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Loader2, Film, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { Seo } from "@/components/Seo";
 
 // Beta typed wrapper for supabase.auth.oauth (not yet in generated types).
 type OAuthApi = {
@@ -67,6 +68,12 @@ export default function OAuthConsent() {
   if (error) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Seo
+        title="Authorize App Access — Watchlist"
+        description="Review and approve the access an external app is requesting to your Watchlist account."
+        path="/oauth/consent"
+        noindex
+      />
         <div className="w-full max-w-md rounded-3xl bg-card shadow-lg p-8 text-center">
           <h1 className="text-xl font-bold mb-2">Authorization error</h1>
           <p className="text-sm text-muted-foreground">{error}</p>
@@ -88,6 +95,12 @@ export default function OAuthConsent() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-background p-4">
+    <Seo
+      title="Authorize App Access — Watchlist"
+      description="Review and approve the access an external app is requesting to your Watchlist account."
+      path="/oauth/consent"
+      noindex
+    />
       <div className="w-full max-w-md rounded-3xl bg-card shadow-lg p-8">
         <div className="text-center mb-6">
           <div className="mx-auto h-14 w-14 rounded-2xl bg-primary flex items-center justify-center mb-4">
