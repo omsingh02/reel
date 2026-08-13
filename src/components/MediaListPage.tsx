@@ -151,7 +151,7 @@ export function MediaListPage({
               <h1 className="text-xl font-semibold">{headingPrefix}</h1>
             ) : (
               <>
-                <h2 className="text-xl font-semibold sm:hidden">{title}</h2>
+                <h1 className="text-xl font-semibold">{title}</h1>
                 <p className="text-sm text-muted-foreground mt-1">
                   {searchQuery ? headingPrefix : defaultSubtitle}
                   {!isLoading && items.length > 0 && ` • ${items.length} results`}
