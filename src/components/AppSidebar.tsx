@@ -124,6 +124,7 @@ export function AppSidebar() {
               className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive shrink-0"
               onClick={() => signOut()}
               title="Sign out"
+              aria-label="Sign out"
             >
               <LogOut className="h-4 w-4" />
             </Button>

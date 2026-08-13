@@ -41,7 +41,7 @@ function formatRuntime(minutes: number): string {
 function SectionLabel({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between mb-4">
-      <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{children}</h3>
+      <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{children}</h2>
       {right}
     </div>
   );
@@ -171,7 +171,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-secondary flex items-center justify-center">
               <X className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="text-base font-semibold mb-1">Couldn't load details</h3>
+            <h2 className="text-base font-semibold mb-1">Couldn't load details</h2>
             <p className="text-sm text-muted-foreground mb-4">
               Something went wrong fetching this title. It might be a temporary network issue.
             </p>
@@ -573,7 +573,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               {availableRegions.length > 0 && (
                 <section className="p-5 rounded-2xl bg-secondary/40 border border-border/40 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Available On</h3>
+                    <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Available On</h2>
                     <Select value={effectiveRegion} onValueChange={setRegion}>
                       <SelectTrigger className="h-7 w-20 rounded-md text-xs font-mono"><SelectValue /></SelectTrigger>
                       <SelectContent>
