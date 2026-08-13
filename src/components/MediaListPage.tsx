@@ -127,7 +127,7 @@ export function MediaListPage({
     <Layout>
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          {!allowSwitch && <h1 className="text-xl font-semibold hidden sm:block">{title}</h1>}
+          {!allowSwitch && <span className="text-xl font-semibold hidden sm:block">{title}</span>}
           <SearchBar
             onSearch={setSearchQuery}
             placeholder={searchPlaceholder}
