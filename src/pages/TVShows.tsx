@@ -6,18 +6,16 @@ export default function TVShows() {
   return (
     <>
       <Seo
-        title="Popular TV Shows — Watchlist"
-        description="Browse popular and trending TV series, search by title, sort by rating or air date, and track episodes you have watched."
-        path="/tv"
-        jsonLd={{ "@context": "https://schema.org", "@type": "CollectionPage", name: "Popular TV Shows", url: "https://wat.lovable.app/tv", about: "Popular TV series to discover and track" }}
+        title="TV Shows — browse by genre, year and rating | Reel"
+        description="Browse TV series by genre, year and rating. Filter, sort and track episodes you have watched."
+        path="/shows"
+        jsonLd={{ "@context": "https://schema.org", "@type": "CollectionPage", name: "TV Shows", url: "https://wat.lovable.app/shows", about: "TV series to discover and track" }}
       />
       <MediaListPage
         title="TV Shows"
-        fixedMediaType="tv"
-        source="popular"
+        mediaType="tv"
         emptyIcon={Tv}
-        searchPlaceholder="Search TV shows..."
-        defaultSubtitle="Popular TV shows right now"
+        subtitle="Browse by genre, year and rating"
       />
     </>
   );

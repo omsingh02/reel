@@ -47,7 +47,7 @@ export default function Stats() {
 
   return (
     <Layout>
-      <Seo title="Your Viewing Stats — Watchlist" description="Time watched, movies and shows completed, and your average rating across everything you have marked as watched." path="/stats" noindex />
+      <Seo title="Your Viewing Stats — Reel" description="Time watched, movies and shows completed, and your average rating across everything you have marked as watched." path="/stats" noindex />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">Your Stats</h1>

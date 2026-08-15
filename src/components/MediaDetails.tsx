@@ -109,20 +109,9 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
     return () => { document.body.style.overflow = ''; };
   }, []);
 
-  // Browser back closes the modal.
-  useEffect(() => {
-    window.history.pushState({ __mediaModal: true }, '');
-    let closedByPop = false;
-    const onPop = () => { closedByPop = true; onClose(); };
-    window.addEventListener('popstate', onPop);
-    return () => {
-      window.removeEventListener('popstate', onPop);
-      if (!closedByPop) {
-        try { window.history.back(); } catch { /* ignore */ }
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Browser back is handled by the router: the modal lives at /movie/:id
+  // and /show/:id, so history works without manual pushState hacks.
+
 
   const handleWatchlistClick = () => {
     if (!data) return;

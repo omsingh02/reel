@@ -69,7 +69,7 @@ export default function OAuthConsent() {
     return (
       <main className="min-h-screen flex items-center justify-center bg-background p-4">
       <Seo
-        title="Authorize App Access — Watchlist"
+        title="Authorize App Access — Reel"
         description="Review and approve the access an external app is requesting to your Watchlist account."
         path="/oauth/consent"
         noindex
@@ -96,7 +96,7 @@ export default function OAuthConsent() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-background p-4">
     <Seo
-      title="Authorize App Access — Watchlist"
+      title="Authorize App Access — Reel"
       description="Review and approve the access an external app is requesting to your Watchlist account."
       path="/oauth/consent"
       noindex

@@ -8,13 +8,15 @@ interface SearchBarProps {
   placeholder?: string;
   className?: string;
   defaultValue?: string;
+  autoFocus?: boolean;
 }
 
 export function SearchBar({ 
   onSearch, 
   placeholder = "Search movies and TV shows...", 
   className,
-  defaultValue = ''
+  defaultValue = '',
+  autoFocus = false,
 }: SearchBarProps) {
   const [value, setValue] = useState(defaultValue);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,7 +60,10 @@ export function SearchBar({
       <Search className="absolute left-3 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <input
         ref={inputRef}
-        type="text"
+        type="search"
+        autoFocus={autoFocus}
+        aria-label="Search"
+        enterKeyHint="search"
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Seo } from '@/components/Seo';
 import { WatchlistCard } from '@/components/WatchlistCard';
-import { MediaDetails } from '@/components/MediaDetails';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { useOpenTitle } from '@/hooks/useOpenTitle';
 import type { MediaType, WatchlistItem } from '@/types/tmdb';
 
 type StatusFilter = 'all' | 'watchlist' | 'watched';
@@ -23,15 +23,12 @@ type SortKey = 'added' | 'title' | 'release' | 'rating';
 export default function Watchlist() {
   const { user, loading: authLoading } = useAuth();
   const { watchlist, isLoading } = useWatchlist();
-  const [selectedMedia, setSelectedMedia] = useState<{ id: number; type: MediaType } | null>(null);
   const [status, setStatus] = useState<StatusFilter>('all');
   const [type, setType] = useState<TypeFilter>('all');
   const [sort, setSort] = useState<SortKey>('added');
   const navigate = useNavigate();
 
-  const handleItemClick = useCallback((id: number, type: MediaType) => {
-    setSelectedMedia({ id, type });
-  }, []);
+  const handleItemClick = useOpenTitle();
 
   const filtered = useMemo(() => {
     const out = watchlist.filter(it => {
@@ -63,7 +60,7 @@ export default function Watchlist() {
 
   return (
     <Layout>
-      <Seo title="My Watchlist — Watchlist" description="Your saved movies and TV shows, with watched status, ratings and filters to decide what to watch next." path="/watchlist" noindex />
+      <Seo title="My List — Reel" description="Your saved movies and TV shows, with watched status, ratings and filters to decide what to watch next." path="/watchlist" noindex />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">My Watchlist</h1>
@@ -166,14 +163,6 @@ export default function Watchlist() {
         )}
       </div>
 
-      {selectedMedia && (
-        <MediaDetails
-          id={selectedMedia.id}
-          mediaType={selectedMedia.type}
-          onClose={() => setSelectedMedia(null)}
-          onNavigate={handleItemClick}
-        />
-      )}
     </Layout>
   );
 }
