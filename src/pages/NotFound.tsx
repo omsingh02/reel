@@ -14,7 +14,7 @@ const NotFound = () => {
   return (
     <Layout>
       <Seo
-        title="Page Not Found — Watchlist"
+        title="Page Not Found — Reel"
         description="This page doesn't exist or has moved. Head back to Watchlist to keep discovering movies and TV shows to watch."
         path={location.pathname}
         noindex

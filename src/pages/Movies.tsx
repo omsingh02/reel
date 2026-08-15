@@ -6,18 +6,16 @@ export default function Movies() {
   return (
     <>
       <Seo
-        title="Popular Movies — Watchlist"
-        description="Browse popular and trending movies, search by title, sort by rating or release date, and save picks to your watchlist."
+        title="Movies — browse by genre, year and rating | Reel"
+        description="Browse movies by genre, year and rating. Filter, sort and save picks to your list."
         path="/movies"
-        jsonLd={{ "@context": "https://schema.org", "@type": "CollectionPage", name: "Popular Movies", url: "https://wat.lovable.app/movies", about: "Popular movies to discover and track" }}
+        jsonLd={{ "@context": "https://schema.org", "@type": "CollectionPage", name: "Movies", url: "https://wat.lovable.app/movies", about: "Movies to discover and track" }}
       />
       <MediaListPage
         title="Movies"
-        fixedMediaType="movie"
-        source="popular"
+        mediaType="movie"
         emptyIcon={Film}
-        searchPlaceholder="Search movies..."
-        defaultSubtitle="Popular movies right now"
+        subtitle="Browse by genre, year and rating"
       />
     </>
   );

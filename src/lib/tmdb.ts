@@ -268,3 +268,38 @@ export function cleanMediaList<T extends { id: number; poster_path?: string | nu
   }
   return out;
 }
+
+export interface Genre { id: number; name: string }
+
+export async function getGenres(type: MediaType): Promise<{ genres: Genre[] }> {
+  return fetchTMDB({ endpoint: 'genres', type });
+}
+
+export interface DiscoverFilters {
+  genre?: string;
+  year?: string;
+  minRating?: string;
+  sortBy?: string;
+}
+
+export async function discoverMedia(
+  type: MediaType,
+  filters: DiscoverFilters,
+  page = 1
+): Promise<TMDBSearchResponse<TMDBMovie | TMDBTVShow>> {
+  const params: Record<string, string> = {
+    endpoint: 'discover',
+    type,
+    page: page.toString(),
+  };
+  if (filters.genre) params.genre = filters.genre;
+  if (filters.year) params.year = filters.year;
+  if (filters.minRating) params.min_rating = filters.minRating;
+  if (filters.sortBy) params.sort_by = filters.sortBy;
+  return fetchTMDB(params);
+}
+
+/** Route path for a title, e.g. /movie/603 or /show/1396. */
+export function titlePath(id: number, type: MediaType): string {
+  return `/${type === 'movie' ? 'movie' : 'show'}/${id}`;
+}

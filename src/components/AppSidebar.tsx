@@ -1,4 +1,4 @@
-import { Home, List, Film, Tv, LogIn, LogOut, CalendarDays, BarChart3 } from 'lucide-react';
+import { Home, List, Film, Tv, LogIn, LogOut, CalendarDays, BarChart3, Search } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,18 +6,19 @@ import { useWatchlist } from '@/hooks/useWatchlist';
 import { ThemeToggle } from './ThemeToggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Logo } from '@/components/Logo';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
-  { name: 'Watchlist', href: '/watchlist', icon: List },
+  { name: 'Search', href: '/search', icon: Search },
+  { name: 'My List', href: '/watchlist', icon: List },
   { name: 'Upcoming', href: '/upcoming', icon: CalendarDays },
   { name: 'Stats', href: '/stats', icon: BarChart3 },
 ];
 
 const categories = [
   { name: 'Movies', href: '/movies', icon: Film },
-  { name: 'TV Shows', href: '/tv', icon: Tv },
+  { name: 'TV Shows', href: '/shows', icon: Tv },
 ];
 
 export function AppSidebar() {
@@ -33,10 +34,8 @@ export function AppSidebar() {
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center">
-            <Film className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold text-sidebar-foreground tracking-tight">Watchlist</span>
+          <Logo className="h-9 w-9" />
+          <span className="text-lg font-bold text-sidebar-foreground tracking-tight">Reel</span>
         </div>
       </div>
 
@@ -58,7 +57,7 @@ export function AppSidebar() {
               >
                 <item.icon className="h-4 w-4" />
                 {item.name}
-                {item.name === 'Watchlist' && watchlist.length > 0 && (
+                {item.name === 'My List' && watchlist.length > 0 && (
                   <span className={cn(
                     "ml-auto text-xs px-2 py-0.5 rounded-full font-medium",
                     isActive 

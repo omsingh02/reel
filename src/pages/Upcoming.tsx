@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { CalendarDays } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Seo } from '@/components/Seo';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { MediaDetails } from '@/components/MediaDetails';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { useOpenTitle } from '@/hooks/useOpenTitle';
 import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb';
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails } from '@/types/tmdb';
 
@@ -27,7 +27,7 @@ function isUpcoming(dateStr: string | null | undefined): boolean {
 
 export default function Upcoming() {
   const { watchlist, isLoading } = useWatchlist();
-  const [selected, setSelected] = useState<{ id: number; type: MediaType } | null>(null);
+  const openTitle = useOpenTitle();
 
   // Only fetch details for items still "to watch".
   const pending = useMemo(
@@ -93,7 +93,7 @@ export default function Upcoming() {
 
   return (
     <Layout>
-      <Seo title="Upcoming Releases — Watchlist" description="See upcoming movie releases and TV episode air dates for the titles saved in your watchlist." path="/upcoming" jsonLd={{"@context":"https://schema.org","@type":"CollectionPage","name":"Upcoming Releases","description":"Upcoming movie releases and TV episode air dates for titles saved in your watchlist.","url":"https://wat.lovable.app/upcoming"}} />
+      <Seo title="Upcoming Releases — Reel" description="See upcoming movie releases and TV episode air dates for the titles saved in your list." path="/upcoming" jsonLd={{"@context":"https://schema.org","@type":"CollectionPage","name":"Upcoming Releases","description":"Upcoming movie releases and TV episode air dates for titles saved in your list.","url":"https://wat.lovable.app/upcoming"}} />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">Upcoming</h1>
@@ -118,7 +118,7 @@ export default function Upcoming() {
                   {items.map(e => (
                     <button
                       key={`${e.mediaType}-${e.id}-${e.date}`}
-                      onClick={() => setSelected({ id: e.id, type: e.mediaType })}
+                      onClick={() => openTitle(e.id, e.mediaType)}
                       className="w-full text-left p-3 rounded-2xl bg-card border border-border/40 hover:shadow-md transition-all"
                     >
                       <p className="text-sm font-medium truncate">{e.title}</p>
@@ -132,14 +132,6 @@ export default function Upcoming() {
         )}
       </div>
 
-      {selected && (
-        <MediaDetails
-          id={selected.id}
-          mediaType={selected.type}
-          onClose={() => setSelected(null)}
-          onNavigate={(id, type) => setSelected({ id, type })}
-        />
-      )}
     </Layout>
   );
 }

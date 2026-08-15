@@ -89,7 +89,7 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
                 onClick={handleWatchlist}
               >
                 {inList ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                {inList ? 'In watchlist' : 'Watchlist'}
+                {inList ? 'In My List' : 'Add to List'}
               </Button>
               <Button
                 size="lg"

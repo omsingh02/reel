@@ -1,103 +1,91 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { AlertTriangle, type LucideIcon } from 'lucide-react';
 import { Layout } from '@/components/Layout';
-import { SearchBar } from '@/components/SearchBar';
 import { MediaGrid } from '@/components/MediaGrid';
-import { MediaDetails } from '@/components/MediaDetails';
-import { MediaTypeFilter } from '@/components/MediaTypeFilter';
-import { SortSelect, SortOption } from '@/components/SortSelect';
 import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
+import { SearchLink } from '@/components/SearchLink';
 import {
-  searchMedia,
-  getTrending,
-  getPopular,
-  sortMedia,
-  cleanMediaList,
-} from '@/lib/tmdb';
+  FiltersBar,
+  DEFAULT_FILTERS,
+  hasActiveFilters,
+  type CatalogFilters,
+} from '@/components/FiltersBar';
+import { discoverMedia, cleanMediaList } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useHidden } from '@/hooks/useHidden';
+import { useOpenTitle } from '@/hooks/useOpenTitle';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 
-type Source = 'trending' | 'popular';
-
 export interface MediaListPageProps {
-  /** Title rendered in the header (and as h2 on mobile when allowMediaTypeSwitch is false). */
   title: string;
-  /** When provided, page is locked to this media type; otherwise user can switch. */
-  fixedMediaType?: MediaType;
-  /** Which catalog endpoint to use for the default (non-search) listing. */
-  source: Source;
-  /** Icon shown in the "no results" empty state. */
+  mediaType: MediaType;
   emptyIcon: LucideIcon;
-  /** Search placeholder. */
-  searchPlaceholder?: string;
-  /** Subtitle prefix when not searching (e.g. "Popular movies right now"). */
-  defaultSubtitle: string;
+  subtitle: string;
 }
 
 const PAGE_CAP = 10;
 
 function buildPageParam(lastPage: { page: number; total_pages: number; results: unknown[] }) {
-  if (lastPage.page < lastPage.total_pages && lastPage.page < PAGE_CAP) {
-    return lastPage.page + 1;
-  }
-  return undefined;
+  return lastPage.page < lastPage.total_pages && lastPage.page < PAGE_CAP
+    ? lastPage.page + 1
+    : undefined;
 }
 
-export function MediaListPage({
-  title,
-  fixedMediaType,
-  source,
-  emptyIcon: EmptyIcon,
-  searchPlaceholder,
-  defaultSubtitle,
-}: MediaListPageProps) {
-  const [switchableType, setSwitchableType] = useState<MediaType>('movie');
-  const mediaType = fixedMediaType ?? switchableType;
-  const allowSwitch = !fixedMediaType;
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('popularity');
-  const [selectedMedia, setSelectedMedia] = useState<{ id: number; type: MediaType } | null>(null);
-
-  const baseFetcher = source === 'trending' ? getTrending : getPopular;
-
-  const baseQuery = useInfiniteQuery({
-    queryKey: [source, mediaType],
-    queryFn: ({ pageParam = 1 }) => baseFetcher(mediaType, pageParam),
-    getNextPageParam: buildPageParam,
-    initialPageParam: 1,
-    enabled: !searchQuery,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-  });
-
-  const searchQueryResult = useInfiniteQuery({
-    queryKey: ['search', searchQuery, mediaType],
-    queryFn: ({ pageParam = 1 }) => searchMedia(searchQuery, mediaType, pageParam),
-    getNextPageParam: buildPageParam,
-    initialPageParam: 1,
-    enabled: !!searchQuery,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-  });
-
-  const active = searchQuery ? searchQueryResult : baseQuery;
-  const { isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage, data } = active;
-
+/**
+ * Catalog page (Movies / Shows). Filters live in the URL so a filtered view
+ * is shareable and survives back/forward navigation.
+ */
+export function MediaListPage({ title, mediaType, emptyIcon: EmptyIcon, subtitle }: MediaListPageProps) {
+  const [params, setParams] = useSearchParams();
+  const openTitle = useOpenTitle();
   const { isHidden } = useHidden();
 
-  const rawItems = useMemo(() => {
-    const flat = data?.pages.flatMap(page => page.results) || [];
-    const cleaned = cleanMediaList(flat as (TMDBMovie | TMDBTVShow)[]);
-    // Filter out items the user has marked "not interested".
-    return cleaned.filter(it => !isHidden(it.id, mediaType));
-  }, [data, isHidden, mediaType]);
+  const filters: CatalogFilters = useMemo(
+    () => ({
+      genre: params.get('genre') ?? '',
+      year: params.get('year') ?? '',
+      minRating: params.get('rating') ?? '',
+      sort: params.get('sort') ?? DEFAULT_FILTERS.sort,
+    }),
+    [params]
+  );
 
-  const items = useMemo(() => sortMedia(rawItems, sortBy), [rawItems, sortBy]);
+  const setFilters = useCallback(
+    (next: CatalogFilters) => {
+      const sp = new URLSearchParams();
+      if (next.genre) sp.set('genre', next.genre);
+      if (next.year) sp.set('year', next.year);
+      if (next.minRating) sp.set('rating', next.minRating);
+      if (next.sort !== DEFAULT_FILTERS.sort) sp.set('sort', next.sort);
+      setParams(sp, { replace: true });
+    },
+    [setParams]
+  );
+
+  const query = useInfiniteQuery({
+    queryKey: ['discover', mediaType, filters],
+    queryFn: ({ pageParam = 1 }) =>
+      discoverMedia(
+        mediaType,
+        { genre: filters.genre, year: filters.year, minRating: filters.minRating, sortBy: filters.sort },
+        pageParam
+      ),
+    getNextPageParam: buildPageParam,
+    initialPageParam: 1,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
+  const { isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage, data } = query;
+
+  const items = useMemo(() => {
+    const flat = data?.pages.flatMap(page => page.results) ?? [];
+    return cleanMediaList(flat as (TMDBMovie | TMDBTVShow)[]).filter(it => !isHidden(it.id, mediaType));
+  }, [data, isHidden, mediaType]);
 
   const { loadMoreRef } = useInfiniteScroll({
     onLoadMore: () => fetchNextPage(),
@@ -105,68 +93,22 @@ export function MediaListPage({
     isLoading: isFetchingNextPage,
   });
 
-  const handleMediaClick = useCallback((id: number, type: MediaType) => {
-    setSelectedMedia({ id, type });
-  }, []);
-
-  const handleCloseDetails = useCallback(() => {
-    setSelectedMedia(null);
-  }, []);
-
-  // Note: Escape handling for the open modal is owned by MediaDetails itself
-  // (it needs to close nested layers like the trailer/StreamPlayer first).
-  // A duplicate listener here would close the whole modal on the same keypress.
-
-  const headingPrefix = searchQuery
-    ? `Results for "${searchQuery}"`
-    : allowSwitch
-      ? `Trending ${mediaType === 'movie' ? 'Movies' : 'TV Shows'}`
-      : title;
-
   return (
     <Layout>
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          {!allowSwitch && <span className="text-xl font-semibold hidden sm:block">{title}</span>}
-          <SearchBar
-            onSearch={setSearchQuery}
-            placeholder={searchPlaceholder}
-            className="flex-1 max-w-md"
-          />
-          <SortSelect
-            value={sortBy}
-            onChange={setSortBy}
-            className={allowSwitch ? 'w-32 hidden sm:flex' : 'w-32'}
-          />
-          {allowSwitch && (
-            <MediaTypeFilter value={mediaType} onChange={setSwitchableType} />
-          )}
+        <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
+          <span className="text-xl font-semibold">{title}</span>
+          <SearchLink className="ml-auto" />
         </div>
       </header>
 
-      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6 space-y-5">
+        <div className="space-y-3">
           <div>
-            {allowSwitch ? (
-              <h1 className="text-xl font-semibold">{headingPrefix}</h1>
-            ) : (
-              <>
-                <h1 className="text-xl font-semibold">{title}</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {searchQuery ? headingPrefix : defaultSubtitle}
-                  {!isLoading && items.length > 0 && ` • ${items.length} results`}
-                </p>
-              </>
-            )}
-            {allowSwitch && !isLoading && items.length > 0 && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {items.length} {items.length === 1 ? 'result' : 'results'}
-              </p>
-            )}
+            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
           </div>
-          {allowSwitch && (
-            <SortSelect value={sortBy} onChange={setSortBy} className="w-32 sm:hidden" />
-          )}
+          <FiltersBar mediaType={mediaType} value={filters} onChange={setFilters} />
         </div>
 
         {isLoading ? (
@@ -182,36 +124,27 @@ export function MediaListPage({
         ) : items.length === 0 ? (
           <EmptyState
             icon={EmptyIcon}
-            title={searchQuery ? 'No results found' : 'Nothing to show yet'}
-            description={
-              searchQuery
-                ? `No matches for "${searchQuery}". Try a different search term.`
-                : 'Check back later.'
-            }
-          />
+            title="Nothing matches these filters"
+            description="Try widening the year range or lowering the minimum rating."
+          >
+            {hasActiveFilters(filters) && (
+              <Button variant="outline" className="rounded-full" onClick={() => setFilters(DEFAULT_FILTERS)}>
+                Clear filters
+              </Button>
+            )}
+          </EmptyState>
         ) : (
           <>
-            <MediaGrid items={items} mediaType={mediaType} onItemClick={handleMediaClick} />
+            <MediaGrid items={items} mediaType={mediaType} onItemClick={openTitle} />
             <div ref={loadMoreRef} className="py-4">
               {isFetchingNextPage && <MediaGridSkeleton count={6} />}
-              {!hasNextPage && items.length > 0 && (
-                <p className="text-center text-xs text-muted-foreground py-2">
-                  You've reached the end
-                </p>
+              {!hasNextPage && (
+                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
               )}
             </div>
           </>
         )}
       </div>
-
-      {selectedMedia && (
-        <MediaDetails
-          id={selectedMedia.id}
-          mediaType={selectedMedia.type}
-          onClose={handleCloseDetails}
-          onNavigate={handleMediaClick}
-        />
-      )}
     </Layout>
   );
 }

@@ -1,4 +1,4 @@
-import { Home, List, Film, Tv, User, LogIn } from 'lucide-react';
+import { Home, Search, List, Tv, User, LogIn } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,9 +6,9 @@ import { useWatchlist } from '@/hooks/useWatchlist';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
-  { name: 'Movies', href: '/movies', icon: Film },
-  { name: 'TV', href: '/tv', icon: Tv },
-  { name: 'Watchlist', href: '/watchlist', icon: List },
+  { name: 'Search', href: '/search', icon: Search },
+  { name: 'Shows', href: '/shows', icon: Tv },
+  { name: 'My List', href: '/watchlist', icon: List },
 ];
 
 export function MobileNav() {
@@ -40,7 +40,7 @@ export function MobileNav() {
                 <item.icon className="h-5 w-5" />
               </div>
               <span className={cn("text-[11px]", isActive && "font-medium")}>{item.name}</span>
-              {item.name === 'Watchlist' && watchlist.length > 0 && (
+              {item.name === 'My List' && watchlist.length > 0 && (
                 <span className="absolute top-1 right-0.5 h-4 min-w-4 text-[10px] bg-primary text-primary-foreground px-1 rounded-full flex items-center justify-center font-medium">
                   {watchlist.length}
                 </span>

@@ -1,8 +1,8 @@
-# Watchlist
+# Reel
 
 > Track and discover movies and TV shows, build a personal watchlist, rate what you've watched, and see what's coming next.
 
-Watchlist is a free web app for browsing trending and popular movies and TV
+Reel is a free web app for browsing trending and popular movies and TV
 shows, saving titles to a personal watchlist, tracking watched episodes, and
 viewing personal viewing stats.
 
@@ -10,9 +10,9 @@ viewing personal viewing stats.
 
 - [Discover](/): Trending and popular movies and TV shows, plus search.
 - [Movies](/movies): Popular movies with sorting and search.
-- [TV Shows](/tv): Popular TV series with sorting and search.
+- [TV Shows](/shows): Popular TV series with sorting and search.
 - [Upcoming](/upcoming): Calendar of upcoming movie and TV releases.
-- [Watchlist](/watchlist): Your saved titles, watched status and ratings.
+- [Reel](/watchlist): Your saved titles, watched status and ratings.
 - [Stats](/stats): Personal viewing statistics.
 
 ## Optional

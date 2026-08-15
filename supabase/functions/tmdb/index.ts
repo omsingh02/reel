@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
-const ALLOWED_ENDPOINTS = ['search', 'details', 'trending', 'popular', 'season'];
+const ALLOWED_ENDPOINTS = ['search', 'details', 'trending', 'popular', 'season', 'genres', 'discover'];
 const ALLOWED_MEDIA_TYPES = ['movie', 'tv'];
 
 serve(async (req) => {
@@ -139,6 +139,38 @@ serve(async (req) => {
         tmdbUrl = `${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNum}?api_key=${apiKey}`;
         break;
       }
+      case 'genres':
+        tmdbUrl = `${TMDB_BASE_URL}/genre/${mediaType}/list?api_key=${apiKey}`;
+        break;
+      case 'discover': {
+        const params = new URLSearchParams({
+          api_key: apiKey,
+          page: String(page),
+          include_adult: 'false',
+          'vote_count.gte': '50',
+        });
+        const sortBy = url.searchParams.get('sort_by') || 'popularity.desc';
+        const ALLOWED_SORTS = [
+          'popularity.desc', 'vote_average.desc', 'primary_release_date.desc',
+          'first_air_date.desc', 'revenue.desc',
+        ];
+        params.set('sort_by', ALLOWED_SORTS.includes(sortBy) ? sortBy : 'popularity.desc');
+
+        const genre = url.searchParams.get('genre');
+        if (genre && /^\d+(,\d+)*$/.test(genre)) params.set('with_genres', genre);
+
+        const year = url.searchParams.get('year');
+        if (year && /^\d{4}$/.test(year)) {
+          params.set(mediaType === 'movie' ? 'primary_release_year' : 'first_air_date_year', year);
+        }
+
+        const minRating = url.searchParams.get('min_rating');
+        if (minRating && /^\d+(\.\d+)?$/.test(minRating)) params.set('vote_average.gte', minRating);
+
+        tmdbUrl = `${TMDB_BASE_URL}/discover/${mediaType}?${params}`;
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid endpoint' }),
