@@ -118,15 +118,12 @@ export default function Index() {
       />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          <span className="text-xl font-semibold">Discover</span>
+          <h1 className="text-xl font-semibold tracking-tight">Discover</h1>
           <SearchLink className="ml-auto" />
         </div>
       </header>
 
-      <div className="flex-1 py-2 pb-8 space-y-8">
-        <h1 className="px-3 sm:px-5 lg:px-8 pt-4 text-2xl sm:text-3xl font-semibold tracking-tight">
-          Discover Movies and TV Shows
-        </h1>
+      <div className="flex-1 py-4 pb-8 space-y-8">
         {isDiscoverError ? (
           <div className="px-3 sm:px-5 lg:px-8 py-10">
             <EmptyState
