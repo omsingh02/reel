@@ -51,7 +51,7 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
   return (
     <div
       ref={ref}
-      className="group relative flex flex-col overflow-hidden rounded-2xl bg-card border border-border/50 cursor-pointer shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-card border border-border/50 cursor-pointer shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
       onClick={onClick}
     >
       <div className="relative aspect-[2/3] bg-secondary overflow-hidden rounded-xl m-1.5 mb-0">
@@ -113,11 +113,11 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
         </div>
       </div>
 
-      <div className="flex flex-col gap-1 p-4">
-        <h2 className="font-semibold text-sm leading-tight line-clamp-2" title={title}>
+      <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
+        <h2 className="font-semibold text-sm leading-tight line-clamp-2 min-h-[2.25rem]" title={title}>
           {title}
         </h2>
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="mt-auto flex items-center justify-between text-xs text-muted-foreground">
           <span>{year || 'TBA'}</span>
           {media.vote_average > 0 && (
             <div className="flex items-center gap-1">
