@@ -67,11 +67,24 @@ export default function Index() {
   const featured = trendingMovieItems[0] ?? trendingTVItems[0];
   const featuredType: MediaType = trendingMovieItems[0] ? 'movie' : 'tv';
 
-  // Skip the hero item in its own rail so it's not duplicated below.
-  const trendingMoviesRail =
-    featured && featuredType === 'movie' ? trendingMovieItems.slice(1) : trendingMovieItems;
-  const trendingTVRail =
-    featured && featuredType === 'tv' ? trendingTVItems.slice(1) : trendingTVItems;
+  // A title should appear only once on the page: the hero wins, then rails in order.
+  const { trendingMoviesRail, trendingTVRail, popularMoviesRail, popularTVRail } = useMemo(() => {
+    const seen = new Set<string>();
+    if (featured) seen.add(`${featuredType}-${featured.id}`);
+    const take = <T extends TMDBMovie | TMDBTVShow>(items: T[], type: MediaType): T[] =>
+      items.filter(it => {
+        const key = `${type}-${it.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    return {
+      trendingMoviesRail: take(trendingMovieItems, 'movie'),
+      trendingTVRail: take(trendingTVItems, 'tv'),
+      popularMoviesRail: take(popularMovieItems, 'movie'),
+      popularTVRail: take(popularTVItems, 'tv'),
+    };
+  }, [featured, featuredType, trendingMovieItems, trendingTVItems, popularMovieItems, popularTVItems]);
 
   const isDiscoverLoading =
     trendingMovies.isLoading || trendingTV.isLoading || popularMovies.isLoading || popularTV.isLoading;
