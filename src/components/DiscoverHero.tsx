@@ -103,6 +103,7 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
                 <Info className="h-4 w-4" />
                 Details
               </Button>
+
             </div>
           </div>
         </div>
