@@ -68,9 +68,9 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
                 </>
               )}
             </div>
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05]">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05] line-clamp-2">
               {title}
-            </h1>
+            </h2>
             {media.overview && (
               <p className="text-sm sm:text-base text-muted-foreground line-clamp-2 sm:line-clamp-3 max-w-lg">
                 {media.overview}
