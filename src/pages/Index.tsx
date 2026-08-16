@@ -67,11 +67,24 @@ export default function Index() {
   const featured = trendingMovieItems[0] ?? trendingTVItems[0];
   const featuredType: MediaType = trendingMovieItems[0] ? 'movie' : 'tv';
 
-  // Skip the hero item in its own rail so it's not duplicated below.
-  const trendingMoviesRail =
-    featured && featuredType === 'movie' ? trendingMovieItems.slice(1) : trendingMovieItems;
-  const trendingTVRail =
-    featured && featuredType === 'tv' ? trendingTVItems.slice(1) : trendingTVItems;
+  // A title should appear only once on the page: the hero wins, then rails in order.
+  const { trendingMoviesRail, trendingTVRail, popularMoviesRail, popularTVRail } = useMemo(() => {
+    const seen = new Set<string>();
+    if (featured) seen.add(`${featuredType}-${featured.id}`);
+    const take = <T extends TMDBMovie | TMDBTVShow>(items: T[], type: MediaType): T[] =>
+      items.filter(it => {
+        const key = `${type}-${it.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    return {
+      trendingMoviesRail: take(trendingMovieItems, 'movie'),
+      trendingTVRail: take(trendingTVItems, 'tv'),
+      popularMoviesRail: take(popularMovieItems, 'movie'),
+      popularTVRail: take(popularTVItems, 'tv'),
+    };
+  }, [featured, featuredType, trendingMovieItems, trendingTVItems, popularMovieItems, popularTVItems]);
 
   const isDiscoverLoading =
     trendingMovies.isLoading || trendingTV.isLoading || popularMovies.isLoading || popularTV.isLoading;
@@ -105,15 +118,12 @@ export default function Index() {
       />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          <span className="text-xl font-semibold">Discover</span>
+          <h1 className="text-xl font-semibold tracking-tight">Discover</h1>
           <SearchLink className="ml-auto" />
         </div>
       </header>
 
-      <div className="flex-1 py-2 pb-8 space-y-8">
-        <h1 className="px-3 sm:px-5 lg:px-8 pt-4 text-2xl sm:text-3xl font-semibold tracking-tight">
-          Discover Movies and TV Shows
-        </h1>
+      <div className="flex-1 py-4 pb-8 space-y-8">
         {isDiscoverError ? (
           <div className="px-3 sm:px-5 lg:px-8 py-10">
             <EmptyState
@@ -150,16 +160,16 @@ export default function Index() {
             />
             <MediaRail
               title="Popular movies"
-              subtitle="All-time favourites"
-              items={popularMovieItems}
+              subtitle="Most watched right now"
+              items={popularMoviesRail}
               mediaType="movie"
               onItemClick={openTitle}
               loading={popularMovies.isLoading}
             />
             <MediaRail
               title="Popular TV"
-              subtitle="Long-running hits"
-              items={popularTVItems}
+              subtitle="Shows people keep coming back to"
+              items={popularTVRail}
               mediaType="tv"
               onItemClick={openTitle}
               loading={popularTV.isLoading}

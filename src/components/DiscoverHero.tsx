@@ -23,6 +23,7 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
   const date = getReleaseDate(media);
   const year = date ? new Date(date).getFullYear() : null;
   const backdrop = getImageUrl(media.backdrop_path, 'w780') || getImageUrl(media.poster_path, 'w780');
+  const backdropLarge = media.backdrop_path ? getImageUrl(media.backdrop_path, 'w1280') : null;
 
   const handleWatchlist = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -36,9 +37,11 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
         {backdrop && (
           <img
             src={backdrop}
+            srcSet={backdropLarge ? `${backdrop} 780w, ${backdropLarge} 1280w` : undefined}
+            sizes="(min-width: 1024px) calc(100vw - 20rem), 100vw"
             alt=""
             aria-hidden
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover object-top"
             loading="eager"
             // @ts-expect-error - fetchpriority is valid HTML but not yet typed in React 18
             fetchpriority="high"
@@ -65,9 +68,9 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
                 </>
               )}
             </div>
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05]">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05] line-clamp-2">
               {title}
-            </h1>
+            </h2>
             {media.overview && (
               <p className="text-sm sm:text-base text-muted-foreground line-clamp-2 sm:line-clamp-3 max-w-lg">
                 {media.overview}
@@ -94,12 +97,13 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
               <Button
                 size="lg"
                 variant="ghost"
-                className="rounded-full h-11 px-4 gap-2 hidden sm:inline-flex"
+                className="rounded-full h-11 px-4 gap-2"
                 onClick={() => onOpen(media.id, mediaType)}
               >
                 <Info className="h-4 w-4" />
                 Details
               </Button>
+
             </div>
           </div>
         </div>
