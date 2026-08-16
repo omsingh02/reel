@@ -160,16 +160,16 @@ export default function Index() {
             />
             <MediaRail
               title="Popular movies"
-              subtitle="All-time favourites"
-              items={popularMovieItems}
+              subtitle="Most watched right now"
+              items={popularMoviesRail}
               mediaType="movie"
               onItemClick={openTitle}
               loading={popularMovies.isLoading}
             />
             <MediaRail
               title="Popular TV"
-              subtitle="Long-running hits"
-              items={popularTVItems}
+              subtitle="Shows people keep coming back to"
+              items={popularTVRail}
               mediaType="tv"
               onItemClick={openTitle}
               loading={popularTV.isLoading}
