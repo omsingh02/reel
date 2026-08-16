@@ -29,94 +29,77 @@ export function AppSidebar() {
 
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
 
+  const renderLink = (item: { name: string; href: string; icon: typeof Home }) => {
+    const isActive = location.pathname === item.href;
+    return (
+      <NavLink
+        key={item.name}
+        to={item.href}
+        aria-current={isActive ? 'page' : undefined}
+        className={cn(
+          'group relative flex items-center gap-3 h-10 pl-4 pr-3 text-sm rounded-lg transition-colors duration-150',
+          isActive
+            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
+            : 'text-sidebar-foreground font-medium hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
+        )}
+      >
+        <span
+          className={cn(
+            'absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-r-full bg-primary transition-all duration-200',
+            isActive ? 'h-5 opacity-100' : 'h-0 opacity-0'
+          )}
+        />
+        <item.icon
+          className={cn(
+            'h-[18px] w-[18px] shrink-0 transition-colors',
+            isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-sidebar-accent-foreground'
+          )}
+        />
+        <span className="truncate">{item.name}</span>
+        {item.name === 'My List' && watchlist.length > 0 && (
+          <span className="ml-auto text-[11px] tabular-nums px-1.5 min-w-[20px] text-center py-0.5 rounded-md font-semibold bg-primary/12 text-primary">
+            {watchlist.length}
+          </span>
+        )}
+      </NavLink>
+    );
+  };
+
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-sidebar-border lg:bg-sidebar-background lg:fixed lg:inset-y-0 lg:left-0 lg:z-30">
       {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <Logo className="h-9 w-9" />
-          <span className="text-lg font-bold text-sidebar-foreground tracking-tight">Reel</span>
-        </div>
+      <div className="h-16 flex items-center px-5">
+        <NavLink to="/" className="flex items-center gap-2.5 rounded-lg -ml-1 p-1 transition-opacity hover:opacity-80">
+          <Logo className="h-8 w-8" />
+          <span className="text-[17px] font-bold text-sidebar-accent-foreground tracking-tight">Reel</span>
+        </NavLink>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-5 px-3 space-y-6">
-        <div className="space-y-1">
-          {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
-                  isActive 
-                    ? "bg-primary text-primary-foreground shadow-sm" 
-                    : "text-sidebar-foreground hover:bg-sidebar-accent"
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.name}
-                {item.name === 'My List' && watchlist.length > 0 && (
-                  <span className={cn(
-                    "ml-auto text-xs px-2 py-0.5 rounded-full font-medium",
-                    isActive 
-                      ? "bg-primary-foreground/20 text-primary-foreground" 
-                      : "bg-primary/10 text-primary"
-                  )}>
-                    {watchlist.length}
-                  </span>
-                )}
-              </NavLink>
-            );
-          })}
-        </div>
+      <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-5">
+        <div className="space-y-0.5">{navigation.map(renderLink)}</div>
 
-        <div>
-          <h3 className="px-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+        <div className="space-y-0.5">
+          <h3 className="px-4 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">
             Browse
           </h3>
-          <div className="space-y-1">
-            {categories.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
-                    isActive 
-                      ? "bg-primary text-primary-foreground shadow-sm" 
-                      : "text-sidebar-foreground hover:bg-sidebar-accent"
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.name}
-                </NavLink>
-              );
-            })}
-          </div>
+          {categories.map(renderLink)}
         </div>
       </nav>
 
       {/* Bottom section */}
-      <div className="p-3 border-t border-sidebar-border space-y-2">
-        <div className="flex items-center justify-between px-2">
-          <ThemeToggle />
-        </div>
-
+      <div className="p-3 pt-2 border-t border-sidebar-border/70 space-y-2">
         {user ? (
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-sidebar-accent/50">
+          <div className="flex items-center gap-2.5 pl-2 pr-1 py-2 rounded-xl hover:bg-sidebar-accent/50 transition-colors">
             <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+              <AvatarFallback className="bg-primary text-primary-foreground text-[11px] font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-sidebar-foreground truncate">
-                {user.email}
-              </p>
-            </div>
+            <p className="flex-1 min-w-0 text-xs font-medium text-sidebar-foreground truncate">
+              {user.email}
+            </p>
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon"
@@ -129,16 +112,20 @@ export function AppSidebar() {
             </Button>
           </div>
         ) : (
-          <Button
-            variant="default"
-            className="w-full rounded-xl h-10 gap-2"
-            onClick={() => navigate('/auth')}
-          >
-            <LogIn className="h-4 w-4" />
-            Sign In
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="default"
+              className="flex-1 rounded-xl h-10 gap-2"
+              onClick={() => navigate('/auth')}
+            >
+              <LogIn className="h-4 w-4" />
+              Sign In
+            </Button>
+            <ThemeToggle />
+          </div>
         )}
       </div>
     </aside>
   );
 }
+
