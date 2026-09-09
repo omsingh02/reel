@@ -719,6 +719,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
         return (
           <StreamPlayer
             tmdbId={id}
+            imdbId={imdbId}
             mediaType={mediaType}
             title={title}
             seasons={tvSeasons}
