@@ -9,6 +9,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { LegacyDeepLinkRedirect } from "@/components/LegacyDeepLinkRedirect";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { startQueryPersistence } from "@/lib/queryPersist";
 
 const Index = lazy(() => import("./pages/Index"));
 const Watchlist = lazy(() => import("./pages/Watchlist"));
@@ -30,6 +32,8 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+startQueryPersistence(queryClient);
 
 function AppRoutes() {
   const location = useLocation();
@@ -66,22 +70,26 @@ function AppRoutes() {
 }
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><LoadingSpinner size="lg" /></div>}>
-              <AppRoutes />
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
+  <ErrorBoundary>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><LoadingSpinner size="lg" /></div>}>
+                <ErrorBoundary>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </ErrorBoundary>
 );
 
 export default App;
