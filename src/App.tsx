@@ -33,6 +33,8 @@ const queryClient = new QueryClient({
   },
 });
 
+startQueryPersistence(queryClient);
+
 function AppRoutes() {
   const location = useLocation();
   const state = location.state as { background?: Location } | null;
