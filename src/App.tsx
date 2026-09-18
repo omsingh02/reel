@@ -9,6 +9,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { LegacyDeepLinkRedirect } from "@/components/LegacyDeepLinkRedirect";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { startQueryPersistence } from "@/lib/queryPersist";
 
 const Index = lazy(() => import("./pages/Index"));
 const Watchlist = lazy(() => import("./pages/Watchlist"));
