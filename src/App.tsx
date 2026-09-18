@@ -70,22 +70,26 @@ function AppRoutes() {
 }
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><LoadingSpinner size="lg" /></div>}>
-              <AppRoutes />
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
+  <ErrorBoundary>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><LoadingSpinner size="lg" /></div>}>
+                <ErrorBoundary>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </ErrorBoundary>
 );
 
 export default App;
