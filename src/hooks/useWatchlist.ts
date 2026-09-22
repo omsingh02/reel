@@ -12,7 +12,6 @@ import {
   setWatchedStatus as setLocalStatus,
   restoreWatchlistItem,
 } from '@/lib/watchlist';
-import { useSyncExternalStore } from 'react';
 
 /** Rebuild a TMDB-shaped object from a saved item so it can be re-added. */
 function toMediaLike(item: WatchlistItem): TMDBMovie | TMDBTVShow {
