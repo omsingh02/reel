@@ -46,6 +46,8 @@ export function isHidden(id: number, mediaType: MediaType): boolean {
   return read().some(i => i.id === id && i.mediaType === mediaType);
 }
 
+export function clearHidden() { write([]); }
+
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
     if (e.key === KEY) {

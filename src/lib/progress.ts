@@ -50,6 +50,8 @@ export function getShowProgress(tmdbId: number): EpisodeProgressItem[] {
   return read().filter(p => p.tmdbId === tmdbId);
 }
 
+export function clearProgress() { write([]); }
+
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
     if (e.key === KEY) {
