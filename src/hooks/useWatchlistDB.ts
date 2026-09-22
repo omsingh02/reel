@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { TMDBMovie, TMDBTVShow, MediaType, WatchlistStatus } from '@/types/tmdb';
+import type { TMDBMovie, TMDBTVShow, MediaType } from '@/types/tmdb';
 import { getTitle, getReleaseDate } from '@/lib/tmdb';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export interface WatchlistItemDB {
   id: string;
@@ -22,13 +22,15 @@ export interface WatchlistItemDB {
   runtime: number | null;
 }
 
+type Patch = Partial<Pick<WatchlistItemDB, 'status' | 'rating' | 'watched_at' | 'runtime'>>;
+
 export function useWatchlistDB() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const key = ['watchlist', user?.id];
 
   const { data: watchlist = [], isLoading, refetch } = useQuery({
-    queryKey: ['watchlist', user?.id],
+    queryKey: key,
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
@@ -43,6 +45,18 @@ export function useWatchlistDB() {
     retry: 1,
   });
 
+  /** Snapshot + optimistic write shared by every mutation below. */
+  const optimistic = async (update: (prev: WatchlistItemDB[]) => WatchlistItemDB[]) => {
+    await queryClient.cancelQueries({ queryKey: key });
+    const previous = queryClient.getQueryData<WatchlistItemDB[]>(key) ?? [];
+    queryClient.setQueryData<WatchlistItemDB[]>(key, update(previous));
+    return { previous };
+  };
+
+  const rollback = (ctx: { previous: WatchlistItemDB[] } | undefined) => {
+    if (ctx) queryClient.setQueryData(key, ctx.previous);
+  };
+
   const addMutation = useMutation({
     mutationFn: async ({ media, mediaType }: { media: TMDBMovie | TMDBTVShow; mediaType: MediaType }) => {
       if (!user) throw new Error('Must be logged in');
@@ -55,16 +69,36 @@ export function useWatchlistDB() {
         release_date: getReleaseDate(media),
         vote_average: media.vote_average,
       });
-      if (error) throw error;
+      if (error && error.code !== '23505') throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['watchlist', user?.id] });
-      toast({ title: 'Added to watchlist' });
+    onMutate: ({ media, mediaType }) =>
+      optimistic(prev =>
+        prev.some(i => i.tmdb_id === media.id && i.tmdb_type === mediaType)
+          ? prev
+          : [
+              {
+                id: `optimistic-${media.id}-${mediaType}`,
+                user_id: user?.id ?? '',
+                tmdb_id: media.id,
+                tmdb_type: mediaType,
+                title: getTitle(media),
+                poster_path: media.poster_path,
+                release_date: getReleaseDate(media),
+                vote_average: media.vote_average,
+                added_at: new Date().toISOString(),
+                status: 'watchlist',
+                rating: null,
+                watched_at: null,
+                runtime: null,
+              },
+              ...prev,
+            ]
+      ),
+    onError: (error: any, _vars, ctx) => {
+      rollback(ctx);
+      toast.error("Couldn't add", { description: error.message });
     },
-    onError: (error: any) => {
-      if (error.code === '23505') toast({ title: 'Already in watchlist' });
-      else toast({ variant: 'destructive', title: 'Failed to add', description: error.message });
-    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 
   const removeMutation = useMutation({
@@ -78,21 +112,17 @@ export function useWatchlistDB() {
         .eq('tmdb_type', mediaType);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['watchlist', user?.id] });
-      toast({ title: 'Removed from watchlist' });
+    onMutate: ({ tmdbId, mediaType }) =>
+      optimistic(prev => prev.filter(i => !(i.tmdb_id === tmdbId && i.tmdb_type === mediaType))),
+    onError: (error: any, _vars, ctx) => {
+      rollback(ctx);
+      toast.error("Couldn't remove", { description: error.message });
     },
-    onError: (error: any) => {
-      toast({ variant: 'destructive', title: 'Failed to remove', description: error.message });
-    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (p: {
-      tmdbId: number;
-      mediaType: MediaType;
-      patch: Partial<Pick<WatchlistItemDB, 'status' | 'rating' | 'watched_at' | 'runtime'>>;
-    }) => {
+    mutationFn: async (p: { tmdbId: number; mediaType: MediaType; patch: Patch }) => {
       if (!user) throw new Error('Must be logged in');
       const { error } = await supabase
         .from('watchlist_items')
@@ -102,8 +132,15 @@ export function useWatchlistDB() {
         .eq('tmdb_type', p.mediaType);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['watchlist', user?.id] }),
-    onError: (e: any) => toast({ variant: 'destructive', title: "Couldn't update", description: e.message }),
+    onMutate: ({ tmdbId, mediaType, patch }) =>
+      optimistic(prev =>
+        prev.map(i => (i.tmdb_id === tmdbId && i.tmdb_type === mediaType ? { ...i, ...patch } : i))
+      ),
+    onError: (e: any, _vars, ctx) => {
+      rollback(ctx);
+      toast.error("Couldn't update", { description: e.message });
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 
   const addToWatchlist = useCallback((media: TMDBMovie | TMDBTVShow, mediaType: MediaType) => {
@@ -119,7 +156,7 @@ export function useWatchlistDB() {
   }, [watchlist]);
 
   const updateItem = useCallback(
-    (tmdbId: number, mediaType: MediaType, patch: Partial<Pick<WatchlistItemDB, 'status' | 'rating' | 'watched_at' | 'runtime'>>) => {
+    (tmdbId: number, mediaType: MediaType, patch: Patch) => {
       updateMutation.mutate({ tmdbId, mediaType, patch });
     },
     [updateMutation]

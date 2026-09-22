@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { mergeGuestData } from '@/lib/mergeGuestData';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -21,10 +23,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Anything saved while signed out follows the user into their account.
+        if (event === 'SIGNED_IN' && session?.user) {
+          const userId = session.user.id;
+          setTimeout(() => {
+            mergeGuestData(userId)
+              .then(moved => {
+                if (moved > 0) toast.success(`Added ${moved} saved title${moved === 1 ? '' : 's'} to your account`);
+              })
+              .catch(() => { /* keep local copies; nothing is lost */ });
+          }, 0);
+        }
       }
     );
 

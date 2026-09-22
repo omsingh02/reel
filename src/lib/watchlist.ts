@@ -80,6 +80,15 @@ export function isInWatchlist(id: number, mediaType: MediaType): boolean {
   return read().some(item => item.id === id && item.mediaType === mediaType);
 }
 
+export function clearWatchlist(): void { write([]); }
+
+/** Re-insert a full item (used by "Undo" after a removal). */
+export function restoreWatchlistItem(item: WatchlistItem): void {
+  const list = read();
+  if (list.some(i => i.id === item.id && i.mediaType === item.mediaType)) return;
+  write([item, ...list]);
+}
+
 export function setWatchedStatus(
   id: number,
   mediaType: MediaType,
