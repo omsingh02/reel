@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlistDB } from '@/hooks/useWatchlistDB';
