@@ -1,4 +1,5 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 import type { TMDBMovie, TMDBTVShow, MediaType, WatchlistItem, WatchlistStatus } from '@/types/tmdb';
@@ -9,7 +10,26 @@ import {
   removeFromWatchlist as removeLocal,
   isInWatchlist as checkLocal,
   setWatchedStatus as setLocalStatus,
+  restoreWatchlistItem,
 } from '@/lib/watchlist';
+import { useSyncExternalStore } from 'react';
+
+/** Rebuild a TMDB-shaped object from a saved item so it can be re-added. */
+function toMediaLike(item: WatchlistItem): TMDBMovie | TMDBTVShow {
+  const base = {
+    id: item.id,
+    poster_path: item.posterPath,
+    vote_average: item.voteAverage,
+  } as Record<string, unknown>;
+  if (item.mediaType === 'movie') {
+    base.title = item.title;
+    base.release_date = item.releaseDate;
+  } else {
+    base.name = item.title;
+    base.first_air_date = item.releaseDate;
+  }
+  return base as unknown as TMDBMovie | TMDBTVShow;
+}
 
 export function useWatchlist() {
   const { user } = useAuth();
@@ -40,12 +60,36 @@ export function useWatchlist() {
   const addToWatchlist = useCallback((media: TMDBMovie | TMDBTVShow, mediaType: MediaType) => {
     if (user) dbWatchlist.addToWatchlist(media, mediaType);
     else addLocal(media, mediaType);
+    toast.success('Added to watchlist');
   }, [user, dbWatchlist]);
 
   const removeFromWatchlist = useCallback((id: number, mediaType: MediaType) => {
+    const removed = watchlist.find(i => i.id === id && i.mediaType === mediaType);
     if (user) dbWatchlist.removeFromWatchlist(id, mediaType);
     else removeLocal(id, mediaType);
-  }, [user, dbWatchlist]);
+
+    toast('Removed from watchlist', {
+      action: removed
+        ? {
+            label: 'Undo',
+            onClick: () => {
+              if (user) {
+                dbWatchlist.addToWatchlist(toMediaLike(removed), mediaType);
+                if (removed.status === 'watched') {
+                  dbWatchlist.updateItem(id, mediaType, {
+                    status: 'watched',
+                    rating: removed.rating ?? null,
+                    watched_at: removed.watchedAt ?? null,
+                  });
+                }
+              } else {
+                restoreWatchlistItem(removed);
+              }
+            },
+          }
+        : undefined,
+    });
+  }, [user, dbWatchlist, watchlist]);
 
   const isInWatchlist = useCallback((id: number, mediaType: MediaType) => {
     if (user) return dbWatchlist.isInWatchlist(id, mediaType);
