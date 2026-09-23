@@ -1,8 +1,16 @@
-import { Home, Search, List, Tv, User, LogIn } from 'lucide-react';
+import { Home, Search, List, Tv, User, LogIn, LogOut } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 const navigation = [
   { name: 'Discover', href: '/', icon: Home },
@@ -14,7 +22,7 @@ const navigation = [
 export function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { watchlist } = useWatchlist();
 
   return (
