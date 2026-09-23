@@ -22,9 +22,10 @@ interface Props {
 
 export function SeasonEpisodes({ tvId, season }: Props) {
   const [open, setOpen] = useState(false);
-  const { mark, unmark, isWatched, forShow } = useEpisodeProgress();
+  const { mark, unmark, markSeason, unmarkSeason, isWatched, forShow } = useEpisodeProgress();
 
   const watchedInSeason = forShow(tvId).filter(p => p.season === season.season_number).length;
+  const allWatched = season.episode_count > 0 && watchedInSeason >= season.episode_count;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['season', tvId, season.season_number],
@@ -32,6 +33,19 @@ export function SeasonEpisodes({ tvId, season }: Props) {
     enabled: open,
     staleTime: 5 * 60 * 1000,
   });
+
+  const toggleSeason = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (allWatched) {
+      unmarkSeason(tvId, season.season_number);
+      return;
+    }
+    const numbers =
+      data?.episodes?.map(ep => ep.episode_number) ??
+      Array.from({ length: season.episode_count }, (_, i) => i + 1);
+    markSeason(tvId, season.season_number, numbers);
+  };
+
 
   return (
     <div className="rounded-2xl bg-secondary/50 border border-border/30 overflow-hidden">
