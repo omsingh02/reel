@@ -8,6 +8,8 @@ import {
   subscribeProgress as guestSubscribe,
   markEpisodeWatched as guestMark,
   unmarkEpisodeWatched as guestUnmark,
+  markSeasonWatched as guestMarkSeason,
+  unmarkSeasonWatched as guestUnmarkSeason,
 } from '@/lib/progress';
 import type { EpisodeProgressItem } from '@/types/tmdb';
 
