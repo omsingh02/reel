@@ -21,7 +21,7 @@ interface WatchlistCardProps {
 }
 
 export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: WatchlistCardProps) {
-  const { removeFromWatchlist } = useWatchlist();
+  const { removeFromWatchlist, setWatched } = useWatchlist();
   const { forShow } = useEpisodeProgress();
   const posterUrl = getImageUrl(item.posterPath, 'w154');
   const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
@@ -41,6 +41,27 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     removeFromWatchlist(item.id, item.mediaType);
+  };
+
+  const handleToggleWatched = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setWatched(item.id, item.mediaType, {
+      status: isWatched ? 'watchlist' : 'watched',
+      watchedAt: isWatched ? null : new Date().toISOString(),
+    });
+  };
+
+  const handleRate = (e: React.MouseEvent, rating: number) => {
+    e.stopPropagation();
+    setWatched(item.id, item.mediaType, {
+      rating,
+      ...(isWatched ? {} : { status: 'watched' as const, watchedAt: new Date().toISOString() }),
+    });
+  };
+
+  const handleClearRating = (e: Event) => {
+    e.preventDefault();
+    setWatched(item.id, item.mediaType, { rating: null });
   };
 
   return (
