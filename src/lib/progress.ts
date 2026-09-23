@@ -42,6 +42,23 @@ export function unmarkEpisodeWatched(tmdbId: number, season: number, episode: nu
   write(read().filter(p => !(p.tmdbId === tmdbId && p.season === season && p.episode === episode)));
 }
 
+export function markSeasonWatched(tmdbId: number, season: number, episodes: number[]) {
+  const list = read();
+  const have = new Set(
+    list.filter(p => p.tmdbId === tmdbId && p.season === season).map(p => p.episode)
+  );
+  const watchedAt = new Date().toISOString();
+  const added = episodes
+    .filter(e => !have.has(e))
+    .map(episode => ({ tmdbId, season, episode, watchedAt }));
+  if (added.length === 0) return;
+  write([...added, ...list]);
+}
+
+export function unmarkSeasonWatched(tmdbId: number, season: number) {
+  write(read().filter(p => !(p.tmdbId === tmdbId && p.season === season)));
+}
+
 export function isEpisodeWatched(tmdbId: number, season: number, episode: number): boolean {
   return read().some(p => p.tmdbId === tmdbId && p.season === season && p.episode === episode);
 }

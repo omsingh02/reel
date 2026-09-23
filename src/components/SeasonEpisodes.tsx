@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, CheckCheck } from 'lucide-react';
 import { getSeason, getImageUrl } from '@/lib/tmdb';
 import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,9 +22,10 @@ interface Props {
 
 export function SeasonEpisodes({ tvId, season }: Props) {
   const [open, setOpen] = useState(false);
-  const { mark, unmark, isWatched, forShow } = useEpisodeProgress();
+  const { mark, unmark, markSeason, unmarkSeason, isWatched, forShow } = useEpisodeProgress();
 
   const watchedInSeason = forShow(tvId).filter(p => p.season === season.season_number).length;
+  const allWatched = season.episode_count > 0 && watchedInSeason >= season.episode_count;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['season', tvId, season.season_number],
@@ -33,31 +34,59 @@ export function SeasonEpisodes({ tvId, season }: Props) {
     staleTime: 5 * 60 * 1000,
   });
 
+  const toggleSeason = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (allWatched) {
+      unmarkSeason(tvId, season.season_number);
+      return;
+    }
+    const numbers =
+      data?.episodes?.map(ep => ep.episode_number) ??
+      Array.from({ length: season.episode_count }, (_, i) => i + 1);
+    markSeason(tvId, season.season_number, numbers);
+  };
+
+
   return (
     <div className="rounded-2xl bg-secondary/50 border border-border/30 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 p-2.5 text-left hover:bg-secondary/70 transition-colors"
-      >
-        <div className="w-12 h-16 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
-          {season.poster_path ? (
-            <img src={getImageUrl(season.poster_path, 'w92') || ''} alt={season.name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
-              S{season.season_number}
-            </div>
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className="flex-1 min-w-0 flex items-center gap-3 p-2.5 text-left hover:bg-secondary/70 transition-colors"
+        >
+          <div className="w-12 h-16 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
+            {season.poster_path ? (
+              <img src={getImageUrl(season.poster_path, 'w92') || ''} alt={season.name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
+                S{season.season_number}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium truncate">{season.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {watchedInSeason}/{season.episode_count} watched
+              {season.air_date && ` • ${new Date(season.air_date).getFullYear()}`}
+            </p>
+          </div>
+          <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+        </button>
+        <button
+          type="button"
+          onClick={toggleSeason}
+          aria-label={allWatched ? `Mark ${season.name} unwatched` : `Mark all of ${season.name} watched`}
+          title={allWatched ? 'Mark season unwatched' : 'Mark whole season watched'}
+          className={cn(
+            "mr-2 h-11 w-11 flex items-center justify-center rounded-full transition-colors flex-shrink-0",
+            allWatched ? "text-primary hover:bg-primary/10" : "text-muted-foreground hover:bg-secondary"
           )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate">{season.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {watchedInSeason}/{season.episode_count} watched
-            {season.air_date && ` • ${new Date(season.air_date).getFullYear()}`}
-          </p>
-        </div>
-        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
-      </button>
+        >
+          <CheckCheck className="h-5 w-5" />
+        </button>
+      </div>
+
 
       {open && (
         <div className="border-t border-border/30 p-2 space-y-1 max-h-72 overflow-y-auto">

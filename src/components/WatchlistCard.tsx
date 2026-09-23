@@ -1,10 +1,19 @@
 import { memo, useMemo } from 'react';
 import { X, Star, Film, Tv, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 import type { WatchlistItem } from '@/types/tmdb';
 import { getImageUrl } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
+
+const RATINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 interface WatchlistCardProps {
   item: WatchlistItem;
@@ -12,7 +21,7 @@ interface WatchlistCardProps {
 }
 
 export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: WatchlistCardProps) {
-  const { removeFromWatchlist } = useWatchlist();
+  const { removeFromWatchlist, setWatched } = useWatchlist();
   const { forShow } = useEpisodeProgress();
   const posterUrl = getImageUrl(item.posterPath, 'w154');
   const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
@@ -32,6 +41,27 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     removeFromWatchlist(item.id, item.mediaType);
+  };
+
+  const handleToggleWatched = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setWatched(item.id, item.mediaType, {
+      status: isWatched ? 'watchlist' : 'watched',
+      watchedAt: isWatched ? null : new Date().toISOString(),
+    });
+  };
+
+  const handleRate = (e: React.MouseEvent, rating: number) => {
+    e.stopPropagation();
+    setWatched(item.id, item.mediaType, {
+      rating,
+      ...(isWatched ? {} : { status: 'watched' as const, watchedAt: new Date().toISOString() }),
+    });
+  };
+
+  const handleClearRating = (e: Event) => {
+    e.preventDefault();
+    setWatched(item.id, item.mediaType, { rating: null });
   };
 
   return (
@@ -78,15 +108,67 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
         </div>
       </div>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
-        onClick={handleRemove}
-        aria-label="Remove from watchlist"
-      >
-        <X className="h-4 w-4" />
-      </Button>
+      <div className="flex items-center gap-0.5 flex-shrink-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "h-11 w-11 p-0 rounded-full",
+            isWatched ? "text-primary hover:bg-primary/10" : "text-muted-foreground hover:bg-secondary"
+          )}
+          onClick={handleToggleWatched}
+          aria-label={isWatched ? 'Mark as not watched' : 'Mark as watched'}
+        >
+          <CheckCircle2 className="h-5 w-5" />
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-11 w-11 p-0 rounded-full",
+                typeof item.rating === 'number' ? "text-rating hover:bg-rating/10" : "text-muted-foreground hover:bg-secondary"
+              )}
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Rate this title"
+            >
+              <Star className={cn("h-5 w-5", typeof item.rating === 'number' && "fill-rating")} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            <div className="grid grid-cols-5 gap-1 p-1">
+              {RATINGS.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={(e) => handleRate(e, n)}
+                  className={cn(
+                    "h-8 w-8 rounded-full text-xs font-medium transition-colors hover:bg-secondary",
+                    item.rating === n && "bg-primary text-primary-foreground hover:bg-primary"
+                  )}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            {typeof item.rating === 'number' && (
+              <DropdownMenuItem onSelect={handleClearRating}>Clear rating</DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-11 w-11 p-0 rounded-full hover:bg-destructive/10 hover:text-destructive"
+          onClick={handleRemove}
+          aria-label="Remove from watchlist"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 });
