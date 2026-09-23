@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, CheckCheck } from 'lucide-react';
 import { getSeason, getImageUrl } from '@/lib/tmdb';
 import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
 import { Skeleton } from '@/components/ui/skeleton';
