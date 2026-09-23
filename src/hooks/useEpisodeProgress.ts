@@ -128,5 +128,5 @@ export function useEpisodeProgress() {
     [items]
   );
 
-  return { items, mark, unmark, isWatched, forShow };
+  return { items, mark, unmark, markSeason, unmarkSeason, isWatched, forShow };
 }
