@@ -79,6 +79,44 @@ export function useEpisodeProgress() {
     else guestUnmark(tmdbId, season, episode);
   }, [user, delMut]);
 
+  const seasonMut = useMutation({
+    mutationFn: async (p: { tmdbId: number; season: number; episodes: number[] }) => {
+      if (!user) throw new Error('Not signed in');
+      const have = new Set(
+        rows.filter(r => r.tmdb_id === p.tmdbId && r.season === p.season).map(r => r.episode)
+      );
+      const insert = p.episodes
+        .filter(e => !have.has(e))
+        .map(episode => ({ user_id: user.id, tmdb_id: p.tmdbId, season: p.season, episode }));
+      if (insert.length === 0) return;
+      const { error } = await supabase.from('episode_progress').insert(insert);
+      if (error && error.code !== '23505') throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['episode_progress', user?.id] }),
+    onError: (e: any) => toast({ variant: 'destructive', title: "Couldn't update", description: e.message }),
+  });
+
+  const unseasonMut = useMutation({
+    mutationFn: async (p: { tmdbId: number; season: number }) => {
+      if (!user) throw new Error('Not signed in');
+      const { error } = await supabase
+        .from('episode_progress').delete()
+        .eq('user_id', user.id).eq('tmdb_id', p.tmdbId).eq('season', p.season);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['episode_progress', user?.id] }),
+  });
+
+  const markSeason = useCallback((tmdbId: number, season: number, episodes: number[]) => {
+    if (user) seasonMut.mutate({ tmdbId, season, episodes });
+    else guestMarkSeason(tmdbId, season, episodes);
+  }, [user, seasonMut]);
+
+  const unmarkSeason = useCallback((tmdbId: number, season: number) => {
+    if (user) unseasonMut.mutate({ tmdbId, season });
+    else guestUnmarkSeason(tmdbId, season);
+  }, [user, unseasonMut]);
+
   const isWatched = useCallback(
     (tmdbId: number, season: number, episode: number) =>
       items.some(p => p.tmdbId === tmdbId && p.season === season && p.episode === episode),
