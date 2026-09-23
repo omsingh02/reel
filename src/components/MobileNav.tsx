@@ -48,25 +48,46 @@ export function MobileNav() {
             </NavLink>
           );
         })}
-        <button
-          onClick={() => navigate(user ? '/auth' : '/auth')}
-          className={cn(
-            "flex flex-col items-center justify-center h-full px-3 text-xs transition-colors",
-            location.pathname === '/auth'
-              ? "text-primary"
-              : "text-muted-foreground"
-          )}
-        >
-          <div className={cn(
-            "flex items-center justify-center w-12 h-8 rounded-full mb-0.5 transition-all duration-200",
-            location.pathname === '/auth' && "bg-primary/12 scale-110"
-          )}>
-            {user ? <User className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
-          </div>
-          <span className={cn("text-[11px]", location.pathname === '/auth' && "font-medium")}>
-            {user ? 'Account' : 'Sign In'}
-          </span>
-        </button>
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex flex-col items-center justify-center h-full px-3 text-xs text-muted-foreground transition-colors">
+                <div className="flex items-center justify-center w-12 h-8 rounded-full mb-0.5">
+                  <User className="h-5 w-5" />
+                </div>
+                <span className="text-[11px]">Account</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="mb-2">
+              <DropdownMenuLabel className="max-w-[200px] truncate text-xs font-normal text-muted-foreground">
+                {user.email}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => signOut()}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button
+            onClick={() => navigate('/auth')}
+            className={cn(
+              "flex flex-col items-center justify-center h-full px-3 text-xs transition-colors",
+              location.pathname === '/auth' ? "text-primary" : "text-muted-foreground"
+            )}
+          >
+            <div className={cn(
+              "flex items-center justify-center w-12 h-8 rounded-full mb-0.5 transition-all duration-200",
+              location.pathname === '/auth' && "bg-primary/12 scale-110"
+            )}>
+              <LogIn className="h-5 w-5" />
+            </div>
+            <span className={cn("text-[11px]", location.pathname === '/auth' && "font-medium")}>
+              Sign In
+            </span>
+          </button>
+        )}
       </div>
     </nav>
   );
