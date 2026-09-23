@@ -1,10 +1,19 @@
 import { memo, useMemo } from 'react';
 import { X, Star, Film, Tv, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 import type { WatchlistItem } from '@/types/tmdb';
 import { getImageUrl } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
+
+const RATINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 interface WatchlistCardProps {
   item: WatchlistItem;
