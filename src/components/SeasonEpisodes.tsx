@@ -49,29 +49,44 @@ export function SeasonEpisodes({ tvId, season }: Props) {
 
   return (
     <div className="rounded-2xl bg-secondary/50 border border-border/30 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 p-2.5 text-left hover:bg-secondary/70 transition-colors"
-      >
-        <div className="w-12 h-16 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
-          {season.poster_path ? (
-            <img src={getImageUrl(season.poster_path, 'w92') || ''} alt={season.name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
-              S{season.season_number}
-            </div>
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className="flex-1 min-w-0 flex items-center gap-3 p-2.5 text-left hover:bg-secondary/70 transition-colors"
+        >
+          <div className="w-12 h-16 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
+            {season.poster_path ? (
+              <img src={getImageUrl(season.poster_path, 'w92') || ''} alt={season.name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">
+                S{season.season_number}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium truncate">{season.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {watchedInSeason}/{season.episode_count} watched
+              {season.air_date && ` • ${new Date(season.air_date).getFullYear()}`}
+            </p>
+          </div>
+          <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+        </button>
+        <button
+          type="button"
+          onClick={toggleSeason}
+          aria-label={allWatched ? `Mark ${season.name} unwatched` : `Mark all of ${season.name} watched`}
+          title={allWatched ? 'Mark season unwatched' : 'Mark whole season watched'}
+          className={cn(
+            "mr-2 h-11 w-11 flex items-center justify-center rounded-full transition-colors flex-shrink-0",
+            allWatched ? "text-primary hover:bg-primary/10" : "text-muted-foreground hover:bg-secondary"
           )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate">{season.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {watchedInSeason}/{season.episode_count} watched
-            {season.air_date && ` • ${new Date(season.air_date).getFullYear()}`}
-          </p>
-        </div>
-        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
-      </button>
+        >
+          <CheckCheck className="h-5 w-5" />
+        </button>
+      </div>
+
 
       {open && (
         <div className="border-t border-border/30 p-2 space-y-1 max-h-72 overflow-y-auto">
