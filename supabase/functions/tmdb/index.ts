@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,29 +52,8 @@ serve(async (req) => {
       return errorResponse(401, 'Missing authorization header');
     }
 
-    // Verify the token using getClaims
-    const token = authHeader.replace('Bearer ', '');
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-
-    // If token is not the anon key, validate it as a user JWT.
-    // Any validation failure should gracefully fall back to anon access,
-    // since TMDB content is public and should not hard-fail the request.
-    if (token !== anonKey) {
-      try {
-        const supabaseClient = createClient(supabaseUrl, anonKey, {
-          global: { headers: { Authorization: authHeader } }
-        });
-
-        const { data, error } = await supabaseClient.auth.getClaims(token);
-        if (error || !data?.claims) {
-          console.warn('JWT validation failed, proceeding with anon access:', error?.message || 'no claims');
-        }
-      } catch (jwtError) {
-        const message = jwtError instanceof Error ? jwtError.message : 'unknown JWT validation error';
-        console.warn('JWT validation threw, proceeding with anon access:', message);
-      }
-    }
+    // The catalogue is public data, so the bearer token is not inspected (the anon/publishable key
+    // the web app sends is enough). The header check above only filters stray requests.
 
     const apiKey = Deno.env.get('TMDB_API_KEY');
     if (!apiKey) {
