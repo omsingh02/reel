@@ -27,7 +27,7 @@ export function hasActiveFilters(f: CatalogFilters): boolean {
 
 const ANY = '__any';
 const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 40 }, (_, i) => String(CURRENT_YEAR - i));
+const YEARS = Array.from({ length: CURRENT_YEAR - 1930 + 1 }, (_, i) => String(CURRENT_YEAR - i));
 const RATINGS = ['9', '8', '7', '6', '5'];
 
 interface FiltersBarProps {

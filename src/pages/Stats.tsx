@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import { BarChart3, Clock, Film, Tv, Star } from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react';
+import { BarChart3, Clock, Film, Tv, Star, type LucideIcon } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Seo } from '@/components/Seo';
 import { EmptyState } from '@/components/EmptyState';
-import { useWatchlist } from '@/hooks/useWatchlist';
+import { useWatchlist, useRuntimeLookup } from '@/hooks/useWatchlist';
+import { yearOf } from '@/lib/dates';
 
-function StatCard({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function StatCard({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="p-4 rounded-2xl bg-card border border-border/40">
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -17,7 +18,23 @@ function StatCard({ icon: Icon, label, value }: { icon: any; label: string; valu
 }
 
 export default function Stats() {
-  const { watchlist } = useWatchlist();
+  const { watchlist, setWatched } = useWatchlist();
+  const lookupRuntime = useRuntimeLookup();
+  const attempted = useRef(new Set<string>());
+
+  // Titles marked watched before runtimes were tracked (or from places that
+  // never set one) would count as 0 hours. Fill them in once per title.
+  useEffect(() => {
+    const missing = watchlist
+      .filter(w => w.status === 'watched' && !w.runtime && !attempted.current.has(`${w.mediaType}:${w.id}`))
+      .slice(0, 25);
+    missing.forEach(w => {
+      attempted.current.add(`${w.mediaType}:${w.id}`);
+      void lookupRuntime(w.id, w.mediaType).then(runtime => {
+        if (runtime) setWatched(w.id, w.mediaType, { runtime });
+      });
+    });
+  }, [watchlist, lookupRuntime, setWatched]);
 
   const stats = useMemo(() => {
     const watched = watchlist.filter(w => w.status === 'watched');
@@ -32,9 +49,8 @@ export default function Stats() {
     // By decade
     const decades = new Map<string, number>();
     watched.forEach(w => {
-      if (!w.releaseDate) return;
-      const y = new Date(w.releaseDate).getFullYear();
-      if (isNaN(y)) return;
+      const y = yearOf(w.releaseDate);
+      if (y === null) return;
       const d = `${Math.floor(y / 10) * 10}s`;
       decades.set(d, (decades.get(d) || 0) + 1);
     });

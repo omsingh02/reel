@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { Search as SearchIcon, AlertTriangle } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -58,10 +58,32 @@ export default function SearchPage() {
     retry: 1,
   });
 
+  const lastPage = results.data?.pages[results.data.pages.length - 1];
+  const reachedCap = !!lastPage && lastPage.page < lastPage.total_pages;
+
+  // Keep poster-less results: obscure and brand-new titles often have none yet,
+  // and dropping them made some titles impossible to find.
   const items = useMemo(() => {
     const flat = results.data?.pages.flatMap(p => p.results) ?? [];
-    return cleanMediaList(flat as (TMDBMovie | TMDBTVShow)[]).filter(it => !isHidden(it.id, type));
+    return cleanMediaList(flat as (TMDBMovie | TMDBTVShow)[], { requirePoster: false }).filter(it => !isHidden(it.id, type));
   }, [results.data, isHidden, type]);
+
+  // Nothing on the default (Movies) tab but hits on the other one? Switch for
+  // the user instead of making them discover the tab.
+  const typeInUrl = params.get('type');
+  const otherType: MediaType = type === 'movie' ? 'tv' : 'movie';
+  const other = useQuery({
+    queryKey: ['search-probe', query, otherType],
+    queryFn: () => searchMedia(query, otherType, 1),
+    enabled: !!query && !typeInUrl && results.isSuccess && items.length === 0,
+    staleTime: 5 * 60 * 1000,
+    retry: 0,
+  });
+  useEffect(() => {
+    if (!typeInUrl && results.isSuccess && items.length === 0 && (other.data?.results.length ?? 0) > 0) {
+      setType(otherType);
+    }
+  }, [typeInUrl, results.isSuccess, items.length, other.data, otherType, setType]);
 
   const { loadMoreRef } = useInfiniteScroll({
     onLoadMore: () => results.fetchNextPage(),
@@ -135,7 +157,11 @@ export default function SearchPage() {
             <div ref={loadMoreRef} className="py-4">
               {results.isFetchingNextPage && <MediaGridSkeleton count={6} />}
               {!results.hasNextPage && (
-                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
+                <p className="text-center text-xs text-muted-foreground py-2">
+                  {reachedCap
+                    ? `Showing the top ${PAGE_CAP * 20} results — try a more specific search`
+                    : "You've reached the end"}
+                </p>
               )}
             </div>
           </>

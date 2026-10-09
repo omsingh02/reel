@@ -1,4 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
 import type { 
   TMDBMovie, 
   TMDBTVShow, 
@@ -16,32 +15,10 @@ const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmd
 // we'd fire duplicate network calls.
 const inflight = new Map<string, Promise<unknown>>();
 
-function isTokenExpired(jwt: string): boolean {
-  try {
-    const payload = JSON.parse(atob(jwt.split('.')[1]));
-    return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now();
-  } catch {
-    return true;
-  }
-}
-
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-async function resolveToken(anonKey: string): Promise<string> {
-  try {
-    const { data } = await supabase.auth.getSession();
-    const token = data?.session?.access_token;
-    if (token && !isTokenExpired(token)) return token;
-    if (data?.session) {
-      const { data: refreshed } = await supabase.auth.refreshSession();
-      const t = refreshed?.session?.access_token;
-      if (t && !isTokenExpired(t)) return t;
-    }
-  } catch {
-    /* fall through to anon */
-  }
-  return anonKey;
-}
+/** A client error (bad id, bad params) — retrying cannot help. */
+class NonRetryableError extends Error {}
 
 async function fetchTMDB<T>(params: Record<string, string>): Promise<T> {
   const searchParams = new URLSearchParams(params);
@@ -61,30 +38,13 @@ async function fetchTMDB<T>(params: Record<string, string>): Promise<T> {
     while (attempt < maxAttempts) {
       attempt++;
       try {
-        const token = await resolveToken(anonKey);
         const response = await fetch(url, {
           headers: {
             'Content-Type': 'application/json',
             apikey: anonKey,
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${anonKey}`,
           },
         });
-
-        // 401 once: force-refresh and retry without counting against backoff.
-        if (response.status === 401 && attempt === 1) {
-          try {
-            const { data } = await supabase.auth.refreshSession();
-            const fresh = data?.session?.access_token || anonKey;
-            const retry = await fetch(url, {
-              headers: {
-                'Content-Type': 'application/json',
-                apikey: anonKey,
-                Authorization: `Bearer ${fresh}`,
-              },
-            });
-            if (retry.ok) return retry.json();
-          } catch { /* fall through */ }
-        }
 
         if (response.ok) {
           const elapsed = performance.now() - started;
@@ -97,7 +57,7 @@ async function fetchTMDB<T>(params: Record<string, string>): Promise<T> {
         // 4xx (except 408/429) — don't retry, surface immediately.
         if (response.status >= 400 && response.status < 500 && response.status !== 408 && response.status !== 429) {
           const err = await response.json().catch(() => ({}));
-          throw new Error(err.error || `Request failed (${response.status})`);
+          throw new NonRetryableError(err.error || `Request failed (${response.status})`);
         }
 
         // Retryable (5xx, 408, 429, opaque network). Honor Retry-After when present.
@@ -108,6 +68,7 @@ async function fetchTMDB<T>(params: Record<string, string>): Promise<T> {
         lastError = new Error(`Request failed (${response.status})`);
         if (attempt < maxAttempts) await sleep(backoff);
       } catch (e) {
+        if (e instanceof NonRetryableError) throw e;
         // Network/abort — retry with backoff.
         lastError = e;
         if (attempt < maxAttempts) {
@@ -141,20 +102,42 @@ export async function searchMedia(
   });
 }
 
-export async function getMovieDetails(id: number): Promise<TMDBMovieDetails> {
+export interface DetailsOptions {
+  /** Skip credits/images/recommendations/etc. — enough for dates and runtime. */
+  slim?: boolean;
+}
+
+export async function getMovieDetails(id: number, opts: DetailsOptions = {}): Promise<TMDBMovieDetails> {
   return fetchTMDB({
     endpoint: 'details',
     id: id.toString(),
-    type: 'movie'
+    type: 'movie',
+    ...(opts.slim ? { slim: '1' } : {}),
   });
 }
 
-export async function getTVShowDetails(id: number): Promise<TMDBTVShowDetails> {
+export async function getTVShowDetails(id: number, opts: DetailsOptions = {}): Promise<TMDBTVShowDetails> {
   return fetchTMDB({
     endpoint: 'details',
     id: id.toString(),
-    type: 'tv'
+    type: 'tv',
+    ...(opts.slim ? { slim: '1' } : {}),
   });
+}
+
+/**
+ * Total minutes to watch a title: the film's runtime, or for a show the
+ * per-episode runtime times its episode count (a single episode's length would
+ * wildly undercount a finished series).
+ */
+export function computeRuntime(details: TMDBMovieDetails | TMDBTVShowDetails, mediaType: MediaType): number | null {
+  if (mediaType === 'movie') {
+    return (details as TMDBMovieDetails).runtime || null;
+  }
+  const tv = details as TMDBTVShowDetails;
+  const perEpisode = tv.episode_run_time?.find(r => r > 0) || tv.last_episode_to_air?.runtime || 0;
+  if (!perEpisode) return null;
+  return tv.number_of_episodes > 0 ? perEpisode * tv.number_of_episodes : perEpisode;
 }
 
 export async function getTrending(
@@ -250,18 +233,21 @@ export function sortMedia<T extends TMDBMovie | TMDBTVShow>(
 }
 
 /**
- * Dedupe a TMDB list by id and drop low-quality entries (missing poster).
+ * Dedupe a TMDB list by id and drop low-quality entries (missing poster unless
+ * `requirePoster` is false — search keeps them so obscure titles stay findable).
  * TMDB pagination commonly returns the same item across pages — without
  * this, the grid renders duplicate cards.
  */
 export function cleanMediaList<T extends { id: number; poster_path?: string | null; adult?: boolean }>(
-  items: T[]
+  items: T[],
+  opts: { requirePoster?: boolean } = {}
 ): T[] {
+  const requirePoster = opts.requirePoster ?? true;
   const seen = new Set<number>();
   const out: T[] = [];
   for (const item of items) {
     if (!item || typeof item.id !== 'number' || seen.has(item.id)) continue;
-    if (!item.poster_path) continue;
+    if (requirePoster && !item.poster_path) continue;
     if (item.adult) continue;
     seen.add(item.id);
     out.push(item);

@@ -18,11 +18,13 @@ const Movies = lazy(() => import("./pages/Movies"));
 const TVShows = lazy(() => import("./pages/TVShows"));
 const Upcoming = lazy(() => import("./pages/Upcoming"));
 const Stats = lazy(() => import("./pages/Stats"));
+const Hidden = lazy(() => import("./pages/Hidden"));
 const Auth = lazy(() => import("./pages/Auth"));
 const SearchPage = lazy(() => import("./pages/Search"));
 const TitleRoute = lazy(() => import("./pages/Title"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,10 +54,12 @@ function AppRoutes() {
         <Route path="/watchlist" element={<Watchlist />} />
         <Route path="/upcoming" element={<Upcoming />} />
         <Route path="/stats" element={<Stats />} />
+        <Route path="/hidden" element={<Hidden />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/movie/:id" element={<TitleRoute mediaType="movie" />} />
         <Route path="/show/:id" element={<TitleRoute mediaType="tv" />} />
-        <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+        <Route path="/oauth/consent" element={<OAuthConsent />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 

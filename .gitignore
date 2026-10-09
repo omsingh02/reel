@@ -22,3 +22,23 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Build analysis output and test coverage
+stats.json
+coverage
+
+# Supabase CLI scratch
+supabase/.temp
+
+# Local environment (copy .env.example)
+.env
+.env.local
+
+# bun.lock is the lockfile of record
+package-lock.json
+
+# Vercel CLI link
+.vercel
+
+# Built by scripts/build-mcp.mjs
+supabase/functions/mcp/dist

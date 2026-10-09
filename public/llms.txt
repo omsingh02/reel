@@ -11,8 +11,8 @@ viewing personal viewing stats.
 - [Discover](/): Trending and popular movies and TV shows, plus search.
 - [Movies](/movies): Popular movies with sorting and search.
 - [TV Shows](/shows): Popular TV series with sorting and search.
-- [Upcoming](/upcoming): Calendar of upcoming movie and TV releases.
-- [Reel](/watchlist): Your saved titles, watched status and ratings.
+- [Upcoming](/upcoming): Upcoming releases and new episodes for the titles saved in your list.
+- [My List](/watchlist): Your saved titles, watched status and ratings.
 - [Stats](/stats): Personal viewing statistics.
 
 ## Optional

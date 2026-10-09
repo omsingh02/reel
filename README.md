@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <a href="https://wat.lovable.app"><b>Live demo</b></a> ·
+  <a href="https://reel.omsingh.me"><b>Live demo</b></a> ·
   <a href="#screenshots">Screenshots</a> ·
   <a href="#features">Features</a> ·
   <a href="#quick-start">Quick start</a> ·
@@ -90,7 +90,7 @@
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui (Radix), React Router, TanStack Query, Zod |
 | Backend | Supabase: Postgres with RLS, Auth, Edge Functions (Deno) |
 | Data | [TMDB](https://www.themoviedb.org/) catalogue, reached through a server-side proxy so the API key never ships to the browser |
-| AI access | MCP server built with `@lovable.dev/mcp-js`, authenticated by Supabase OAuth |
+| AI access | MCP server built with the open-source `@lovable.dev/mcp-js` SDK, authenticated by Supabase OAuth |
 | Quality | Vitest, ESLint, `tsc`, GitHub Actions CI |
 
 ### How it fits together
@@ -119,13 +119,14 @@ Set up the backend once:
 supabase login
 supabase link --project-ref <your-project-ref>
 
-supabase db push                                  # tables, RLS policies, triggers
+supabase db push                                  # tables, RLS policies, constraints
+supabase config push                              # auth URLs, email confirmation, MCP OAuth server
 supabase secrets set TMDB_API_KEY=<your-tmdb-key> # server-side only, never a VITE_ variable
-supabase functions deploy tmdb                    # TMDB proxy (public, config in supabase/config.toml)
-supabase functions deploy mcp --no-verify-jwt     # MCP server: it validates OAuth tokens itself
+supabase functions deploy tmdb                    # TMDB proxy
+bun run deploy:mcp                                # MCP server: bundles src/lib/mcp, then deploys it
 ```
 
-In the Supabase dashboard, add `http://localhost:8080/**` (and your production URL) to **Authentication → URL Configuration → Redirect URLs** so email verification and password-reset links work.
+`supabase/config.toml` is the source of truth for the auth settings (site URL, redirect URLs, the OAuth server for the MCP flow, which sends users to `/oauth/consent`). Change `site_url` and `additional_redirect_urls` to your own domain before running `supabase config push`.
 
 Then start the app:
 
@@ -148,7 +149,20 @@ Guest mode works as soon as the `tmdb` function is deployed; sign-in, sync and t
 
 ### Deploying
 
-Reel is a static SPA plus two Supabase functions. Build with `npm run build`, host `dist/` anywhere that can serve a single-page app (every route must fall back to `index.html`), and set the three `VITE_SUPABASE_*` variables at build time. The live demo runs on [Lovable](https://lovable.dev).
+Reel is a static SPA plus two Supabase edge functions, so it fits the free tiers of [Vercel](https://vercel.com) and [Supabase](https://supabase.com).
+
+1. **Backend:** run the Supabase commands above against your project.
+2. **Frontend:** import the repo into Vercel (the Vite preset is detected; [`vercel.json`](vercel.json) adds the SPA rewrite, cache headers and security headers) and set these environment variables for Production and Preview:
+
+   | Variable | Value |
+   | --- | --- |
+   | `VITE_SUPABASE_URL` | `https://<project-ref>.supabase.co` |
+   | `VITE_SUPABASE_PUBLISHABLE_KEY` | the project's publishable (anon) key |
+   | `VITE_SUPABASE_PROJECT_ID` | `<project-ref>` (the MCP bundle uses it as the OAuth issuer) |
+   | `VITE_SITE_URL` | your public origin, e.g. `https://reel.omsingh.me` |
+
+3. **Domain:** add your domain in Vercel and create the DNS record it asks for, then keep `site_url` in `supabase/config.toml` in step with it.
+4. **MCP function:** `bun run deploy:mcp` reads `VITE_SUPABASE_PROJECT_ID` (environment or `.env`) at build time, because the project's OAuth issuer is baked into the bundle. Re-run it whenever you change that value or anything in `src/lib/mcp/`.
 
 ## MCP server
 
@@ -158,7 +172,7 @@ Reel exposes a [Model Context Protocol](https://modelcontextprotocol.io) server 
 https://<your-project-ref>.supabase.co/functions/v1/mcp
 ```
 
-It uses Supabase's OAuth server, so an assistant sends you to Reel's consent screen (`/.lovable/oauth/consent`) the first time it connects. Enable the OAuth server in **Authentication** and point its authorization path at that route. Tokens are scoped to you; Row Level Security still applies to every query.
+It uses Supabase's OAuth server, so an assistant sends you to Reel's consent screen (`/oauth/consent`) the first time it connects. `supabase config push` turns the OAuth server on and points it at that route (see `[auth.oauth_server]` in `supabase/config.toml`). Tokens are scoped to you; Row Level Security still applies to every query.
 
 | Tool | What it does |
 | --- | --- |
@@ -176,7 +190,7 @@ claude mcp add --transport http reel https://<your-project-ref>.supabase.co/func
 
 Then ask things like *"add Dune: Part Two to my list"* or *"mark Severance as watched and rate it 9"*.
 
-> `supabase/functions/mcp/index.ts` is generated from `src/lib/mcp/`. Edit the sources, not the bundle, and refresh the snapshot in `.lovable/mcp/manifest.json` with `npx lovable-mcp-extract-manifest`.
+> The deployed function is a self-contained bundle built by [`scripts/build-mcp.mjs`](scripts/build-mcp.mjs) from `src/lib/mcp/` (about 650 KB; Supabase's own bundler turns the SDK's dependency tree into ~26 MB, over the upload limit). `supabase/functions/mcp/index.ts` is a file the SDK's Vite plugin regenerates, and is not what gets deployed. Edit the sources in `src/lib/mcp/`, then run `bun run deploy:mcp`.
 
 ## Project structure
 
