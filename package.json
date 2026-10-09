@@ -1,18 +1,46 @@
 {
-  "name": "watchlist",
+  "name": "reel",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
+  "description": "Reel — track movies and TV shows: watchlist, episode progress, stats, and an MCP server.",
+  "homepage": "https://wat.lovable.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omsingh02/reel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/omsingh02/reel/issues"
+  },
+  "keywords": [
+    "movies",
+    "tv-shows",
+    "watchlist",
+    "tmdb",
+    "react",
+    "typescript",
+    "vite",
+    "supabase",
+    "tailwindcss",
+    "shadcn-ui",
+    "mcp",
+    "pwa"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "predev": "bunx tsx scripts/generate-sitemap.ts",
-    "prebuild": "bunx tsx scripts/generate-sitemap.ts"
+    "predev": "node scripts/generate-sitemap.mjs",
+    "prebuild": "node scripts/generate-sitemap.mjs"
   },
   "dependencies": {
     "@lovable.dev/mcp-js": "^0.22.2",
