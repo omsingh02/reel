@@ -8,7 +8,49 @@ import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.22.2";
 // src/lib/mcp/tools/search-media.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z } from "npm:zod@^3.25.76";
+
+// src/lib/mcp/tmdb.ts
 var TMDB_BASE_URL = "https://api.themoviedb.org/3";
+var TMDB_TIMEOUT_MS = 8e3;
+var TMDB_UNAVAILABLE_MESSAGE = "TMDB is unreachable or timed out";
+function redactApiKey(text) {
+  return text.replace(/api_key=[^&\s"')]+/gi, "api_key=REDACTED");
+}
+function tmdbFailed(result) {
+  return !result.ok;
+}
+function describe(err) {
+  return redactApiKey(err instanceof Error ? `${err.name}: ${err.message}` : String(err));
+}
+async function tmdbGet(path, params = {}) {
+  const apiKey = process.env.TMDB_API_KEY;
+  if (!apiKey) return { ok: false, kind: "config", message: "TMDB API key not configured." };
+  const query = new URLSearchParams({ api_key: apiKey, ...params });
+  let res;
+  try {
+    res = await fetch(`${TMDB_BASE_URL}/${path}?${query}`, { signal: AbortSignal.timeout(TMDB_TIMEOUT_MS) });
+  } catch (err) {
+    console.error("[mcp] TMDB request failed:", describe(err));
+    return { ok: false, kind: "network", message: TMDB_UNAVAILABLE_MESSAGE };
+  }
+  if (!res.ok) return { ok: false, kind: "http", status: res.status, message: `TMDB error: ${res.status}` };
+  try {
+    return { ok: true, data: await res.json() };
+  } catch (err) {
+    console.error("[mcp] TMDB response unreadable:", describe(err));
+    const timedOut = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
+    return {
+      ok: false,
+      kind: timedOut ? "network" : "parse",
+      message: timedOut ? TMDB_UNAVAILABLE_MESSAGE : "TMDB returned an unexpected response"
+    };
+  }
+}
+function toolError(text) {
+  return { content: [{ type: "text", text }], isError: true };
+}
+
+// src/lib/mcp/tools/search-media.ts
 var IMG = "https://image.tmdb.org/t/p/w342";
 var search_media_default = defineTool({
   name: "search_media",
@@ -20,17 +62,14 @@ var search_media_default = defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ query, type }) => {
-    const apiKey = process.env.TMDB_API_KEY;
-    if (!apiKey) {
-      return { content: [{ type: "text", text: "TMDB API key not configured." }], isError: true };
-    }
     const endpoint = type && type !== "multi" ? `search/${type}` : "search/multi";
-    const url = `${TMDB_BASE_URL}/${endpoint}?api_key=${apiKey}&query=${encodeURIComponent(query)}&include_adult=false&page=1`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      return { content: [{ type: "text", text: `TMDB error: ${res.status}` }], isError: true };
-    }
-    const data = await res.json();
+    const res = await tmdbGet(endpoint, {
+      query,
+      include_adult: "false",
+      page: "1"
+    });
+    if (tmdbFailed(res)) return toolError(res.message);
+    const data = res.data;
     const results = (data.results ?? []).filter((r) => r.poster_path && (r.media_type ?? type) !== "person").slice(0, 10).map((r) => {
       const mediaType = r.media_type ?? type ?? "movie";
       const title = r.title ?? r.name ?? "Untitled";
@@ -65,9 +104,9 @@ function supabaseForUser(ctx) {
 var get_watchlist_default = defineTool2({
   name: "get_watchlist",
   title: "Get watchlist",
-  description: "Return the signed-in user's watchlist items, optionally filtered by status (watchlist, watching, watched).",
+  description: "Return the signed-in user's Reel list, optionally filtered by status ('watchlist' = to watch, 'watched').",
   inputSchema: {
-    status: z2.enum(["watchlist", "watching", "watched"]).optional().describe("Filter by status. Omit to return all items."),
+    status: z2.enum(["watchlist", "watched"]).optional().describe("Filter by status. Omit to return all items."),
     limit: z2.number().int().min(1).max(200).optional().describe("Max items to return (default 100).")
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
@@ -99,30 +138,25 @@ function supabaseForUser2(ctx) {
     auth: { persistSession: false, autoRefreshToken: false }
   });
 }
-var TMDB_BASE_URL2 = "https://api.themoviedb.org/3";
 var add_to_watchlist_default = defineTool3({
   name: "add_to_watchlist",
   title: "Add to watchlist",
-  description: "Add a movie or TV show to the signed-in user's watchlist. Provide the TMDB id and type; title/metadata are fetched automatically.",
+  description: "Add a movie or TV show to the signed-in user's list in Reel. Provide the TMDB id and type; title/metadata are fetched automatically. If the title is already in the list it is left unchanged.",
   inputSchema: {
     tmdb_id: z3.number().int().positive().describe("TMDB numeric id."),
     type: z3.enum(["movie", "tv"]).describe("Media type."),
-    status: z3.enum(["watchlist", "watching", "watched"]).optional().describe("Initial status (default: watchlist).")
+    status: z3.enum(["watchlist", "watched"]).optional().describe("Initial status (default: watchlist).")
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   handler: async ({ tmdb_id, type, status }, ctx) => {
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated." }], isError: true };
     }
-    const apiKey = process.env.TMDB_API_KEY;
-    if (!apiKey) {
-      return { content: [{ type: "text", text: "TMDB API key not configured." }], isError: true };
+    const details = await tmdbGet(`${type}/${tmdb_id}`);
+    if (tmdbFailed(details)) {
+      return toolError(details.kind === "http" ? `TMDB item not found (${details.status}).` : details.message);
     }
-    const detailsRes = await fetch(`${TMDB_BASE_URL2}/${type}/${tmdb_id}?api_key=${apiKey}`);
-    if (!detailsRes.ok) {
-      return { content: [{ type: "text", text: `TMDB item not found (${detailsRes.status}).` }], isError: true };
-    }
-    const d = await detailsRes.json();
+    const d = details.data;
     const supabase = supabaseForUser2(ctx);
     const row = {
       user_id: ctx.getUserId(),
@@ -133,22 +167,18 @@ var add_to_watchlist_default = defineTool3({
       release_date: d.release_date ?? d.first_air_date ?? null,
       vote_average: d.vote_average ?? null,
       status: status ?? "watchlist",
+      watched_at: status === "watched" ? (/* @__PURE__ */ new Date()).toISOString() : null,
       runtime: d.runtime ?? d.episode_run_time?.[0] ?? null
     };
-    const { data, error } = await supabase.from("watchlist_items").upsert(row, { onConflict: "user_id,tmdb_id,tmdb_type" }).select().maybeSingle();
+    const { data, error } = await supabase.from("watchlist_items").upsert(row, { onConflict: "user_id,tmdb_id,tmdb_type", ignoreDuplicates: true }).select().maybeSingle();
     if (error) {
-      const { data: existing } = await supabase.from("watchlist_items").select("id").eq("user_id", ctx.getUserId()).eq("tmdb_id", tmdb_id).eq("tmdb_type", type).maybeSingle();
-      if (existing) {
-        return { content: [{ type: "text", text: "Already in watchlist." }] };
-      }
-      const { error: insertError } = await supabase.from("watchlist_items").insert(row);
-      if (insertError) {
-        return { content: [{ type: "text", text: insertError.message }], isError: true };
-      }
-      return { content: [{ type: "text", text: `Added "${row.title}" to watchlist.` }] };
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    if (!data) {
+      return { content: [{ type: "text", text: "Already in your list." }] };
     }
     return {
-      content: [{ type: "text", text: `Added "${row.title}" to watchlist.` }],
+      content: [{ type: "text", text: `Added "${row.title}" to your list.` }],
       structuredContent: { item: data }
     };
   }
@@ -167,7 +197,7 @@ function supabaseForUser3(ctx) {
 var remove_from_watchlist_default = defineTool4({
   name: "remove_from_watchlist",
   title: "Remove from watchlist",
-  description: "Remove a movie or TV show from the signed-in user's watchlist by TMDB id and type.",
+  description: "Remove a movie or TV show from the signed-in user's Reel list by TMDB id and type.",
   inputSchema: {
     tmdb_id: z4.number().int().positive(),
     type: z4.enum(["movie", "tv"])
@@ -183,7 +213,7 @@ var remove_from_watchlist_default = defineTool4({
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
     return {
-      content: [{ type: "text", text: count && count > 0 ? "Removed." : "Item was not in watchlist." }]
+      content: [{ type: "text", text: count && count > 0 ? "Removed." : "Item was not in your list." }]
     };
   }
 });
@@ -201,11 +231,11 @@ function supabaseForUser4(ctx) {
 var update_watchlist_item_default = defineTool5({
   name: "update_watchlist_item",
   title: "Update watchlist item",
-  description: "Update the status and/or personal rating of an existing watchlist item. Setting status to 'watched' stamps the watched_at time.",
+  description: "Update the status ('watchlist' = to watch, 'watched') and/or personal rating of an existing item in the user's Reel list. Marking an item watched stamps watched_at (unless it was already watched); moving it back to 'watchlist' clears it.",
   inputSchema: {
     tmdb_id: z5.number().int().positive(),
     type: z5.enum(["movie", "tv"]),
-    status: z5.enum(["watchlist", "watching", "watched"]).optional(),
+    status: z5.enum(["watchlist", "watched"]).optional(),
     rating: z5.number().min(1).max(10).nullable().optional().describe("Personal rating from 1-10. Pass null to clear.")
   },
   annotations: { readOnlyHint: false, idempotentHint: true, openWorldHint: false },
@@ -213,19 +243,28 @@ var update_watchlist_item_default = defineTool5({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated." }], isError: true };
     }
-    const patch = {};
-    if (status !== void 0) {
-      patch.status = status;
-      if (status === "watched") patch.watched_at = (/* @__PURE__ */ new Date()).toISOString();
-    }
-    if (rating !== void 0) patch.rating = rating;
-    if (Object.keys(patch).length === 0) {
+    if (status === void 0 && rating === void 0) {
       return { content: [{ type: "text", text: "Nothing to update." }], isError: true };
     }
     const supabase = supabaseForUser4(ctx);
+    const patch = {};
+    if (status !== void 0) {
+      patch.status = status;
+      if (status === "watched") {
+        const { data: current, error: readError } = await supabase.from("watchlist_items").select("status, watched_at").eq("user_id", ctx.getUserId()).eq("tmdb_id", tmdb_id).eq("tmdb_type", type).maybeSingle();
+        if (readError) return { content: [{ type: "text", text: readError.message }], isError: true };
+        if (!current) return { content: [{ type: "text", text: "Item not found in your list." }], isError: true };
+        if (!(current.status === "watched" && current.watched_at)) {
+          patch.watched_at = (/* @__PURE__ */ new Date()).toISOString();
+        }
+      } else {
+        patch.watched_at = null;
+      }
+    }
+    if (rating !== void 0) patch.rating = rating;
     const { data, error } = await supabase.from("watchlist_items").update(patch).eq("user_id", ctx.getUserId()).eq("tmdb_id", tmdb_id).eq("tmdb_type", type).select().maybeSingle();
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
-    if (!data) return { content: [{ type: "text", text: "Item not found in watchlist." }], isError: true };
+    if (!data) return { content: [{ type: "text", text: "Item not found in your list." }], isError: true };
     return {
       content: [{ type: "text", text: `Updated "${data.title}".` }],
       structuredContent: { item: data }
@@ -236,10 +275,10 @@ var update_watchlist_item_default = defineTool5({
 // src/lib/mcp/index.ts
 var projectRef = "wcbmcqfvvxwlksnakiuk";
 var mcp_default = defineMcp({
-  name: "watchlist-mcp",
-  title: "Watchlist",
+  name: "reel-mcp",
+  title: "Reel",
   version: "0.1.0",
-  instructions: "Tools for the Watchlist app. Search TMDB movies and TV shows, then read and manage the signed-in user's watchlist (add, remove, update status and rating).",
+  instructions: "Tools for the Reel app. Search TMDB movies and TV shows, then read and manage the signed-in user's list (add, remove, update status and rating). Status is either 'watchlist' (to watch) or 'watched'.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"

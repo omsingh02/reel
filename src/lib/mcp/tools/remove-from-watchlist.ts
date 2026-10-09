@@ -12,7 +12,7 @@ function supabaseForUser(ctx: ToolContext) {
 export default defineTool({
   name: "remove_from_watchlist",
   title: "Remove from watchlist",
-  description: "Remove a movie or TV show from the signed-in user's watchlist by TMDB id and type.",
+  description: "Remove a movie or TV show from the signed-in user's Reel list by TMDB id and type.",
   inputSchema: {
     tmdb_id: z.number().int().positive(),
     type: z.enum(["movie", "tv"]),
@@ -33,7 +33,7 @@ export default defineTool({
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
     return {
-      content: [{ type: "text", text: count && count > 0 ? "Removed." : "Item was not in watchlist." }],
+      content: [{ type: "text", text: count && count > 0 ? "Removed." : "Item was not in your list." }],
     };
   },
 });

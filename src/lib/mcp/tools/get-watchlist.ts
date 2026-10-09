@@ -13,10 +13,10 @@ export default defineTool({
   name: "get_watchlist",
   title: "Get watchlist",
   description:
-    "Return the signed-in user's watchlist items, optionally filtered by status (watchlist, watching, watched).",
+    "Return the signed-in user's Reel list, optionally filtered by status ('watchlist' = to watch, 'watched').",
   inputSchema: {
     status: z
-      .enum(["watchlist", "watching", "watched"])
+      .enum(["watchlist", "watched"])
       .optional()
       .describe("Filter by status. Omit to return all items."),
     limit: z.number().int().min(1).max(200).optional().describe("Max items to return (default 100)."),

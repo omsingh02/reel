@@ -11,9 +11,9 @@
   },
   "mcp": {
     "server": {
-      "name": "watchlist-mcp",
+      "name": "reel-mcp",
       "version": "0.1.0",
-      "title": "Watchlist"
+      "title": "Reel"
     },
     "tools": [
       {
@@ -54,7 +54,7 @@
       {
         "name": "get_watchlist",
         "title": "Get watchlist",
-        "description": "Return the signed-in user's watchlist items, optionally filtered by status (watchlist, watching, watched).",
+        "description": "Return the signed-in user's Reel list, optionally filtered by status ('watchlist' = to watch, 'watched').",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -67,7 +67,6 @@
               "type": "string",
               "enum": [
                 "watchlist",
-                "watching",
                 "watched"
               ],
               "description": "Filter by status. Omit to return all items."
@@ -87,7 +86,7 @@
       {
         "name": "add_to_watchlist",
         "title": "Add to watchlist",
-        "description": "Add a movie or TV show to the signed-in user's watchlist. Provide the TMDB id and type; title/metadata are fetched automatically.",
+        "description": "Add a movie or TV show to the signed-in user's list in Reel. Provide the TMDB id and type; title/metadata are fetched automatically. If the title is already in the list it is left unchanged.",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": false,
@@ -114,7 +113,6 @@
               "type": "string",
               "enum": [
                 "watchlist",
-                "watching",
                 "watched"
               ],
               "description": "Initial status (default: watchlist)."
@@ -132,7 +130,7 @@
       {
         "name": "remove_from_watchlist",
         "title": "Remove from watchlist",
-        "description": "Remove a movie or TV show from the signed-in user's watchlist by TMDB id and type.",
+        "description": "Remove a movie or TV show from the signed-in user's Reel list by TMDB id and type.",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": true,
@@ -166,7 +164,7 @@
       {
         "name": "update_watchlist_item",
         "title": "Update watchlist item",
-        "description": "Update the status and/or personal rating of an existing watchlist item. Setting status to 'watched' stamps the watched_at time.",
+        "description": "Update the status ('watchlist' = to watch, 'watched') and/or personal rating of an existing item in the user's Reel list. Marking an item watched stamps watched_at (unless it was already watched); moving it back to 'watchlist' clears it.",
         "annotations": {
           "readOnlyHint": false,
           "idempotentHint": true,
@@ -190,7 +188,6 @@
               "type": "string",
               "enum": [
                 "watchlist",
-                "watching",
                 "watched"
               ]
             },
