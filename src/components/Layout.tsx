@@ -1,20 +1,27 @@
-import { AppSidebar } from './AppSidebar';
-import { MobileNav } from './MobileNav';
+import { MobileTabBar } from './MobileTabBar';
 import { OfflineBanner } from './OfflineBanner';
+import { SiteFooter } from './SiteFooter';
+import { TopNav } from './TopNav';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * The app frame: skip link, offline notice, top bar, page, footer, and the tab bar on phones.
+ * Pages render their own content only: a <PageHeader> and sections inside a <PageContainer>.
+ */
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen w-full bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
+      <a href="#main" className="skip-link">Skip to content</a>
       <OfflineBanner />
-      <AppSidebar />
-      <main className="min-h-screen flex flex-col pb-16 lg:pb-0 lg:ml-64 min-w-0 overflow-x-hidden">
+      <TopNav />
+      <main id="main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom))] outline-none lg:pb-0">
         {children}
       </main>
-      <MobileNav />
+      <SiteFooter />
+      <MobileTabBar />
     </div>
   );
 }

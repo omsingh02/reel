@@ -2,113 +2,124 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Material 3 Expressive Design System */
+/*
+ * Reel design system — "Projection Room"
+ *
+ * Dark theme (default): warm projection-room black, ivory text.
+ * Light theme:          warm "program paper", ink text.
+ * One brand accent (--primary, vermilion "signal"); ratings use gold (--rating).
+ * No blue, no purple. Colours are HSL channel triplets so Tailwind opacity modifiers work.
+ * Contrast of every text/background pair below is checked by scripts/check-contrast.mjs.
+ */
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 225 10% 13%;
+    --background: 40 30% 95.5%;
+    --foreground: 24 22% 9%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 225 10% 13%;
+    --card: 40 45% 98.5%;
+    --card-foreground: 24 22% 9%;
+    --popover: 40 50% 99%;
+    --popover-foreground: 24 22% 9%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 225 10% 13%;
+    --surface-2: 38 26% 92.5%;
+    --surface-3: 36 22% 88%;
 
-    --primary: 215 75% 45%;
-    --primary-foreground: 0 0% 100%;
+    --border: 36 16% 85.5%;
+    --border-strong: 34 12% 72%;
+    --input: 34 12% 70%;
 
-    --secondary: 220 14% 91%;
-    --secondary-foreground: 225 10% 13%;
+    --muted: 38 26% 92.5%;
+    --muted-foreground: 28 12% 33%;
+    --subtle-foreground: 28 9% 43%;
 
-    --muted: 220 14% 93%;
-    --muted-foreground: 220 9% 42%;
+    --secondary: 38 26% 92.5%;
+    --secondary-foreground: 24 22% 9%;
+    --accent: 38 26% 91%;
+    --accent-foreground: 24 22% 9%;
 
-    --accent: 215 75% 45%;
-    --accent-foreground: 0 0% 100%;
+    --primary: 12 82% 43%;
+    --primary-hover: 12 84% 38%;
+    --primary-subtle: 14 78% 93%;
+    --primary-text: 12 84% 38%;
+    --primary-foreground: 40 50% 98%;
+    --ring: 12 82% 46%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --rating: 36 92% 38%;
 
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
+    --success: 146 42% 30%;
+    --success-subtle: 146 30% 90%;
+    --success-text: 146 48% 25%;
+    --success-foreground: 40 50% 98%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --destructive: 352 70% 42%;
+    --destructive-subtle: 352 60% 94%;
+    --destructive-text: 352 72% 36%;
+    --destructive-foreground: 40 50% 98%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
-    --ring: 215 75% 45%;
+    --warning: 36 92% 44%;
+    --warning-subtle: 42 90% 90%;
+    --warning-text: 30 90% 28%;
+    --warning-foreground: 24 22% 9%;
 
-    --radius: 0.75rem;
+    --scrim: 24 25% 8%;
+    --shadow: 24 30% 12%;
 
-    --surface-container-low: 220 14% 95%;
-    --surface-container: 220 14% 92%;
-    --surface-container-high: 220 14% 88%;
-    --on-surface-variant: 220 9% 42%;
-
-    --sidebar-background: 220 14% 95%;
-    --sidebar-foreground: 225 10% 26%;
-    --sidebar-primary: 215 75% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 90%;
-    --sidebar-accent-foreground: 225 10% 13%;
-    --sidebar-border: 220 13% 88%;
-    --sidebar-ring: 215 75% 45%;
-
-    --rating: 45 93% 47%;
+    --topbar-h: 3.5rem;
+    --tabbar-h: 4rem;
   }
 
   .dark {
-    --background: 225 10% 8%;
-    --foreground: 220 14% 96%;
+    --background: 24 14% 6.5%;
+    --foreground: 38 28% 93%;
 
-    --card: 225 10% 13%;
-    --card-foreground: 220 14% 96%;
+    --card: 24 12% 9.5%;
+    --card-foreground: 38 28% 93%;
+    --popover: 24 12% 10.5%;
+    --popover-foreground: 38 28% 93%;
 
-    --popover: 225 10% 13%;
-    --popover-foreground: 220 14% 96%;
+    --surface-2: 26 11% 13.5%;
+    --surface-3: 28 10% 18%;
 
-    --primary: 215 75% 55%;
-    --primary-foreground: 0 0% 100%;
+    --border: 28 10% 18%;
+    --border-strong: 28 9% 29%;
+    --input: 28 9% 30%;
 
-    --secondary: 225 10% 18%;
-    --secondary-foreground: 220 14% 96%;
+    --muted: 26 11% 13.5%;
+    --muted-foreground: 32 11% 67%;
+    --subtle-foreground: 30 8% 55%;
 
-    --muted: 225 10% 16%;
-    --muted-foreground: 220 9% 60%;
+    --secondary: 26 11% 15%;
+    --secondary-foreground: 38 28% 93%;
+    --accent: 26 11% 15%;
+    --accent-foreground: 38 28% 95%;
 
-    --accent: 215 75% 55%;
-    --accent-foreground: 0 0% 100%;
+    --primary: 13 88% 57%;
+    --primary-hover: 13 90% 62%;
+    --primary-subtle: 13 42% 15%;
+    --primary-text: 14 92% 68%;
+    --primary-foreground: 24 30% 7%;
+    --ring: 14 92% 64%;
 
-    --destructive: 0 62% 55%;
-    --destructive-foreground: 0 0% 100%;
+    --rating: 42 92% 62%;
 
-    --success: 142 71% 55%;
-    --success-foreground: 0 0% 100%;
+    --success: 146 36% 52%;
+    --success-subtle: 146 28% 14%;
+    --success-text: 146 44% 64%;
+    --success-foreground: 24 30% 7%;
 
-    --warning: 38 92% 60%;
-    --warning-foreground: 0 0% 100%;
+    --destructive: 356 70% 50%;
+    --destructive-subtle: 356 40% 16%;
+    --destructive-text: 356 90% 74%;
+    --destructive-foreground: 40 50% 98%;
 
-    --border: 225 10% 22%;
-    --input: 225 10% 22%;
-    --ring: 215 75% 55%;
+    --warning: 38 92% 58%;
+    --warning-subtle: 38 50% 14%;
+    --warning-text: 40 95% 68%;
+    --warning-foreground: 24 30% 7%;
 
-    --surface-container-low: 225 10% 11%;
-    --surface-container: 225 10% 15%;
-    --surface-container-high: 225 10% 20%;
-    --on-surface-variant: 220 9% 60%;
-
-    --sidebar-background: 225 10% 11%;
-    --sidebar-foreground: 220 9% 70%;
-    --sidebar-primary: 215 75% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 10% 18%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 225 10% 22%;
-    --sidebar-ring: 215 75% 55%;
-
-    --rating: 45 93% 57%;
+    --scrim: 24 25% 4%;
+    --shadow: 24 40% 2%;
   }
 }
 
@@ -117,30 +128,196 @@
     @apply border-border;
   }
 
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--topbar-h) + 1rem);
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-background font-sans text-[0.9375rem] leading-relaxed text-foreground antialiased;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 100dvh;
+  }
+
+  /* Headings are set in the display serif; components opt out with font-sans. */
+  h1, h2 {
+    @apply font-display font-semibold tracking-tight;
+    font-optical-sizing: auto;
+  }
+  h3, h4 {
+    @apply font-sans font-semibold;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.32);
+    color: inherit;
+  }
+
+  /* One focus treatment everywhere: a signal-coloured ring with a gap. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: inherit;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Kill the iOS 300ms tap delay and double-tap zoom on tappable controls. */
+  button, a, [role="button"], input, select, textarea, summary {
+    touch-action: manipulation;
+  }
+
+  /* Thin, warm scrollbars. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border-strong)) transparent;
+  }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--border-strong));
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-track { background: transparent; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Film-credit style label: mono, small caps feel, used for data labels and tags. */
+  .label-mono {
+    @apply font-mono text-label font-medium uppercase text-muted-foreground;
+  }
+
+  /* Numerals that line up in columns (stats, runtimes, episode codes). */
+  .numeral {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* Skip link: first focusable element on every page. */
+  .skip-link {
+    @apply fixed left-3 top-3 z-[100] -translate-y-24 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-float transition-transform focus:translate-y-0;
+  }
+
+  /* A loading placeholder that sweeps like light across a film frame. */
+  .skeleton {
+    @apply rounded-md;
+    background-color: hsl(var(--surface-2));
+    background-image: linear-gradient(
+      100deg,
+      transparent 20%,
+      hsl(var(--foreground) / 0.06) 50%,
+      transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s linear infinite;
+  }
+
+  /*
+   * "Stretched link": the title button's ::after covers its whole card, so the entire card is one
+   * real, keyboard-focusable control without nesting buttons. Anything that must stay clickable
+   * on top (quick actions) gets `relative z-10`.
+   */
+  .stretched-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 0.375rem;
+  }
+  .stretched-link:focus-visible {
+    outline: none;
+  }
+  .stretched-link:focus-visible::after {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  /* Dark gradient that keeps text legible over artwork. */
+  .scrim-b {
+    background-image: linear-gradient(to top, hsl(var(--scrim) / 0.92) 0%, hsl(var(--scrim) / 0.55) 40%, transparent 100%);
+  }
+  .scrim-r {
+    background-image: linear-gradient(to right, hsl(var(--scrim) / 0.92) 0%, hsl(var(--scrim) / 0.55) 45%, transparent 100%);
+  }
+
+  /* Film grain, for hero and brand surfaces only (static, no layout or scroll cost). */
+  .grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* Film perforations: a row (or column) of sprocket holes, coloured by `color`. */
+  .sprocket-x,
+  .sprocket-y {
+    background-color: currentColor;
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+  }
+  .sprocket-x {
+    height: 8px;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><rect x='3' y='1' width='10' height='6' rx='1.6'/></svg>");
+    mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><rect x='3' y='1' width='10' height='6' rx='1.6'/></svg>");
+    -webkit-mask-size: 16px 8px;
+    mask-size: 16px 8px;
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+  }
+  .sprocket-y {
+    width: 8px;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='16'><rect x='1' y='3' width='6' height='10' rx='1.6'/></svg>");
+    mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='16'><rect x='1' y='3' width='6' height='10' rx='1.6'/></svg>");
+    -webkit-mask-size: 8px 16px;
+    mask-size: 8px 16px;
+    -webkit-mask-repeat: repeat-y;
+    mask-repeat: repeat-y;
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
 
   /* Mobile safe-area helpers (iOS notch / home indicator). */
   .pt-safe { padding-top: env(safe-area-inset-top); }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-  .top-safe { top: max(env(safe-area-inset-top), 0.75rem); }
 
   /* Prevent rubber-banding under modals on iOS. */
   .overscroll-contain-y { overscroll-behavior-y: contain; }
+
+  /* Horizontal scrollers without a visible scrollbar (rails, filter rows). */
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 }
 
-@layer base {
-  /* Kill the iOS 300ms tap delay & double-tap zoom on tappable controls. */
-  button, a, [role="button"], input, select, textarea {
-    touch-action: manipulation;
+/* Toasts: float above the mobile tab bar. */
+@media (max-width: 1023px) {
+  [data-sonner-toaster][data-y-position="bottom"] {
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 0.75rem) !important;
   }
 }

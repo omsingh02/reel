@@ -1,133 +1,104 @@
-import { memo, useCallback, useState, forwardRef } from 'react';
-import { Plus, Check, Star, Film, Tv, MoreVertical, EyeOff } from 'lucide-react';
+import { memo, forwardRef } from 'react';
+import { Bookmark, Check, EyeOff, MoreVertical, Plus, Star } from 'lucide-react';
+import { Poster } from '@/components/reel/Poster';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
-import type { TMDBMovie, TMDBTVShow, MediaType } from '@/types/tmdb';
-import { getImageUrl, getTitle, getReleaseDate } from '@/lib/tmdb';
-import { useWatchlist } from '@/hooks/useWatchlist';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useHidden } from '@/hooks/useHidden';
+import { useWatchlist } from '@/hooks/useWatchlist';
+import { getReleaseDate, getTitle } from '@/lib/tmdb';
 import { yearOf } from '@/lib/dates';
+import { cn } from '@/lib/utils';
+import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 
 interface MediaCardProps {
   media: TMDBMovie | TMDBTVShow;
   mediaType: MediaType;
   onClick?: () => void;
+  /** Load the poster immediately (first items on a page). */
+  eager?: boolean;
 }
 
-export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(function MediaCard(
-  { media, mediaType, onClick },
-  ref
-) {
-  const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
+/**
+ * A title in a rail or grid: poster first, then a plain title and a line of credits-style data.
+ * The whole card opens the title (one real button via a stretched link); quick actions
+ * (add/remove, hide) sit above it and appear on hover, on keyboard focus, and always on touch.
+ */
+export const MediaCard = memo(forwardRef<HTMLElement, MediaCardProps>(function MediaCard({ media, mediaType, onClick, eager }, ref) {
+  const { addToWatchlist, removeFromWatchlist, watchlist } = useWatchlist();
   const { hide } = useHidden();
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const imgRefCallback = useCallback((node: HTMLImageElement | null) => {
-    if (node && node.complete && node.naturalWidth > 0) setImageLoaded(true);
-  }, []);
 
-  const inWatchlist = isInWatchlist(media.id, mediaType);
+  const saved = watchlist.find(w => w.id === media.id && w.mediaType === mediaType);
+  const inWatchlist = !!saved;
+  const watched = saved?.status === 'watched';
   const title = getTitle(media);
-  const releaseDate = getReleaseDate(media);
-  const year = yearOf(releaseDate);
-  const posterUrl = getImageUrl(media.poster_path, 'w342');
+  const year = yearOf(getReleaseDate(media));
+  const score = media.vote_average > 0 ? media.vote_average.toFixed(1) : null;
 
-  const handleWatchlistClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (inWatchlist) removeFromWatchlist(media.id, mediaType);
-    else addToWatchlist(media, mediaType);
-  }, [inWatchlist, media, mediaType, addToWatchlist, removeFromWatchlist]);
-
-  const handleHide = useCallback((e: Event) => {
-    e.preventDefault();
-    hide(media.id, mediaType);
-  }, [media.id, mediaType, hide]);
+  const toggle = () => (inWatchlist ? removeFromWatchlist(media.id, mediaType) : addToWatchlist(media, mediaType));
 
   return (
-    <div
-      ref={ref}
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-card border border-border/50 cursor-pointer shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
-      onClick={onClick}
-    >
-      <div className="relative aspect-[2/3] bg-secondary overflow-hidden rounded-xl m-1.5 mb-0">
-        {!imageError && posterUrl ? (
-          <img
-            ref={imgRefCallback}
-            src={posterUrl}
-            alt={title}
-            loading="lazy"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageError(true)}
+    <article ref={ref} className="group relative">
+      <Poster
+        path={media.poster_path}
+        title={title}
+        year={year}
+        eager={eager}
+        className="group-hover:shadow-poster group-hover:ring-foreground/30"
+      >
+        {inWatchlist && (
+          <span
+            title={watched ? 'Watched' : 'In your list'}
             className={cn(
-              "h-full w-full object-cover transition-opacity duration-200",
-              imageLoaded ? "opacity-100" : "opacity-0"
+              'absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-br-md shadow-sm',
+              watched ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground',
             )}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-            {mediaType === 'movie' ? <Film className="h-12 w-12" /> : <Tv className="h-12 w-12" />}
-          </div>
-        )}
-
-        <span className="hidden sm:block absolute top-2 left-2 text-xs font-medium bg-secondary/90 backdrop-blur-sm text-secondary-foreground px-2.5 py-1 rounded-full">
-          {mediaType === 'movie' ? 'Movie' : 'TV'}
-        </span>
-
-        <div className="absolute top-2 right-2 flex items-center gap-1">
-          <Button
-            size="sm"
-            variant={inWatchlist ? "default" : "secondary"}
-            className={cn(
-              "h-8 w-8 p-0 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
-              inWatchlist && "opacity-100 bg-primary"
-            )}
-            onClick={handleWatchlistClick}
-            aria-label={inWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
           >
-            {inWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="h-8 w-8 p-0 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
-                aria-label="More actions"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem onSelect={handleHide}>
-                <EyeOff className="h-4 w-4 mr-2" />
-                Not interested
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            {watched ? <Check className="h-4 w-4" strokeWidth={3} aria-hidden /> : <Bookmark className="h-3.5 w-3.5 fill-current" aria-hidden />}
+            <span className="sr-only">{watched ? 'Watched' : 'In your list'}</span>
+          </span>
+        )}
+      </Poster>
+
+      <div className="mt-2.5 space-y-1">
+        <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug">
+          <button type="button" onClick={onClick} className="stretched-link text-left">
+            {title}
+          </button>
+        </h3>
+        <p className="numeral flex items-center gap-2.5 font-mono text-xs text-muted-foreground">
+          <span>{year ?? 'TBA'}</span>
+          {score && (
+            <span className="inline-flex items-center gap-1">
+              <Star className="h-3 w-3 fill-rating text-rating" aria-hidden />
+              <span className="sr-only">Rated </span>
+              {score}
+            </span>
+          )}
+        </p>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
-        <h2 className="font-semibold text-sm leading-tight line-clamp-2 min-h-[2.25rem]" title={title}>
-          {title}
-        </h2>
-        <div className="mt-auto flex items-center justify-between text-xs text-muted-foreground">
-          <span>{year || 'TBA'}</span>
-          {media.vote_average > 0 && (
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-rating text-rating" />
-              <span>{media.vote_average.toFixed(1)}</span>
-            </div>
-          )}
-        </div>
+      <div className="absolute right-2 top-2 z-10 flex flex-col gap-1.5 opacity-0 transition-opacity duration-base focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
+        <Button
+          size="icon-sm"
+          variant={inWatchlist ? 'default' : 'overlay'}
+          onClick={toggle}
+          aria-label={inWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
+        >
+          {inWatchlist ? <Check strokeWidth={3} /> : <Plus />}
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon-sm" variant="overlay" aria-label="More actions">
+              <MoreVertical />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => hide(media.id, mediaType)}>
+              <EyeOff /> Not interested
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-    </div>
+    </article>
   );
 }));
