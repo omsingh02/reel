@@ -95,20 +95,9 @@
 
 ### How it fits together
 
-```mermaid
-flowchart LR
-  subgraph Browser
-    SPA["React SPA"]
-    LS[("localStorage<br/>guest data")]
-  end
-  SPA --- LS
-  SPA -- "auth + RLS queries" --> SB[("Supabase<br/>Postgres + Auth")]
-  SPA -- "catalogue requests" --> TMDBFN["Edge Function: tmdb"]
-  TMDBFN --> TMDB[("TMDB API")]
-  AI["AI assistant<br/>(MCP client)"] -- "OAuth + MCP" --> MCPFN["Edge Function: mcp"]
-  MCPFN --> SB
-  MCPFN --> TMDB
-```
+<p align="center">
+  <img src="docs/assets/architecture.png" alt="Architecture: the React SPA talks to Supabase for auth and row-level-security queries and to the tmdb edge function for catalogue data (which calls the TMDB API); guest data stays in localStorage. AI assistants reach Supabase and TMDB through the OAuth-protected mcp edge function." width="100%">
+</p>
 
 Data model (see [`supabase/migrations`](supabase/migrations)): `profiles`, `watchlist_items` (status, rating, watched date, runtime), `episode_progress` and `hidden_items`. Every table has Row Level Security so users can only read and write their own rows.
 

@@ -20,6 +20,7 @@ The mark is a bold white **R** in a rounded blue square (corner radius ≈ 29% o
 | Wordmark for light backgrounds | [`assets/logo-wordmark-light.svg`](assets/logo-wordmark-light.svg) | Light pages, documents |
 | Banner | [`assets/banner.png`](assets/banner.png) | README header (1280×640) |
 | Social preview | [`assets/social-preview.png`](assets/social-preview.png) | GitHub "Social preview" image (1280×640) |
+| Architecture diagram | [`assets/architecture.png`](assets/architecture.png) | README "How it fits together" (rendered from [`architecture.svg`](assets/architecture.svg)) |
 
 Rules of thumb: keep clear space around the mark equal to a quarter of its width, don't recolour it, don't stretch it, and don't place it on a busy photo without a dark scrim.
 
