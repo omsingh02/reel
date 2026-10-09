@@ -1,8 +1,11 @@
 import { useCallback, useSyncExternalStore } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlistDB } from '@/hooks/useWatchlistDB';
 import type { TMDBMovie, TMDBTVShow, MediaType, WatchlistItem, WatchlistStatus } from '@/types/tmdb';
+import { computeRuntime, getMovieDetails, getTVShowDetails } from '@/lib/tmdb';
+import type { TMDBMovieDetails, TMDBTVShowDetails } from '@/types/tmdb';
 import {
   getWatchlist,
   subscribeWatchlist,
@@ -11,7 +14,28 @@ import {
   isInWatchlist as checkLocal,
   setWatchedStatus as setLocalStatus,
   restoreWatchlistItem,
+  type InitialState,
 } from '@/lib/watchlist';
+
+/** Cheap lookup (no credits/images) of a title's total runtime, cached for a day. */
+export function useRuntimeLookup() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    async (id: number, mediaType: MediaType): Promise<number | null> => {
+      try {
+        const details = await queryClient.fetchQuery<TMDBMovieDetails | TMDBTVShowDetails>({
+          queryKey: ['runtime-details', mediaType, id],
+          queryFn: () => (mediaType === 'movie' ? getMovieDetails(id, { slim: true }) : getTVShowDetails(id, { slim: true })),
+          staleTime: 24 * 60 * 60 * 1000,
+        });
+        return computeRuntime(details, mediaType);
+      } catch {
+        return null;
+      }
+    },
+    [queryClient]
+  );
+}
 
 /** Rebuild a TMDB-shaped object from a saved item so it can be re-added. */
 function toMediaLike(item: WatchlistItem): TMDBMovie | TMDBTVShow {
@@ -33,6 +57,7 @@ function toMediaLike(item: WatchlistItem): TMDBMovie | TMDBTVShow {
 export function useWatchlist() {
   const { user } = useAuth();
   const dbWatchlist = useWatchlistDB();
+  const lookupRuntime = useRuntimeLookup();
 
   const localWatchlist = useSyncExternalStore(
     subscribeWatchlist,
@@ -56,10 +81,18 @@ export function useWatchlist() {
       }))
     : localWatchlist;
 
-  const addToWatchlist = useCallback((media: TMDBMovie | TMDBTVShow, mediaType: MediaType) => {
-    if (user) dbWatchlist.addToWatchlist(media, mediaType);
-    else addLocal(media, mediaType);
-    toast.success('Added to watchlist');
+  const addToWatchlist = useCallback((media: TMDBMovie | TMDBTVShow, mediaType: MediaType, initial: InitialState = {}) => {
+    if (user) {
+      dbWatchlist.addToWatchlist(media, mediaType, {
+        status: initial.status,
+        rating: initial.rating ?? undefined,
+        watched_at: initial.watchedAt ?? undefined,
+        runtime: initial.runtime ?? undefined,
+      });
+    } else {
+      addLocal(media, mediaType, initial);
+    }
+    toast.success(initial.status === 'watched' ? 'Marked as watched' : 'Added to watchlist');
   }, [user, dbWatchlist]);
 
   const removeFromWatchlist = useCallback((id: number, mediaType: MediaType) => {
@@ -72,18 +105,8 @@ export function useWatchlist() {
         ? {
             label: 'Undo',
             onClick: () => {
-              if (user) {
-                dbWatchlist.addToWatchlist(toMediaLike(removed), mediaType);
-                if (removed.status === 'watched') {
-                  dbWatchlist.updateItem(id, mediaType, {
-                    status: 'watched',
-                    rating: removed.rating ?? null,
-                    watched_at: removed.watchedAt ?? null,
-                  });
-                }
-              } else {
-                restoreWatchlistItem(removed);
-              }
+              if (user) dbWatchlist.restoreItem(removed);
+              else restoreWatchlistItem(removed);
             },
           }
         : undefined,
@@ -95,7 +118,7 @@ export function useWatchlist() {
     return checkLocal(id, mediaType);
   }, [user, dbWatchlist]);
 
-  const setWatched = useCallback(
+  const applyPatch = useCallback(
     (
       id: number,
       mediaType: MediaType,
@@ -116,6 +139,26 @@ export function useWatchlist() {
       }
     },
     [user, dbWatchlist]
+  );
+
+  const setWatched = useCallback(
+    (
+      id: number,
+      mediaType: MediaType,
+      patch: { status?: WatchlistStatus; rating?: number | null; watchedAt?: string | null; runtime?: number | null }
+    ) => {
+      applyPatch(id, mediaType, patch);
+
+      // Stats totals need a runtime. Whatever button marked the title watched
+      // (card, details, rating stars), fill it in afterwards if it's missing.
+      const existing = watchlist.find(i => i.id === id && i.mediaType === mediaType);
+      if (patch.status === 'watched' && patch.runtime === undefined && !existing?.runtime) {
+        void lookupRuntime(id, mediaType).then(runtime => {
+          if (runtime) applyPatch(id, mediaType, { runtime });
+        });
+      }
+    },
+    [applyPatch, watchlist, lookupRuntime]
   );
 
   return {

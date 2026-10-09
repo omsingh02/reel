@@ -12,6 +12,7 @@ import { getTrending, getPopular, cleanMediaList } from '@/lib/tmdb';
 import { useHidden } from '@/hooks/useHidden';
 import { useOpenTitle } from '@/hooks/useOpenTitle';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
+import { SITE_URL } from '@/lib/site';
 
 /** Editorial discovery experience: cinematic hero + curated rails. */
 export default function Index() {
@@ -108,10 +109,10 @@ export default function Index() {
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: "Reel",
-          url: "https://wat.lovable.app/",
+          url: `${SITE_URL}/`,
           potentialAction: {
             "@type": "SearchAction",
-            target: "https://wat.lovable.app/search?q={search_term_string}",
+            target: `${SITE_URL}/search?q={search_term_string}`,
             "query-input": "required name=search_term_string",
           },
         }}
@@ -144,7 +145,7 @@ export default function Index() {
 
             <MediaRail
               title="Trending movies"
-              subtitle="What everyone's watching this week"
+              subtitle="Trending this week"
               items={trendingMoviesRail}
               mediaType="movie"
               onItemClick={openTitle}
@@ -152,7 +153,7 @@ export default function Index() {
             />
             <MediaRail
               title="Trending TV"
-              subtitle="Series with buzz right now"
+              subtitle="Series getting attention right now"
               items={trendingTVRail}
               mediaType="tv"
               onItemClick={openTitle}
@@ -160,7 +161,7 @@ export default function Index() {
             />
             <MediaRail
               title="Popular movies"
-              subtitle="Most watched right now"
+              subtitle="Popular on TMDB right now"
               items={popularMoviesRail}
               mediaType="movie"
               onItemClick={openTitle}
@@ -168,7 +169,7 @@ export default function Index() {
             />
             <MediaRail
               title="Popular TV"
-              subtitle="Shows people keep coming back to"
+              subtitle="Popular series on TMDB"
               items={popularTVRail}
               mediaType="tv"
               onItemClick={openTitle}

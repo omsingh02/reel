@@ -8,7 +8,9 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useOpenTitle } from '@/hooks/useOpenTitle';
 import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb';
+import { formatCalendarDate, isTodayOrLater, parseCalendarDate } from '@/lib/dates';
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails } from '@/types/tmdb';
+import { SITE_URL } from '@/lib/site';
 
 interface Entry {
   id: number;
@@ -18,28 +20,28 @@ interface Entry {
   label: string;
 }
 
-function isUpcoming(dateStr: string | null | undefined): boolean {
-  if (!dateStr) return false;
-  const t = new Date(dateStr).getTime();
-  if (isNaN(t)) return false;
-  return t >= Date.now() - 24 * 60 * 60 * 1000; // include today
-}
+const MAX_TITLES = 80;
 
 export default function Upcoming() {
   const { watchlist, isLoading } = useWatchlist();
   const openTitle = useOpenTitle();
 
-  // Only fetch details for items still "to watch".
-  const pending = useMemo(
-    () => watchlist.filter(w => (w.status ?? 'watchlist') !== 'watched').slice(0, 80),
+  // Movies still "to watch", plus every show you follow — a show marked
+  // watched can still have a new episode on the way.
+  const tracked = useMemo(
+    () => watchlist.filter(w => w.mediaType === 'tv' || (w.status ?? 'watchlist') !== 'watched'),
     [watchlist]
   );
+  const pending = useMemo(() => tracked.slice(0, MAX_TITLES), [tracked]);
 
   const queries = useQueries({
     queries: pending.map(item => ({
-      queryKey: ['media-details', item.mediaType, item.id],
+      // Slim payload: only release / next-episode dates are needed here.
+      queryKey: ['upcoming-details', item.mediaType, item.id],
       queryFn: () =>
-        item.mediaType === 'movie' ? getMovieDetails(item.id) : getTVShowDetails(item.id),
+        item.mediaType === 'movie'
+          ? getMovieDetails(item.id, { slim: true })
+          : getTVShowDetails(item.id, { slim: true }),
       staleTime: 6 * 60 * 60 * 1000,
       retry: 1,
     })),
@@ -52,18 +54,18 @@ export default function Upcoming() {
       if (!item || !q.data) return;
       if (item.mediaType === 'movie') {
         const m = q.data as TMDBMovieDetails;
-        if (isUpcoming(m.release_date)) {
+        if (isTodayOrLater(m.release_date)) {
           out.push({
             id: m.id, mediaType: 'movie',
             title: m.title,
             date: m.release_date,
-            label: 'Theatrical release',
+            label: 'Release',
           });
         }
       } else {
         const tv = q.data as TMDBTVShowDetails;
         const next = tv.next_episode_to_air;
-        if (next && isUpcoming(next.air_date)) {
+        if (next && isTodayOrLater(next.air_date)) {
           out.push({
             id: tv.id, mediaType: 'tv',
             title: tv.name,
@@ -73,13 +75,13 @@ export default function Upcoming() {
         }
       }
     });
-    return out.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return out.sort((a, b) => (parseCalendarDate(a.date)?.getTime() ?? 0) - (parseCalendarDate(b.date)?.getTime() ?? 0));
   }, [queries, pending]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, Entry[]>();
     entries.forEach(e => {
-      const key = new Date(e.date).toLocaleDateString('en-US', {
+      const key = formatCalendarDate(e.date, {
         weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
       });
       const arr = map.get(key) || [];
@@ -89,11 +91,14 @@ export default function Upcoming() {
     return Array.from(map.entries());
   }, [entries]);
 
-  const anyLoading = isLoading || queries.some(q => q.isLoading);
+  // Show results as they arrive instead of waiting for the slowest request.
+  const anyLoading = isLoading || (entries.length === 0 && queries.some(q => q.isLoading));
+  const failed = queries.filter(q => q.isError).length;
+  const skipped = Math.max(0, tracked.length - pending.length);
 
   return (
     <Layout>
-      <Seo title="Upcoming Releases — Reel" description="See upcoming movie releases and TV episode air dates for the titles saved in your list." path="/upcoming" jsonLd={{"@context":"https://schema.org","@type":"CollectionPage","name":"Upcoming Releases","description":"Upcoming movie releases and TV episode air dates for titles saved in your list.","url":"https://wat.lovable.app/upcoming"}} />
+      <Seo title="Upcoming Releases — Reel" description="See upcoming movie releases and TV episode air dates for the titles saved in your list." path="/upcoming" noindex jsonLd={{"@context":"https://schema.org","@type":"CollectionPage","name":"Upcoming Releases","description":"Upcoming movie releases and TV episode air dates for titles saved in your list.","url":`${SITE_URL}/upcoming`}} />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
           <h1 className="text-xl font-semibold">Upcoming</h1>
@@ -106,11 +111,21 @@ export default function Upcoming() {
         ) : entries.length === 0 ? (
           <EmptyState
             icon={CalendarDays}
-            title="Nothing on the horizon"
-            description="Add titles to your watchlist to see upcoming releases and new episodes here."
+            title={failed > 0 ? "Couldn't check upcoming releases" : "Nothing on the horizon"}
+            description={
+              failed > 0
+                ? "Some titles failed to load. Check your connection and reopen this page."
+                : "Add titles to your list to see upcoming releases and new episodes here."
+            }
           />
         ) : (
           <div className="space-y-6">
+            {(failed > 0 || skipped > 0) && (
+              <p className="text-xs text-muted-foreground">
+                {failed > 0 && `Couldn't check ${failed} title${failed === 1 ? '' : 's'} just now. `}
+                {skipped > 0 && `Showing the first ${MAX_TITLES} of ${tracked.length} titles.`}
+              </p>
+            )}
             {grouped.map(([date, items]) => (
               <div key={date}>
                 <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{date}</h2>

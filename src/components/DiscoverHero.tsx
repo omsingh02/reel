@@ -1,8 +1,9 @@
 import { memo, useCallback } from 'react';
-import { Play, Plus, Check, Star, Info } from 'lucide-react';
+import { Plus, Check, Star, Info } from 'lucide-react';
 import { Button } from './ui/button';
 import { getImageUrl, getTitle, getReleaseDate } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { yearOf } from '@/lib/dates';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 
 interface DiscoverHeroProps {
@@ -21,7 +22,7 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
 
   const title = getTitle(media);
   const date = getReleaseDate(media);
-  const year = date ? new Date(date).getFullYear() : null;
+  const year = yearOf(date);
   const backdrop = getImageUrl(media.backdrop_path, 'w780') || getImageUrl(media.poster_path, 'w780');
   const backdropLarge = media.backdrop_path ? getImageUrl(media.backdrop_path, 'w1280') : null;
 
@@ -82,8 +83,8 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
                 className="rounded-full h-11 px-5 gap-2"
                 onClick={() => onOpen(media.id, mediaType)}
               >
-                <Play className="h-4 w-4 fill-current" />
-                Watch now
+                <Info className="h-4 w-4" />
+                View details
               </Button>
               <Button
                 size="lg"
@@ -94,16 +95,6 @@ export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpe
                 {inList ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 {inList ? 'In My List' : 'Add to List'}
               </Button>
-              <Button
-                size="lg"
-                variant="ghost"
-                className="rounded-full h-11 px-4 gap-2"
-                onClick={() => onOpen(media.id, mediaType)}
-              >
-                <Info className="h-4 w-4" />
-                Details
-              </Button>
-
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { Home, List, Film, Tv, LogIn, LogOut, CalendarDays, BarChart3, Search } from 'lucide-react';
+import { Home, List, Film, Tv, LogIn, LogOut, CalendarDays, BarChart3, Search, EyeOff } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +14,7 @@ const navigation = [
   { name: 'My List', href: '/watchlist', icon: List },
   { name: 'Upcoming', href: '/upcoming', icon: CalendarDays },
   { name: 'Stats', href: '/stats', icon: BarChart3 },
+  { name: 'Hidden', href: '/hidden', icon: EyeOff },
 ];
 
 const categories = [
@@ -124,6 +125,9 @@ export function AppSidebar() {
             <ThemeToggle />
           </div>
         )}
+        <p className="px-2 text-[10px] leading-snug text-muted-foreground/70">
+          This product uses the TMDB API but is not endorsed or certified by TMDB. Streaming availability data by JustWatch.
+        </p>
       </div>
     </aside>
   );
