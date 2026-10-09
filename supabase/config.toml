@@ -28,6 +28,8 @@ site_url = "https://reel.omsingh.me"
 additional_redirect_urls = [
   "https://reel.omsingh.me/**",
   "http://localhost:8080/**",
+  # Vercel preview deployments (one per branch/PR), so sign-in works when testing a PR.
+  "https://reel-*-om-singhs-projects-9de9a5e9.vercel.app/**",
 ]
 enable_signup = true
 enable_anonymous_sign_ins = false
