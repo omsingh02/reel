@@ -59,7 +59,7 @@ function AppRoutes() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/movie/:id" element={<TitleRoute mediaType="movie" />} />
         <Route path="/show/:id" element={<TitleRoute mediaType="tv" />} />
-        <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+        <Route path="/oauth/consent" element={<OAuthConsent />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
