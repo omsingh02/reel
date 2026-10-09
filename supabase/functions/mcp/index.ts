@@ -92,15 +92,22 @@ var search_media_default = defineTool({
 });
 
 // src/lib/mcp/tools/get-watchlist.ts
-import { createClient } from "npm:@supabase/supabase-js@^2.93.1";
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z2 } from "npm:zod@^3.25.76";
+
+// src/lib/mcp/supabase.ts
+import { createClient } from "npm:@supabase/supabase-js@^2.93.1";
 function supabaseForUser(ctx) {
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error("Supabase is not configured for this function");
+  return createClient(url, key, {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
 }
+
+// src/lib/mcp/tools/get-watchlist.ts
 var get_watchlist_default = defineTool2({
   name: "get_watchlist",
   title: "Get watchlist",
@@ -129,15 +136,8 @@ var get_watchlist_default = defineTool2({
 });
 
 // src/lib/mcp/tools/add-to-watchlist.ts
-import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.93.1";
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z3 } from "npm:zod@^3.25.76";
-function supabaseForUser2(ctx) {
-  return createClient2(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var add_to_watchlist_default = defineTool3({
   name: "add_to_watchlist",
   title: "Add to watchlist",
@@ -157,7 +157,7 @@ var add_to_watchlist_default = defineTool3({
       return toolError(details.kind === "http" ? `TMDB item not found (${details.status}).` : details.message);
     }
     const d = details.data;
-    const supabase = supabaseForUser2(ctx);
+    const supabase = supabaseForUser(ctx);
     const row = {
       user_id: ctx.getUserId(),
       tmdb_id,
@@ -185,15 +185,8 @@ var add_to_watchlist_default = defineTool3({
 });
 
 // src/lib/mcp/tools/remove-from-watchlist.ts
-import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.93.1";
 import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z4 } from "npm:zod@^3.25.76";
-function supabaseForUser3(ctx) {
-  return createClient3(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var remove_from_watchlist_default = defineTool4({
   name: "remove_from_watchlist",
   title: "Remove from watchlist",
@@ -207,7 +200,7 @@ var remove_from_watchlist_default = defineTool4({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated." }], isError: true };
     }
-    const supabase = supabaseForUser3(ctx);
+    const supabase = supabaseForUser(ctx);
     const { error, count } = await supabase.from("watchlist_items").delete({ count: "exact" }).eq("user_id", ctx.getUserId()).eq("tmdb_id", tmdb_id).eq("tmdb_type", type);
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
@@ -219,15 +212,8 @@ var remove_from_watchlist_default = defineTool4({
 });
 
 // src/lib/mcp/tools/update-watchlist-item.ts
-import { createClient as createClient4 } from "npm:@supabase/supabase-js@^2.93.1";
 import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z5 } from "npm:zod@^3.25.76";
-function supabaseForUser4(ctx) {
-  return createClient4(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var update_watchlist_item_default = defineTool5({
   name: "update_watchlist_item",
   title: "Update watchlist item",
@@ -246,7 +232,7 @@ var update_watchlist_item_default = defineTool5({
     if (status === void 0 && rating === void 0) {
       return { content: [{ type: "text", text: "Nothing to update." }], isError: true };
     }
-    const supabase = supabaseForUser4(ctx);
+    const supabase = supabaseForUser(ctx);
     const patch = {};
     if (status !== void 0) {
       patch.status = status;
@@ -273,7 +259,7 @@ var update_watchlist_item_default = defineTool5({
 });
 
 // src/lib/mcp/index.ts
-var projectRef = "wcbmcqfvvxwlksnakiuk";
+var projectRef = "yaedljfsgtyuoknklejy";
 var mcp_default = defineMcp({
   name: "reel-mcp",
   title: "Reel",

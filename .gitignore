@@ -39,3 +39,6 @@ package-lock.json
 
 # Vercel CLI link
 .vercel
+
+# Built by scripts/build-mcp.mjs
+supabase/functions/mcp/dist

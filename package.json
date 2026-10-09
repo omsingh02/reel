@@ -35,6 +35,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "build:mcp": "node scripts/build-mcp.mjs",
+    "deploy:mcp": "node scripts/build-mcp.mjs && supabase functions deploy mcp",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "preview": "vite preview",
     "test": "vitest run",

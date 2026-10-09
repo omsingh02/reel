@@ -15,6 +15,9 @@ verify_jwt = false
 # (/.well-known/oauth-protected-resource), so the platform-level JWT check has to be off.
 [functions.mcp]
 verify_jwt = false
+# Deploy the pre-bundled build (`bun run build:mcp`), not the generated index.ts: that one imports
+# `npm:@lovable.dev/mcp-js`, whose dependency tree bundles to ~26 MB (over the upload limit).
+entrypoint = "./functions/mcp/dist/index.js"
 
 [auth]
 enabled = true

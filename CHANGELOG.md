@@ -35,7 +35,8 @@ All notable changes to Reel are documented here. The format is based on
   and OAuth-server settings now live in `supabase/config.toml` (`supabase config push`). Added
   `vercel.json` (SPA rewrite, cache and security headers). The default site origin is now
   `https://reel.omsingh.me`. Bun's `bun.lock` is the only lockfile (Dependabot follows it).
-  The MCP server still uses the MIT-licensed `@lovable.dev/mcp-js` SDK, which runs on Supabase.
+  The MCP server still uses the MIT-licensed `@lovable.dev/mcp-js` SDK, which runs on Supabase, and
+  is now deployed as a pre-bundled 650 KB build (`bun run deploy:mcp`) instead of a 26 MB one.
 - Upcoming now includes shows you follow even after marking them watched, loads lightweight data,
   shows results as they arrive, reports failures and the 80-title cap, and is no longer indexed.
 - Discover: "Top rated" requires 300 votes, "Newest" excludes unreleased titles and no longer hides
@@ -57,6 +58,8 @@ All notable changes to Reel are documented here. The format is based on
 
 ### Fixed
 
+- MCP tools read `SUPABASE_ANON_KEY` (what Supabase injects into Edge Functions) when
+  `SUPABASE_PUBLISHABLE_KEY` is absent, so they work on a regular Supabase project.
 - The `tmdb` function times out after 8 s, forwards upstream 404/429 (with `Retry-After`) instead
   of a generic 500, returns a JSON 502 for unreadable replies, and sends cache headers for
   successful reads only.
