@@ -29,6 +29,13 @@ All notable changes to Reel are documented here. The format is based on
 
 ### Changed
 
+- **Standalone deployment.** Reel no longer depends on the Lovable platform: the Supabase client is
+  plain (no preview-auth broker), the `.lovable/` folder is gone, the MCP consent screen moved from
+  `/.lovable/oauth/consent` to `/oauth/consent`, `.env` is no longer tracked, and the Supabase auth
+  and OAuth-server settings now live in `supabase/config.toml` (`supabase config push`). Added
+  `vercel.json` (SPA rewrite, cache and security headers). The default site origin is now
+  `https://reel.omsingh.me`. Bun's `bun.lock` is the only lockfile (Dependabot follows it).
+  The MCP server still uses the MIT-licensed `@lovable.dev/mcp-js` SDK, which runs on Supabase.
 - Upcoming now includes shows you follow even after marking them watched, loads lightweight data,
   shows results as they arrive, reports failures and the 80-title cap, and is no longer indexed.
 - Discover: "Top rated" requires 300 votes, "Newest" excludes unreleased titles and no longer hides

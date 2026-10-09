@@ -14,7 +14,7 @@ function siteUrlPlugin(siteUrl: string): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
-  const siteUrl = (env.VITE_SITE_URL || "https://wat.lovable.app").replace(/\/+$/, "");
+  const siteUrl = (env.VITE_SITE_URL || "https://reel.omsingh.me").replace(/\/+$/, "");
 
   return {
     server: {

@@ -29,3 +29,13 @@ coverage
 
 # Supabase CLI scratch
 supabase/.temp
+
+# Local environment (copy .env.example)
+.env
+.env.local
+
+# bun.lock is the lockfile of record
+package-lock.json
+
+# Vercel CLI link
+.vercel

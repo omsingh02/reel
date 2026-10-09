@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "description": "Reel — track movies and TV shows: watchlist, episode progress, stats, and an MCP server.",
-  "homepage": "https://wat.lovable.app",
+  "homepage": "https://reel.omsingh.me",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/omsingh02/reel.git"

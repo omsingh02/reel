@@ -8,7 +8,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const DEFAULT_SITE_URL = "https://wat.lovable.app";
+const DEFAULT_SITE_URL = "https://reel.omsingh.me";
 
 /** Reads VITE_SITE_URL from the environment, falling back to .env files, then the default. */
 function resolveSiteUrl() {

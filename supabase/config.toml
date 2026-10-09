@@ -1,4 +1,47 @@
-project_id = "wcbmcqfvvxwlksnakiuk"
+# Supabase configuration for Reel.
+#
+# `project_id` is only the local (Docker) identifier. The remote project is chosen with
+#   supabase link --project-ref <ref>
+# and these auth settings are applied to it with
+#   supabase config push
 
+project_id = "reel"
+
+# Public catalogue proxy: it only wraps TMDB reads and does its own validation.
 [functions.tmdb]
 verify_jwt = false
+
+# MCP server: validates OAuth access tokens itself and must serve public discovery metadata
+# (/.well-known/oauth-protected-resource), so the platform-level JWT check has to be off.
+[functions.mcp]
+verify_jwt = false
+
+[auth]
+enabled = true
+# Production origin. The consent screen path below is appended to this.
+site_url = "https://reel.omsingh.me"
+# Where Supabase may redirect to after sign-in, email confirmation and password reset.
+# Add your Vercel preview pattern here if you want auth to work on preview deployments.
+additional_redirect_urls = [
+  "https://reel.omsingh.me/**",
+  "http://localhost:8080/**",
+]
+enable_signup = true
+enable_anonymous_sign_ins = false
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true
+
+# Lets MCP clients (Claude, Cursor, ...) sign a user in to Reel. Supabase hosts /authorize and
+# /token; Reel hosts the consent screen at <site_url><authorization_url_path>.
+# MCP clients register themselves (RFC 7591), so dynamic registration must be on; every login
+# still requires the user to approve on the consent screen.
+[auth.oauth_server]
+enabled = true
+authorization_url_path = "/oauth/consent"
+allow_dynamic_registration = true

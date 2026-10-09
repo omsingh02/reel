@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://wat.lovable.app/</loc>
+    <loc>https://reel.omsingh.me/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://wat.lovable.app/movies</loc>
+    <loc>https://reel.omsingh.me/movies</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://wat.lovable.app/shows</loc>
+    <loc>https://reel.omsingh.me/shows</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
