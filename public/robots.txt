@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://wat.lovable.app/sitemap.xml
+Sitemap: https://reel.omsingh.me/sitemap.xml

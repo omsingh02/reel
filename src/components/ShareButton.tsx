@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { titlePath } from '@/lib/tmdb';
 
 interface ShareButtonProps {
   title: string;
@@ -15,8 +16,8 @@ interface ShareButtonProps {
 }
 
 export function ShareButton({ title, mediaType, id }: ShareButtonProps) {
-  const shareUrl = `${window.location.origin}?${mediaType}=${id}`;
-  const shareText = `Check out "${title}" on Watchlist`;
+  const shareUrl = `${window.location.origin}${titlePath(id, mediaType)}`;
+  const shareText = `Check out "${title}" on Reel`;
 
   const copyLink = async () => {
     try {

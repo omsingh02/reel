@@ -8,9 +8,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
 import { Seo } from '@/components/Seo';
+import { supabase } from '@/integrations/supabase/client';
+
+const emailSchema = z.string().trim().email({ message: 'Invalid email address' }).max(255);
 
 const authSchema = z.object({
-  email: z.string().trim().email({ message: 'Invalid email address' }).max(255),
+  email: emailSchema,
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }).max(72),
 });
 
@@ -59,22 +62,60 @@ export default function Auth() {
     try {
       if (mode === 'signup') {
         const emailRedirect = window.location.origin + nextPath;
-        const { error } = await signUp(email, password, emailRedirect);
+        const { error, session } = await signUp(email, password, emailRedirect);
         if (error) throw error;
-        toast({
-          title: 'Account created!',
-          description: 'Please check your email to verify your account.',
-        });
+        if (session) {
+          // Email confirmation is off: the user is already signed in.
+          toast({ title: 'Account created!' });
+          navigate(nextPath);
+        } else {
+          toast({
+            title: 'Account created!',
+            description: 'Check your email to verify your account.',
+          });
+        }
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
         navigate(nextPath);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: 'destructive',
         title: mode === 'signup' ? 'Sign up failed' : 'Sign in failed',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const parsed = emailSchema.safeParse(email);
+    if (!parsed.success) {
+      toast({
+        variant: 'destructive',
+        title: 'Enter your email first',
+        description: parsed.error.errors[0].message,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      if (error) throw error;
+      toast({
+        title: 'Check your email',
+        description: 'If an account exists for that address, a reset link is on its way.',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: "Couldn't send reset email",
+        description: error instanceof Error ? error.message : 'Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -86,8 +127,8 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <Seo
-        title="Sign In to Watchlist"
-        description="Sign in or create a free Watchlist account to sync your saved movies and TV shows across all of your devices."
+        title="Sign In to Reel"
+        description="Sign in or create a free Reel account to sync your saved movies and TV shows across all of your devices."
         path="/auth"
         noindex
       />
@@ -105,9 +146,9 @@ export default function Auth() {
           <div className="mx-auto h-14 w-14 rounded-2xl bg-primary flex items-center justify-center mb-4">
             <Film className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold">{activeTab === 'signup' ? 'Create your Watchlist account' : 'Sign in to Watchlist'}</h1>
+          <h1 className="text-2xl font-bold">{activeTab === 'signup' ? 'Create your Reel account' : 'Sign in to Reel'}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Sign in to save your watchlist and sync across devices
+            Sign in to sync your list across devices. Reel also works without an account.
           </p>
         </div>
 
@@ -125,6 +166,7 @@ export default function Auth() {
                   <input
                     id="signin-email"
                     type="email"
+                    autoComplete="email"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -140,6 +182,7 @@ export default function Auth() {
                   <input
                     id="signin-password"
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -166,6 +209,14 @@ export default function Auth() {
                   'Sign In'
                 )}
               </Button>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={isLoading}
+                className="block mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              >
+                Forgot password?
+              </button>
             </form>
           </TabsContent>
           <TabsContent value="signup">
@@ -177,6 +228,7 @@ export default function Auth() {
                   <input
                     id="signup-email"
                     type="email"
+                    autoComplete="email"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -192,6 +244,7 @@ export default function Auth() {
                   <input
                     id="signup-password"
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

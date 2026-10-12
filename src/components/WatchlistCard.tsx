@@ -12,6 +12,8 @@ import type { WatchlistItem } from '@/types/tmdb';
 import { getImageUrl } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
+import { useShowSync } from '@/hooks/useShowSync';
+import { yearOf } from '@/lib/dates';
 
 const RATINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -23,20 +25,17 @@ interface WatchlistCardProps {
 export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: WatchlistCardProps) {
   const { removeFromWatchlist, setWatched } = useWatchlist();
   const { forShow } = useEpisodeProgress();
+  const { markAllAired } = useShowSync();
   const posterUrl = getImageUrl(item.posterPath, 'w154');
-  const year = item.releaseDate ? new Date(item.releaseDate).getFullYear() : null;
+  const year = yearOf(item.releaseDate);
   const isWatched = item.status === 'watched';
 
-  // For TV: compute next unwatched episode from the highest watched (s,e).
-  const upNext = useMemo(() => {
-    if (item.mediaType !== 'tv') return null;
-    const progress = forShow(item.id);
-    if (progress.length === 0) return 'S1E1';
-    // Pick max (season, episode) and suggest next episode in same season.
-    const sorted = [...progress].sort((a, b) => (b.season - a.season) || (b.episode - a.episode));
-    const last = sorted[0];
-    return `S${last.season}E${last.episode + 1}`;
-  }, [forShow, item.id, item.mediaType]);
+  // For TV: how many episodes are ticked off. (A "next episode" guess from the
+  // highest watched number would name episodes that don't exist.)
+  const episodesWatched = useMemo(
+    () => (item.mediaType === 'tv' ? forShow(item.id).length : 0),
+    [forShow, item.id, item.mediaType]
+  );
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -49,6 +48,8 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
       status: isWatched ? 'watchlist' : 'watched',
       watchedAt: isWatched ? null : new Date().toISOString(),
     });
+    // A show marked watched has seen every episode that has aired.
+    if (!isWatched && item.mediaType === 'tv') void markAllAired(item.id);
   };
 
   const handleRate = (e: React.MouseEvent, rating: number) => {
@@ -57,6 +58,7 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
       rating,
       ...(isWatched ? {} : { status: 'watched' as const, watchedAt: new Date().toISOString() }),
     });
+    if (!isWatched && item.mediaType === 'tv') void markAllAired(item.id);
   };
 
   const handleClearRating = (e: Event) => {
@@ -102,8 +104,8 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
               Watched{typeof item.rating === 'number' ? ` · ${item.rating}/10` : ''}
             </span>
           )}
-          {!isWatched && item.mediaType === 'tv' && upNext && (
-            <span className="text-primary">Next: {upNext}</span>
+          {!isWatched && episodesWatched > 0 && (
+            <span className="text-primary">{episodesWatched} episode{episodesWatched === 1 ? '' : 's'} watched</span>
           )}
         </div>
       </div>

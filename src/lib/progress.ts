@@ -1,27 +1,28 @@
 import type { EpisodeProgressItem } from "@/types/tmdb";
+import { asFiniteNumber, asString, isRecord, readStoredArray, writeStored } from "./storage";
 
 const KEY = 'episode-progress';
 const listeners = new Set<() => void>();
 let cache: EpisodeProgressItem[] | null = null;
 
+function parseProgress(raw: unknown): EpisodeProgressItem | null {
+  if (!isRecord(raw)) return null;
+  const tmdbId = asFiniteNumber(raw.tmdbId);
+  const season = asFiniteNumber(raw.season);
+  const episode = asFiniteNumber(raw.episode);
+  if (tmdbId === null || season === null || episode === null || season < 0 || episode < 0) return null;
+  return { tmdbId, season, episode, watchedAt: asString(raw.watchedAt, new Date().toISOString()) };
+}
+
 function read(): EpisodeProgressItem[] {
-  if (cache) return cache;
-  try {
-    const stored = localStorage.getItem(KEY);
-    cache = stored ? JSON.parse(stored) : [];
-  } catch {
-    cache = [];
-  }
-  return cache!;
+  if (!cache) cache = readStoredArray(KEY, parseProgress, p => `${p.tmdbId}:${p.season}:${p.episode}`);
+  return cache;
 }
 
 function write(next: EpisodeProgressItem[]) {
   cache = next;
-  try {
-    localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    // Storage full or unavailable (Safari private mode) — keep in-memory state.
-  }
+  // Storage full or unavailable (Safari private mode) — keep in-memory state.
+  writeStored(KEY, next);
   listeners.forEach(l => l());
 }
 

@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "watchlist",
+      "name": "reel",
       "dependencies": {
         "@lovable.dev/mcp-js": "^0.22.2",
         "@radix-ui/react-avatar": "^1.1.10",

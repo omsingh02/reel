@@ -10,11 +10,11 @@ import updateWatchlistItem from "./tools/update-watchlist-item";
 const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 
 export default defineMcp({
-  name: "watchlist-mcp",
-  title: "Watchlist",
+  name: "reel-mcp",
+  title: "Reel",
   version: "0.1.0",
   instructions:
-    "Tools for the Watchlist app. Search TMDB movies and TV shows, then read and manage the signed-in user's watchlist (add, remove, update status and rating).",
+    "Tools for the Reel app. Search TMDB movies and TV shows, then read and manage the signed-in user's list (add, remove, update status and rating). Status is either 'watchlist' (to watch) or 'watched'.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",

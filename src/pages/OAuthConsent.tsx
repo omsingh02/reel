@@ -6,17 +6,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Seo } from "@/components/Seo";
 
 // Beta typed wrapper for supabase.auth.oauth (not yet in generated types).
+interface AuthorizationDetails {
+  client?: { name?: string; redirect_uri?: string };
+  redirect_uri?: string;
+  redirect_url?: string;
+  redirect_to?: string;
+}
+type OAuthResult = Promise<{ data: AuthorizationDetails | null; error: { message: string } | null }>;
 type OAuthApi = {
-  getAuthorizationDetails: (id: string) => Promise<{ data: any; error: { message: string } | null }>;
-  approveAuthorization: (id: string) => Promise<{ data: any; error: { message: string } | null }>;
-  denyAuthorization: (id: string) => Promise<{ data: any; error: { message: string } | null }>;
+  getAuthorizationDetails: (id: string) => OAuthResult;
+  approveAuthorization: (id: string) => OAuthResult;
+  denyAuthorization: (id: string) => OAuthResult;
 };
 const oauth = (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 
 export default function OAuthConsent() {
   const [params] = useSearchParams();
   const authorizationId = params.get("authorization_id") ?? "";
-  const [details, setDetails] = useState<any>(null);
+  const [details, setDetails] = useState<AuthorizationDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -70,7 +77,7 @@ export default function OAuthConsent() {
       <main className="min-h-screen flex items-center justify-center bg-background p-4">
       <Seo
         title="Authorize App Access — Reel"
-        description="Review and approve the access an external app is requesting to your Watchlist account."
+        description="Review and approve the access an external app is requesting to your Reel account."
         path="/oauth/consent"
         noindex
       />
@@ -97,7 +104,7 @@ export default function OAuthConsent() {
     <main className="min-h-screen flex items-center justify-center bg-background p-4">
     <Seo
       title="Authorize App Access — Reel"
-      description="Review and approve the access an external app is requesting to your Watchlist account."
+      description="Review and approve the access an external app is requesting to your Reel account."
       path="/oauth/consent"
       noindex
     />
@@ -106,7 +113,7 @@ export default function OAuthConsent() {
           <div className="mx-auto h-14 w-14 rounded-2xl bg-primary flex items-center justify-center mb-4">
             <Film className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold">Connect {clientName} to Watchlist</h1>
+          <h1 className="text-2xl font-bold">Connect {clientName} to Reel</h1>
           <p className="text-sm text-muted-foreground mt-2">
             This lets <span className="font-medium">{clientName}</span> use this app as you.
           </p>
@@ -116,7 +123,7 @@ export default function OAuthConsent() {
           <div className="flex items-start gap-3">
             <ShieldCheck className="h-4 w-4 mt-0.5 text-primary shrink-0" />
             <div>
-              <p className="font-medium">Access to your Watchlist</p>
+              <p className="font-medium">Access to your Reel list</p>
               <p className="text-muted-foreground text-xs mt-0.5">
                 Search titles and read, add, remove, or update your watchlist items and ratings.
               </p>
@@ -128,7 +135,7 @@ export default function OAuthConsent() {
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            This does not bypass Watchlist's permissions. You can revoke access at any time by signing out.
+            This does not bypass Reel's permissions. Only approve apps you trust.
           </p>
         </div>
 

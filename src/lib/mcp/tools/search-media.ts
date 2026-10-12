@@ -1,7 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
+import { tmdbFailed, tmdbGet, toolError } from "../tmdb";
 
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const IMG = "https://image.tmdb.org/t/p/w342";
 
 type TmdbSearchItem = {
@@ -30,17 +30,14 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ query, type }) => {
-    const apiKey = process.env.TMDB_API_KEY;
-    if (!apiKey) {
-      return { content: [{ type: "text", text: "TMDB API key not configured." }], isError: true };
-    }
     const endpoint = type && type !== "multi" ? `search/${type}` : "search/multi";
-    const url = `${TMDB_BASE_URL}/${endpoint}?api_key=${apiKey}&query=${encodeURIComponent(query)}&include_adult=false&page=1`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      return { content: [{ type: "text", text: `TMDB error: ${res.status}` }], isError: true };
-    }
-    const data = (await res.json()) as { results?: TmdbSearchItem[] };
+    const res = await tmdbGet<{ results?: TmdbSearchItem[] }>(endpoint, {
+      query,
+      include_adult: "false",
+      page: "1",
+    });
+    if (tmdbFailed(res)) return toolError(res.message);
+    const data = res.data;
     const results = (data.results ?? [])
       .filter((r) => r.poster_path && (r.media_type ?? type) !== "person")
       .slice(0, 10)

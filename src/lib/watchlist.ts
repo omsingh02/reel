@@ -1,5 +1,6 @@
 import type { WatchlistItem, TMDBMovie, TMDBTVShow, MediaType, WatchlistStatus } from "@/types/tmdb";
 import { getTitle, getReleaseDate } from "./tmdb";
+import { asFiniteNumber, asString, isRecord, readStoredArray, writeStored } from "./storage";
 
 const WATCHLIST_KEY = 'movie-watchlist';
 
@@ -7,40 +8,39 @@ const WATCHLIST_KEY = 'movie-watchlist';
 const listeners = new Set<() => void>();
 let cache: WatchlistItem[] | null = null;
 
-function migrate(items: any[]): WatchlistItem[] {
-  return items.map(it => ({
-    id: it.id,
-    mediaType: it.mediaType,
-    title: it.title,
-    posterPath: it.posterPath ?? null,
-    releaseDate: it.releaseDate ?? '',
-    voteAverage: typeof it.voteAverage === 'number' ? it.voteAverage : 0,
-    addedAt: it.addedAt ?? new Date().toISOString(),
-    status: it.status ?? 'watchlist',
-    rating: typeof it.rating === 'number' ? it.rating : null,
-    watchedAt: it.watchedAt ?? null,
-    runtime: typeof it.runtime === 'number' ? it.runtime : null,
-  }));
+type StoredItem = Partial<WatchlistItem> & Pick<WatchlistItem, 'id' | 'mediaType' | 'title'>;
+
+/** Validates one stored entry and fills in fields older builds didn't have. Returns null if unusable. */
+function parseItem(raw: unknown): WatchlistItem | null {
+  if (!isRecord(raw)) return null;
+  const id = asFiniteNumber(raw.id);
+  if (id === null || (raw.mediaType !== 'movie' && raw.mediaType !== 'tv')) return null;
+  const rating = asFiniteNumber(raw.rating);
+  const runtime = asFiniteNumber(raw.runtime);
+  return {
+    id,
+    mediaType: raw.mediaType,
+    title: asString(raw.title, 'Untitled'),
+    posterPath: typeof raw.posterPath === 'string' ? raw.posterPath : null,
+    releaseDate: asString(raw.releaseDate),
+    voteAverage: asFiniteNumber(raw.voteAverage) ?? 0,
+    addedAt: asString(raw.addedAt, new Date().toISOString()),
+    status: raw.status === 'watched' ? 'watched' : 'watchlist',
+    rating: rating !== null && rating >= 1 && rating <= 10 ? rating : null,
+    watchedAt: typeof raw.watchedAt === 'string' ? raw.watchedAt : null,
+    runtime: runtime !== null && runtime >= 0 ? runtime : null,
+  };
 }
 
 function read(): WatchlistItem[] {
-  if (cache) return cache;
-  try {
-    const stored = localStorage.getItem(WATCHLIST_KEY);
-    cache = stored ? migrate(JSON.parse(stored)) : [];
-  } catch {
-    cache = [];
-  }
-  return cache!;
+  if (!cache) cache = readStoredArray(WATCHLIST_KEY, parseItem, i => `${i.mediaType}:${i.id}`);
+  return cache;
 }
 
 function write(next: WatchlistItem[]): void {
   cache = next;
-  try {
-    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(next));
-  } catch {
-    // Storage full or unavailable (Safari private mode) — keep in-memory state.
-  }
+  // If storage is full or unavailable (Safari private mode) the in-memory copy still works.
+  writeStored(WATCHLIST_KEY, next);
   listeners.forEach(l => l());
 }
 
@@ -53,7 +53,9 @@ export function getWatchlist(): WatchlistItem[] {
   return read();
 }
 
-export function addToWatchlist(media: TMDBMovie | TMDBTVShow, mediaType: MediaType): void {
+export type InitialState = Partial<Pick<WatchlistItem, 'status' | 'rating' | 'watchedAt' | 'runtime'>>;
+
+export function addToWatchlist(media: TMDBMovie | TMDBTVShow, mediaType: MediaType, initial: InitialState = {}): void {
   const list = read();
   if (list.some(item => item.id === media.id && item.mediaType === mediaType)) return;
   const newItem: WatchlistItem = {
@@ -64,10 +66,10 @@ export function addToWatchlist(media: TMDBMovie | TMDBTVShow, mediaType: MediaTy
     releaseDate: getReleaseDate(media),
     voteAverage: media.vote_average,
     addedAt: new Date().toISOString(),
-    status: 'watchlist',
-    rating: null,
-    watchedAt: null,
-    runtime: null,
+    status: initial.status ?? 'watchlist',
+    rating: initial.rating ?? null,
+    watchedAt: initial.watchedAt ?? null,
+    runtime: initial.runtime ?? null,
   };
   write([newItem, ...list]);
 }

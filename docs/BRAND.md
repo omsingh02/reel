@@ -4,7 +4,7 @@ A short reference so the product, README, social cards and store listings all lo
 
 ## Name and voice
 
-- **Name:** Reel (always capitalised, never "REEL" or "reel"). The repository is `omsingh02/reel` (it was originally called `wat`, and the live demo still lives at `wat.lovable.app`).
+- **Name:** Reel (always capitalised, never "REEL" or "reel"). The repository is `omsingh02/reel` (it was originally called `wat`) and the site lives at `reel.omsingh.me`.
 - **Tagline:** *Track what you watch. Never miss what's next.*
 - **Description (one line):** A fast, private-first watchlist for movies and TV, with episode progress, viewing stats and an MCP server for your AI assistant.
 - **Voice:** plain, quick, a little warm. Say "My List", "Mark watched", "Up next". Avoid hype and avoid claims the app can't back up (for example "most watched": TMDB data measures popularity on TMDB, not viewing).

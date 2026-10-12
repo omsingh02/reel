@@ -1,0 +1,11 @@
+# Never ship local environment files: configuration comes from Vercel's project settings,
+# otherwise a stale local .env silently overrides what you set in the dashboard.
+.env
+.env.*
+!.env.example
+
+# Not needed to build the site
+docs
+supabase/.temp
+.vercel
+*.log

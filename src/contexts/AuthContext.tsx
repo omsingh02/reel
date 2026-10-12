@@ -1,14 +1,15 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { mergeGuestData } from '@/lib/mergeGuestData';
+import { mergeGuestData, hasGuestData } from '@/lib/mergeGuestData';
 import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, redirectTo?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, redirectTo?: string) => Promise<{ error: Error | null; session: Session | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -16,6 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,11 +31,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
 
         // Anything saved while signed out follows the user into their account.
-        if (event === 'SIGNED_IN' && session?.user) {
+        // SIGNED_IN also fires on token refresh / tab refocus, so skip when
+        // there is nothing local to move.
+        if (event === 'SIGNED_IN' && session?.user && hasGuestData()) {
           const userId = session.user.id;
           setTimeout(() => {
             mergeGuestData(userId)
               .then(moved => {
+                // The account queries may have fetched before the merge landed.
+                queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+                queryClient.invalidateQueries({ queryKey: ['hidden_items'] });
+                queryClient.invalidateQueries({ queryKey: ['episode_progress'] });
                 if (moved > 0) toast.success(`Added ${moved} saved title${moved === 1 ? '' : 's'} to your account`);
               })
               .catch(() => { /* keep local copies; nothing is lost */ });
@@ -50,17 +58,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   const signUp = async (email: string, password: string, redirectTo?: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectTo ?? window.location.origin,
       },
     });
-    return { error };
+    return { error, session: data?.session ?? null };
   };
 
   const signIn = async (email: string, password: string) => {

@@ -3,6 +3,7 @@ import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, X } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
+import { loadYouTubeApi } from '@/lib/youtube';
 
 interface VideoPlayerProps {
   videoKey: string;
@@ -25,6 +26,7 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const [showControls, setShowControls] = useState(false);
+  const [failed, setFailed] = useState(false);
   const hideControlsTimeout = useRef<number | null>(null);
 
   // Mutable refs so keyboard handlers always see fresh values
@@ -37,57 +39,49 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
   useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
 
-  // Load YouTube IFrame API
+  // Load the YouTube IFrame API (once, shared) and create the player.
   useEffect(() => {
-    if (!(window as any).YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-    }
+    let cancelled = false;
+    setFailed(false);
+    setIsReady(false);
 
-    const initPlayer = () => {
-      if (!playerNodeRef.current) return;
-      playerRef.current = new (window as any).YT.Player(playerNodeRef.current, {
-        videoId: videoKey,
-        playerVars: {
-          autoplay: 1,
-          controls: 0,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          iv_load_policy: 3,
-          fs: 0,
-          playsinline: 1,
-          disablekb: 1,
-          cc_load_policy: 0,
-          origin: window.location.origin,
-          enablejsapi: 1,
-        },
-        events: {
-          onReady: (event: YT.PlayerEvent) => {
-            setIsReady(true);
-            setDuration(event.target.getDuration());
-            setIsPlaying(true);
+    loadYouTubeApi()
+      .then(() => {
+        if (cancelled || !playerNodeRef.current) return;
+        playerRef.current = new YT.Player(playerNodeRef.current, {
+          videoId: videoKey,
+          playerVars: {
+            autoplay: 1,
+            controls: 0,
+            modestbranding: 1,
+            rel: 0,
+            showinfo: 0,
+            iv_load_policy: 3,
+            fs: 0,
+            playsinline: 1,
+            disablekb: 1,
+            cc_load_policy: 0,
+            origin: window.location.origin,
+            enablejsapi: 1,
           },
-          onStateChange: (event: YT.OnStateChangeEvent) => {
-            setIsPlaying(event.data === (window as any).YT.PlayerState.PLAYING);
+          events: {
+            onReady: (event: YT.PlayerEvent) => {
+              setIsReady(true);
+              setDuration(event.target.getDuration());
+              setIsPlaying(true);
+            },
+            onStateChange: (event: YT.OnStateChangeEvent) => {
+              setIsPlaying(event.data === YT.PlayerState.PLAYING);
+            },
+            // Removed, private, or embedding disabled by the owner (errors 2, 5, 100, 101, 150).
+            onError: () => setFailed(true),
           },
-        },
-      });
-    };
-
-    if ((window as any).YT && (window as any).YT.Player) {
-      initPlayer();
-    } else {
-      const prev = (window as any).onYouTubeIframeAPIReady;
-      (window as any).onYouTubeIframeAPIReady = () => {
-        if (typeof prev === 'function') prev();
-        initPlayer();
-      };
-    }
+        });
+      })
+      .catch(() => { if (!cancelled) setFailed(true); });
 
     return () => {
+      cancelled = true;
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       try { playerRef.current?.destroy(); } catch { /* noop */ }
       playerRef.current = null;
@@ -127,13 +121,18 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
 
   const toggleFullscreen = useCallback(async () => {
     if (!containerRef.current) return;
-    if (!document.fullscreenElement) {
-      await containerRef.current.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      await document.exitFullscreen();
-      setIsFullscreen(false);
+    try {
+      if (!document.fullscreenElement) await containerRef.current.requestFullscreen();
+      else await document.exitFullscreen();
+    } catch {
+      // Not allowed or unsupported (e.g. iOS Safari) — the player still works inline.
     }
+  }, []);
+
+  useEffect(() => {
+    const sync = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', sync);
+    return () => document.removeEventListener('fullscreenchange', sync);
   }, []);
 
   const seek = useCallback((seconds: number) => {
@@ -241,9 +240,30 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
           </div>
         </div>
 
-        {!isReady && (
+        {!isReady && !failed && (
           <div className="absolute inset-0 flex items-center justify-center bg-black pointer-events-none">
             <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
+        {failed && (
+          <div
+            role="alert"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black p-6 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-white font-medium">The trailer couldn't be played here.</p>
+            <p className="max-w-sm text-sm text-white/60">
+              It may be blocked by an extension or network, or the video can't be embedded.
+            </p>
+            <div className="flex gap-2">
+              <Button asChild className="rounded-full">
+                <a href={`https://www.youtube.com/watch?v=${encodeURIComponent(videoKey)}`} target="_blank" rel="noopener noreferrer">
+                  Watch on YouTube
+                </a>
+              </Button>
+              <Button variant="outline" className="rounded-full" onClick={onClose}>Close</Button>
+            </div>
           </div>
         )}
       </div>

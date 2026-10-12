@@ -1,5 +1,6 @@
 declare namespace YT {
-  interface Player {
+  class Player {
+    constructor(element: HTMLElement | string, options: PlayerOptions);
     destroy(): void;
     playVideo(): void;
     pauseVideo(): void;
@@ -37,6 +38,10 @@ declare namespace YT {
       iv_load_policy?: 1 | 3;
       fs?: 0 | 1;
       playsinline?: 0 | 1;
+      disablekb?: 0 | 1;
+      cc_load_policy?: 0 | 1;
+      origin?: string;
+      enablejsapi?: 0 | 1;
     };
     events?: {
       onReady?: (event: PlayerEvent) => void;
@@ -53,4 +58,10 @@ declare namespace YT {
     BUFFERING: 3;
     CUED: 5;
   };
+}
+
+interface Window {
+  /** Set by the YouTube IFrame API script once it has loaded. */
+  YT?: typeof YT;
+  onYouTubeIframeAPIReady?: () => void;
 }

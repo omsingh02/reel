@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
+import { SITE_URL } from '@/lib/site';
 
-const SITE_URL = 'https://wat.lovable.app';
 
 interface SeoProps {
   title: string;

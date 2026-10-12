@@ -46,7 +46,32 @@ export function useEpisodeProgress() {
     ? rows.map(r => ({ tmdbId: r.tmdb_id, season: r.season, episode: r.episode, watchedAt: r.watched_at }))
     : guest;
 
+  const key = ['episode_progress', user?.id];
+
+  /** Snapshot + optimistic cache write shared by every mutation below. */
+  const optimistic = async (update: (prev: ProgressRow[]) => ProgressRow[]) => {
+    await qc.cancelQueries({ queryKey: key });
+    const previous = qc.getQueryData<ProgressRow[]>(key) ?? [];
+    qc.setQueryData<ProgressRow[]>(key, update(previous));
+    return { previous };
+  };
+  const rollback = (ctx?: { previous: ProgressRow[] }) => {
+    if (ctx) qc.setQueryData(key, ctx.previous);
+  };
+  const fail = (e: Error) => toast({ variant: 'destructive', title: "Couldn't update progress", description: e.message });
+  const settle = () => qc.invalidateQueries({ queryKey: key });
+
+  const draftRow = (tmdbId: number, season: number, episode: number): ProgressRow => ({
+    id: `optimistic-${tmdbId}-${season}-${episode}`,
+    user_id: user?.id ?? '',
+    tmdb_id: tmdbId,
+    season,
+    episode,
+    watched_at: new Date().toISOString(),
+  });
+
   const addMut = useMutation({
+    scope: { id: 'episode-progress' }, // serialise: tick/untick/season actions must hit the server in order
     mutationFn: async (p: { tmdbId: number; season: number; episode: number }) => {
       if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('episode_progress').insert({
@@ -54,11 +79,17 @@ export function useEpisodeProgress() {
       });
       if (error && error.code !== '23505') throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['episode_progress', user?.id] }),
-    onError: (e: any) => toast({ variant: 'destructive', title: "Couldn't update", description: e.message }),
+    onMutate: p => optimistic(prev =>
+      prev.some(r => r.tmdb_id === p.tmdbId && r.season === p.season && r.episode === p.episode)
+        ? prev
+        : [...prev, draftRow(p.tmdbId, p.season, p.episode)]
+    ),
+    onError: (e: Error, _p, ctx) => { rollback(ctx); fail(e); },
+    onSettled: settle,
   });
 
   const delMut = useMutation({
+    scope: { id: 'episode-progress' }, // serialise: tick/untick/season actions must hit the server in order
     mutationFn: async (p: { tmdbId: number; season: number; episode: number }) => {
       if (!user) throw new Error('Not signed in');
       const { error } = await supabase
@@ -66,7 +97,11 @@ export function useEpisodeProgress() {
         .eq('user_id', user.id).eq('tmdb_id', p.tmdbId).eq('season', p.season).eq('episode', p.episode);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['episode_progress', user?.id] }),
+    onMutate: p => optimistic(prev =>
+      prev.filter(r => !(r.tmdb_id === p.tmdbId && r.season === p.season && r.episode === p.episode))
+    ),
+    onError: (e: Error, _p, ctx) => { rollback(ctx); fail(e); },
+    onSettled: settle,
   });
 
   const mark = useCallback((tmdbId: number, season: number, episode: number) => {
@@ -80,10 +115,13 @@ export function useEpisodeProgress() {
   }, [user, delMut]);
 
   const seasonMut = useMutation({
+    scope: { id: 'episode-progress' }, // serialise: tick/untick/season actions must hit the server in order
     mutationFn: async (p: { tmdbId: number; season: number; episodes: number[] }) => {
       if (!user) throw new Error('Not signed in');
       const have = new Set(
-        rows.filter(r => r.tmdb_id === p.tmdbId && r.season === p.season).map(r => r.episode)
+        (qc.getQueryData<ProgressRow[]>(key) ?? rows)
+          .filter(r => r.tmdb_id === p.tmdbId && r.season === p.season && !r.id.startsWith('optimistic-'))
+          .map(r => r.episode)
       );
       const insert = p.episodes
         .filter(e => !have.has(e))
@@ -92,11 +130,16 @@ export function useEpisodeProgress() {
       const { error } = await supabase.from('episode_progress').insert(insert);
       if (error && error.code !== '23505') throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['episode_progress', user?.id] }),
-    onError: (e: any) => toast({ variant: 'destructive', title: "Couldn't update", description: e.message }),
+    onMutate: p => optimistic(prev => {
+      const have = new Set(prev.filter(r => r.tmdb_id === p.tmdbId && r.season === p.season).map(r => r.episode));
+      return [...prev, ...p.episodes.filter(e => !have.has(e)).map(e => draftRow(p.tmdbId, p.season, e))];
+    }),
+    onError: (e: Error, _p, ctx) => { rollback(ctx); fail(e); },
+    onSettled: settle,
   });
 
   const unseasonMut = useMutation({
+    scope: { id: 'episode-progress' }, // serialise: tick/untick/season actions must hit the server in order
     mutationFn: async (p: { tmdbId: number; season: number }) => {
       if (!user) throw new Error('Not signed in');
       const { error } = await supabase
@@ -104,7 +147,9 @@ export function useEpisodeProgress() {
         .eq('user_id', user.id).eq('tmdb_id', p.tmdbId).eq('season', p.season);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['episode_progress', user?.id] }),
+    onMutate: p => optimistic(prev => prev.filter(r => !(r.tmdb_id === p.tmdbId && r.season === p.season))),
+    onError: (e: Error, _p, ctx) => { rollback(ctx); fail(e); },
+    onSettled: settle,
   });
 
   const markSeason = useCallback((tmdbId: number, season: number, episodes: number[]) => {

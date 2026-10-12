@@ -1,22 +1,15 @@
-import { createClient } from "@supabase/supabase-js";
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
+import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-
-function supabaseForUser(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
+import { supabaseForUser } from "../supabase";
 
 export default defineTool({
   name: "get_watchlist",
   title: "Get watchlist",
   description:
-    "Return the signed-in user's watchlist items, optionally filtered by status (watchlist, watching, watched).",
+    "Return the signed-in user's Reel list, optionally filtered by status ('watchlist' = to watch, 'watched').",
   inputSchema: {
     status: z
-      .enum(["watchlist", "watching", "watched"])
+      .enum(["watchlist", "watched"])
       .optional()
       .describe("Filter by status. Omit to return all items."),
     limit: z.number().int().min(1).max(200).optional().describe("Max items to return (default 100)."),

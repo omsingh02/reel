@@ -1,18 +1,11 @@
-import { createClient } from "@supabase/supabase-js";
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
+import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-
-function supabaseForUser(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
+import { supabaseForUser } from "../supabase";
 
 export default defineTool({
   name: "remove_from_watchlist",
   title: "Remove from watchlist",
-  description: "Remove a movie or TV show from the signed-in user's watchlist by TMDB id and type.",
+  description: "Remove a movie or TV show from the signed-in user's Reel list by TMDB id and type.",
   inputSchema: {
     tmdb_id: z.number().int().positive(),
     type: z.enum(["movie", "tv"]),
@@ -33,7 +26,7 @@ export default defineTool({
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
     return {
-      content: [{ type: "text", text: count && count > 0 ? "Removed." : "Item was not in watchlist." }],
+      content: [{ type: "text", text: count && count > 0 ? "Removed." : "Item was not in your list." }],
     };
   },
 });

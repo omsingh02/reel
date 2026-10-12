@@ -81,6 +81,8 @@ export function MediaListPage({ title, mediaType, emptyIcon: EmptyIcon, subtitle
   });
 
   const { isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage, data } = query;
+  const lastPage = data?.pages[data.pages.length - 1];
+  const reachedCap = !!lastPage && lastPage.page < lastPage.total_pages;
 
   const items = useMemo(() => {
     const flat = data?.pages.flatMap(page => page.results) ?? [];
@@ -125,7 +127,7 @@ export function MediaListPage({ title, mediaType, emptyIcon: EmptyIcon, subtitle
           <EmptyState
             icon={EmptyIcon}
             title="Nothing matches these filters"
-            description="Try widening the year range or lowering the minimum rating."
+            description="Try a different genre or year, or lower the minimum rating."
           >
             {hasActiveFilters(filters) && (
               <Button variant="outline" className="rounded-full" onClick={() => setFilters(DEFAULT_FILTERS)}>
@@ -139,7 +141,11 @@ export function MediaListPage({ title, mediaType, emptyIcon: EmptyIcon, subtitle
             <div ref={loadMoreRef} className="py-4">
               {isFetchingNextPage && <MediaGridSkeleton count={6} />}
               {!hasNextPage && (
-                <p className="text-center text-xs text-muted-foreground py-2">You've reached the end</p>
+                <p className="text-center text-xs text-muted-foreground py-2">
+                  {reachedCap
+                    ? `Showing the top ${PAGE_CAP * 20} results — use the filters to narrow it down`
+                    : "You've reached the end"}
+                </p>
               )}
             </div>
           </>

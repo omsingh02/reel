@@ -18,7 +18,7 @@ import type { MediaType, WatchlistItem } from '@/types/tmdb';
 
 type StatusFilter = 'all' | 'watchlist' | 'watched';
 type TypeFilter = 'all' | 'movie' | 'tv';
-type SortKey = 'added' | 'title' | 'release' | 'rating';
+type SortKey = 'added' | 'title' | 'release' | 'myrating' | 'rating';
 
 export default function Watchlist() {
   const { user, loading: authLoading } = useAuth();
@@ -47,6 +47,12 @@ export default function Watchlist() {
           return (isNaN(tb) ? 0 : tb) - (isNaN(ta) ? 0 : ta);
         }
         case 'rating': return (b.voteAverage || 0) - (a.voteAverage || 0);
+        case 'myrating': {
+          // Your own ratings first (highest to lowest); unrated titles last.
+          const ra = typeof a.rating === 'number' ? a.rating : -1;
+          const rb = typeof b.rating === 'number' ? b.rating : -1;
+          return rb - ra;
+        }
         case 'added':
         default:
           return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
@@ -63,7 +69,7 @@ export default function Watchlist() {
       <Seo title="My List — Reel" description="Your saved movies and TV shows, with watched status, ratings and filters to decide what to watch next." path="/watchlist" noindex />
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          <h1 className="text-xl font-semibold">My Watchlist</h1>
+          <h1 className="text-xl font-semibold">My List</h1>
           {watchlist.length > 0 && (
             <span className="text-sm text-muted-foreground">
               ({watchlist.length} · {watchedCount} watched)
@@ -112,7 +118,8 @@ export default function Watchlist() {
                 <SelectItem value="added">Recently added</SelectItem>
                 <SelectItem value="title">Title (A–Z)</SelectItem>
                 <SelectItem value="release">Newest release</SelectItem>
-                <SelectItem value="rating">Highest rated</SelectItem>
+                <SelectItem value="myrating">My rating</SelectItem>
+                <SelectItem value="rating">TMDB score</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -122,12 +129,12 @@ export default function Watchlist() {
           <LoadingSpinner className="py-20" size="lg" />
         ) : showSignInPrompt ? (
           <EmptyState
-            icon={LogIn}
-            title="Sign in to sync your watchlist"
-            description="Create an account to save movies and TV shows across devices"
+            icon={List}
+            title="Your list is empty"
+            description="Start adding movies and TV shows right away — sign in any time to keep them in sync across devices."
           >
-            <Button onClick={() => navigate('/auth')} className="mt-4 rounded-full">
-              Sign In
+            <Button variant="outline" onClick={() => navigate('/auth')} className="mt-4 rounded-full gap-2">
+              <LogIn className="h-4 w-4" /> Sign in to sync
             </Button>
           </EmptyState>
         ) : watchlist.length === 0 ? (

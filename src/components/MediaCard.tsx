@@ -12,6 +12,7 @@ import type { TMDBMovie, TMDBTVShow, MediaType } from '@/types/tmdb';
 import { getImageUrl, getTitle, getReleaseDate } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useHidden } from '@/hooks/useHidden';
+import { yearOf } from '@/lib/dates';
 
 interface MediaCardProps {
   media: TMDBMovie | TMDBTVShow;
@@ -34,7 +35,7 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
   const inWatchlist = isInWatchlist(media.id, mediaType);
   const title = getTitle(media);
   const releaseDate = getReleaseDate(media);
-  const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
+  const year = yearOf(releaseDate);
   const posterUrl = getImageUrl(media.poster_path, 'w342');
 
   const handleWatchlistClick = useCallback((e: React.MouseEvent) => {
@@ -74,7 +75,7 @@ export const MediaCard = memo(forwardRef<HTMLDivElement, MediaCardProps>(functio
           </div>
         )}
 
-        <span className="absolute top-2 left-2 text-xs font-medium bg-secondary/90 backdrop-blur-sm text-secondary-foreground px-2.5 py-1 rounded-full">
+        <span className="hidden sm:block absolute top-2 left-2 text-xs font-medium bg-secondary/90 backdrop-blur-sm text-secondary-foreground px-2.5 py-1 rounded-full">
           {mediaType === 'movie' ? 'Movie' : 'TV'}
         </span>
 

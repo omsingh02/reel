@@ -1,27 +1,26 @@
 import type { HiddenItem, MediaType } from "@/types/tmdb";
+import { asFiniteNumber, asString, isRecord, readStoredArray, writeStored } from "./storage";
 
 const KEY = 'hidden-items';
 const listeners = new Set<() => void>();
 let cache: HiddenItem[] | null = null;
 
+function parseHidden(raw: unknown): HiddenItem | null {
+  if (!isRecord(raw)) return null;
+  const id = asFiniteNumber(raw.id);
+  if (id === null || (raw.mediaType !== 'movie' && raw.mediaType !== 'tv')) return null;
+  return { id, mediaType: raw.mediaType, hiddenAt: asString(raw.hiddenAt, new Date().toISOString()) };
+}
+
 function read(): HiddenItem[] {
-  if (cache) return cache;
-  try {
-    const stored = localStorage.getItem(KEY);
-    cache = stored ? JSON.parse(stored) : [];
-  } catch {
-    cache = [];
-  }
-  return cache!;
+  if (!cache) cache = readStoredArray(KEY, parseHidden, i => `${i.mediaType}:${i.id}`);
+  return cache;
 }
 
 function write(next: HiddenItem[]) {
   cache = next;
-  try {
-    localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    // Storage full or unavailable (Safari private mode) — keep in-memory state.
-  }
+  // Storage full or unavailable (Safari private mode) — keep in-memory state.
+  writeStored(KEY, next);
   listeners.forEach(l => l());
 }
 

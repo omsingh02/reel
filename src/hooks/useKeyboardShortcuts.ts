@@ -24,7 +24,9 @@ export function useKeyboardShortcuts({
       // Don't trigger if user is typing in an input
       if (
         e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable)
       ) {
         return;
       }
@@ -40,12 +42,12 @@ export function useKeyboardShortcuts({
           onArrowRight?.();
           break;
         case 'ArrowUp':
-          e.preventDefault();
-          onArrowUp?.();
+          // Only swallow the key when something handles it; otherwise the
+          // browser can't scroll the page/modal with the keyboard.
+          if (onArrowUp) { e.preventDefault(); onArrowUp(); }
           break;
         case 'ArrowDown':
-          e.preventDefault();
-          onArrowDown?.();
+          if (onArrowDown) { e.preventDefault(); onArrowDown(); }
           break;
       }
     };

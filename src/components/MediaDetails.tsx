@@ -13,7 +13,12 @@ import { RecommendationCarousel } from '@/components/RecommendationCarousel';
 import { SeasonEpisodes } from '@/components/SeasonEpisodes';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { MediaType, TMDBMovieDetails, TMDBTVShowDetails, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
-import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList } from '@/lib/tmdb';
+import { getMovieDetails, getTVShowDetails, getImageUrl, cleanMediaList, computeRuntime, titlePath } from '@/lib/tmdb';
+import { yearOf, formatCalendarDate, toDateInputValue, fromDateInputValue, todayInputValue } from '@/lib/dates';
+import { firstUnwatchedAired, isCaughtUp } from '@/lib/shows';
+import { useShowSync } from '@/hooks/useShowSync';
+import { toast } from 'sonner';
+import { Seo } from '@/components/Seo';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -72,13 +77,25 @@ function Shell({
   );
 }
 
+/** Two-letter region from the browser locale (e.g. "en-IN" -> "IN"), if any. */
+function localeRegion(): string | null {
+  try {
+    const tag = navigator.language;
+    const region = tag ? new Intl.Locale(tag).region : undefined;
+    return region ? region.toUpperCase() : null;
+  } catch {
+    return null;
+  }
+}
+
 export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetailsProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist, setWatched, watchlist } = useWatchlist();
   const { isWatched } = useEpisodeProgress();
+  const { markAllAired } = useShowSync();
   const [showPlayer, setShowPlayer] = useState(false);
   const [showStream, setShowStream] = useState(false);
   const [region, setRegion] = useState<string>(() => {
-    try { return localStorage.getItem('tmdb-region') || 'US'; } catch { return 'US'; }
+    try { return localStorage.getItem('tmdb-region') || localeRegion() || 'US'; } catch { return localeRegion() || 'US'; }
   });
   useEffect(() => {
     try { localStorage.setItem('tmdb-region', region); } catch { /* ignore */ }
@@ -113,22 +130,44 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   // and /show/:id, so history works without manual pushState hacks.
 
 
+  const toBasicMedia = (d: TMDBMovieDetails | TMDBTVShowDetails): TMDBMovie | TMDBTVShow => ({
+    id: d.id,
+    poster_path: d.poster_path,
+    vote_average: d.vote_average,
+    ...(mediaType === 'movie'
+      ? { title: (d as TMDBMovieDetails).title, release_date: (d as TMDBMovieDetails).release_date }
+      : { name: (d as TMDBTVShowDetails).name, first_air_date: (d as TMDBTVShowDetails).first_air_date }
+    ),
+  } as TMDBMovie | TMDBTVShow);
+
   const handleWatchlistClick = () => {
     if (!data) return;
-    if (inWatchlist) {
-      removeFromWatchlist(id, mediaType);
-    } else {
-      const basicMedia = {
-        id: data.id,
-        poster_path: data.poster_path,
-        vote_average: data.vote_average,
-        ...(mediaType === 'movie'
-          ? { title: (data as TMDBMovieDetails).title, release_date: (data as TMDBMovieDetails).release_date }
-          : { name: (data as TMDBTVShowDetails).name, first_air_date: (data as TMDBTVShowDetails).first_air_date }
-        )
-      } as TMDBMovie | TMDBTVShow;
-      addToWatchlist(basicMedia, mediaType);
+    if (inWatchlist) removeFromWatchlist(id, mediaType);
+    else addToWatchlist(toBasicMedia(data), mediaType);
+  };
+
+  /** Works whether or not the title is saved yet: logging a film you've already seen is one tap. */
+  const handleToggleWatched = () => {
+    if (!data) return;
+    const current = watchlist.find(w => w.id === id && w.mediaType === mediaType);
+    const totalRuntime = computeRuntime(data, mediaType);
+    if (!current) {
+      addToWatchlist(toBasicMedia(data), mediaType, {
+        status: 'watched',
+        watchedAt: new Date().toISOString(),
+        runtime: totalRuntime,
+      });
+      if (mediaType === 'tv') void markAllAired(id, data as TMDBTVShowDetails);
+      return;
     }
+    const nowWatched = current.status !== 'watched';
+    // A show marked watched has seen every episode that has aired.
+    if (nowWatched && mediaType === 'tv') void markAllAired(id, data as TMDBTVShowDetails);
+    setWatched(id, mediaType, {
+      status: nowWatched ? 'watched' : 'watchlist',
+      watchedAt: nowWatched ? new Date().toISOString() : null,
+      runtime: totalRuntime,
+    });
   };
 
   if (isLoading) {
@@ -182,14 +221,16 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
   const title = movieData?.title ?? tvData?.name ?? '';
   const releaseDate = movieData?.release_date ?? tvData?.first_air_date ?? '';
-  const runtime = movieData?.runtime ?? tvData?.episode_run_time?.[0];
+  const runtime = computeRuntime(data, mediaType);
   const backdropUrl = getImageUrl(data.backdrop_path, 'w780');
   const posterUrl = getImageUrl(data.poster_path, 'w342');
-  const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
-  const endYear = tvData?.last_air_date ? new Date(tvData.last_air_date).getFullYear() : null;
-  const yearLabel = tvData
-    ? (endYear && endYear !== year ? `${year}–${endYear}` : `${year}${tvData.in_production ? '–Present' : ''}`)
-    : year;
+  const year = yearOf(releaseDate);
+  const endYear = yearOf(tvData?.last_air_date);
+  const yearLabel = !year
+    ? null
+    : tvData
+      ? (endYear && endYear !== year ? `${year}–${endYear}` : `${year}${tvData.in_production ? '–Present' : ''}`)
+      : year;
 
   const trailer = data.videos?.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
   const director = isMovie ? data.credits?.crew.find(c => c.job === 'Director') : null;
@@ -229,17 +270,27 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
   const watchedNow = watchlistItem?.status === 'watched';
   const currentRating = watchlistItem?.rating ?? null;
 
-  // TV "Up Next" — first unwatched episode. Cheap loop, no memo needed.
-  const upNext = (() => {
-    if (!tvData) return null;
-    const seasons = tvData.seasons?.filter(s => s.season_number > 0 && s.episode_count > 0) || [];
-    for (const s of seasons) {
-      for (let e = 1; e <= s.episode_count; e++) {
-        if (!isWatched(id, s.season_number, e)) return { season: s.season_number, episode: e, seasonName: s.name };
+  // TV "Up Next" — first unwatched episode that has actually aired.
+  const upNext = tvData ? firstUnwatchedAired(tvData, (sn, ep) => isWatched(id, sn, ep)) : null;
+
+  /** Ticking episodes can finish a show (or un-finish it); keep its status in step. */
+  const handleProgress = (change: { kind: 'mark' | 'unmark'; season: number; episodes: number[] | 'all' }) => {
+    if (!tvData || !watchlistItem) return;
+    if (change.kind === 'unmark') {
+      if (watchlistItem.status === 'watched') {
+        setWatched(id, 'tv', { status: 'watchlist', watchedAt: null });
+        toast('Moved back to your to-watch list');
       }
+      return;
     }
-    return null;
-  })();
+    if (watchlistItem.status === 'watched') return;
+    const touched = (sn: number, ep: number) =>
+      sn === change.season && (change.episodes === 'all' || change.episodes.includes(ep));
+    if (isCaughtUp(tvData, (sn, ep) => touched(sn, ep) || isWatched(id, sn, ep))) {
+      setWatched(id, 'tv', { status: 'watched', watchedAt: new Date().toISOString() });
+      toast.success("You're all caught up — marked as watched");
+    }
+  };
 
   const ProviderRow = ({ label, items }: { label: string; items: typeof streamingProviders }) =>
     items.length === 0 ? null : (
@@ -266,6 +317,11 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
 
   return (
     <>
+      <Seo
+        title={`${title}${year ? ` (${year})` : ''} — Reel`}
+        description={data.overview ? data.overview.slice(0, 160) : `Cast, ratings, trailers and episode tracking for ${title}.`}
+        path={titlePath(id, mediaType)}
+      />
       <Shell onClose={onClose} className="flex flex-col">
         {/* Mobile drag handle */}
         <div className="sm:hidden flex justify-center pt-2 pb-1 flex-shrink-0">
@@ -361,7 +417,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                 className="rounded-xl h-12 px-5 gap-2"
                 onClick={handleWatchlistClick}
               >
-                {inWatchlist ? <><Check className="h-5 w-5" />In Watchlist</> : <><Plus className="h-5 w-5" />Watchlist</>}
+                {inWatchlist ? <><Check className="h-5 w-5" />In My List</> : <><Plus className="h-5 w-5" />My List</>}
               </Button>
               {trailer && (
                 <Button
@@ -374,23 +430,15 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                   Trailer
                 </Button>
               )}
-              {inWatchlist && (
-                <Button
-                  variant={watchedNow ? "default" : "secondary"}
-                  size="lg"
-                  className={`rounded-xl h-12 px-5 gap-2 ${watchedNow ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : ''}`}
-                  onClick={() =>
-                    setWatched(id, mediaType, {
-                      status: watchedNow ? 'watchlist' : 'watched',
-                      watchedAt: watchedNow ? null : new Date().toISOString(),
-                      runtime: runtime || null,
-                    })
-                  }
-                >
-                  <CheckCircle2 className="h-5 w-5" />
-                  {watchedNow ? 'Watched' : 'Mark watched'}
-                </Button>
-              )}
+              <Button
+                variant={watchedNow ? "default" : "secondary"}
+                size="lg"
+                className={`rounded-xl h-12 px-5 gap-2 ${watchedNow ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : ''}`}
+                onClick={handleToggleWatched}
+              >
+                <CheckCircle2 className="h-5 w-5" />
+                {watchedNow ? 'Watched' : 'Mark watched'}
+              </Button>
               <div className="flex-1" />
               <div className="flex items-center gap-2">
                 <ShareButton title={title} mediaType={mediaType} id={id} />
@@ -463,7 +511,7 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
                       S{tvData.next_episode_to_air.season_number}E{tvData.next_episode_to_air.episode_number}: {tvData.next_episode_to_air.name}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(tvData.next_episode_to_air.air_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      {formatCalendarDate(tvData.next_episode_to_air.air_date, { month: 'long', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
                 </section>
@@ -496,14 +544,14 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               )}
 
               {/* Seasons (TV) */}
-              {tvData?.seasons && tvData.seasons.filter(s => s.season_number > 0).length > 0 && (
+              {tvData?.seasons && tvData.seasons.filter(s => s.season_number > 0 && s.episode_count > 0).length > 0 && (
                 <section>
                   <SectionLabel>Episodes</SectionLabel>
                   <div className="space-y-2">
                     {tvData.seasons
-                      .filter(s => s.season_number > 0)
+                      .filter(s => s.season_number > 0 && s.episode_count > 0)
                       .map(season => (
-                        <SeasonEpisodes key={season.id} tvId={id} season={season} />
+                        <SeasonEpisodes key={season.id} tvId={id} season={season} onProgress={handleProgress} />
                       ))}
                   </div>
                 </section>
@@ -530,6 +578,19 @@ export function MediaDetails({ id, mediaType, onClose, onNavigate }: MediaDetail
               {inWatchlist && watchedNow && (
                 <section>
                   <SectionLabel>Your Rating</SectionLabel>
+                  <label className="flex items-center justify-between gap-3 mb-4 text-xs text-muted-foreground">
+                    Watched on
+                    <input
+                      type="date"
+                      max={todayInputValue()}
+                      value={toDateInputValue(watchlistItem?.watchedAt)}
+                      onChange={e => {
+                        const iso = fromDateInputValue(e.target.value);
+                        if (iso) setWatched(id, mediaType, { watchedAt: iso });
+                      }}
+                      className="h-9 rounded-lg bg-secondary px-2 text-sm text-foreground border border-border/40"
+                    />
+                  </label>
                   <div className="grid grid-cols-5 gap-1.5">
                     {Array.from({ length: 10 }, (_, i) => i + 1).map(n => {
                       const active = currentRating === n;
