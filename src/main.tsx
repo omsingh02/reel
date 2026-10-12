@@ -1,6 +1,11 @@
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { ConfigError } from "./components/ConfigError.tsx";
+// Self-hosted fonts: Fraunces (titles), Instrument Sans (interface), IBM Plex Mono (film-credit data).
+import "@fontsource-variable/fraunces/opsz.css";
+import "@fontsource-variable/instrument-sans/wght.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
 import "./index.css";
 
 // The generated Supabase client throws at import time if these are missing, which would

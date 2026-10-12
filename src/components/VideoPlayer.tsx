@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { cn } from '@/lib/utils';
 import { loadYouTubeApi } from '@/lib/youtube';
 
@@ -27,6 +28,7 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
   const [isReady, setIsReady] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [failed, setFailed] = useState(false);
+  useEffect(() => { containerRef.current?.focus(); }, []);
   const hideControlsTimeout = useRef<number | null>(null);
 
   // Mutable refs so keyboard handlers always see fresh values
@@ -182,35 +184,39 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] bg-black flex items-center justify-center"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95"
       onClick={onClose}
     >
       <div
         ref={containerRef}
-        className="relative w-full max-w-5xl aspect-video bg-black"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || 'Trailer'}
+        tabIndex={-1}
+        className="relative aspect-video w-full max-w-5xl overflow-hidden bg-black outline-none sm:rounded-lg sm:ring-1 sm:ring-white/15"
         onClick={(e) => e.stopPropagation()}
         onMouseMove={resetControlsTimeout}
         onMouseEnter={() => setShowControls(true)}
         onTouchStart={resetControlsTimeout}
       >
-        <div ref={playerNodeRef} id={playerId} className="w-full h-full" />
+        <div ref={playerNodeRef} id={playerId} className="h-full w-full" />
 
         <div className="absolute inset-0 cursor-pointer" onClick={togglePlay} />
 
         <div
           className={cn(
-            "absolute inset-0 flex flex-col justify-between transition-opacity duration-300 pointer-events-none",
+            "pointer-events-none absolute inset-0 flex flex-col justify-between transition-opacity duration-slow",
             showControls ? "opacity-100" : "opacity-0"
           )}
         >
-          <div className="flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-auto">
-            <h3 className="text-white font-medium truncate">{title}</h3>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 h-8 w-8 p-0" onClick={onClose}>
-              <X className="h-5 w-5" />
+          <div className="pointer-events-auto flex items-center justify-between gap-3 bg-gradient-to-b from-black/85 to-transparent p-4">
+            <h2 className="truncate font-display text-base font-semibold text-white">{title}</h2>
+            <Button variant="ghost" size="icon-sm" className="text-white hover:bg-white/15 hover:text-white" onClick={onClose} aria-label="Close trailer">
+              <X />
             </Button>
           </div>
 
-          <div className="p-4 bg-gradient-to-t from-black/80 to-transparent pointer-events-auto">
+          <div className="pointer-events-auto bg-gradient-to-t from-black/85 to-transparent p-4">
             <div className="mb-3">
               <Slider
                 value={[progress]}
@@ -218,31 +224,32 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
                 max={100}
                 step={0.1}
                 onValueChange={handleSeek}
-                className="cursor-pointer [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:bg-white [&>span:first-child>span]:bg-primary"
+                aria-label="Seek"
+                className="cursor-pointer"
               />
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 h-9 w-9 p-0" onClick={togglePlay}>
-                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/15 hover:text-white" onClick={togglePlay} aria-label={isPlaying ? 'Pause' : 'Play'}>
+                {isPlaying ? <Pause /> : <Play />}
               </Button>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 h-9 w-9 p-0" onClick={toggleMute}>
-                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/15 hover:text-white" onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>
+                {isMuted ? <VolumeX /> : <Volume2 />}
               </Button>
-              <span className="text-white text-sm font-mono">
+              <span className="numeral ml-1 font-mono text-sm text-white/90">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
               <div className="flex-1" />
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 h-9 w-9 p-0" onClick={toggleFullscreen}>
-                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/15 hover:text-white" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}>
+                {isFullscreen ? <Minimize /> : <Maximize />}
               </Button>
             </div>
           </div>
         </div>
 
         {!isReady && !failed && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black pointer-events-none">
-            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black">
+            <LoadingSpinner size="lg" label="Loading trailer" className="[&_svg]:text-white/70" />
           </div>
         )}
 
@@ -252,17 +259,17 @@ export function VideoPlayer({ videoKey, title, onClose }: VideoPlayerProps) {
             className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black p-6 text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-white font-medium">The trailer couldn't be played here.</p>
-            <p className="max-w-sm text-sm text-white/60">
+            <p className="font-display text-xl font-semibold text-white">The trailer couldn't be played here.</p>
+            <p className="max-w-sm text-sm text-white/70">
               It may be blocked by an extension or network, or the video can't be embedded.
             </p>
-            <div className="flex gap-2">
-              <Button asChild className="rounded-full">
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button asChild>
                 <a href={`https://www.youtube.com/watch?v=${encodeURIComponent(videoKey)}`} target="_blank" rel="noopener noreferrer">
                   Watch on YouTube
                 </a>
               </Button>
-              <Button variant="outline" className="rounded-full" onClick={onClose}>Close</Button>
+              <Button variant="overlay" onClick={onClose}>Close</Button>
             </div>
           </div>
         )}

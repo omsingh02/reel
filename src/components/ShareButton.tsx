@@ -6,6 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { titlePath } from '@/lib/tmdb';
 
@@ -54,34 +55,41 @@ export function ShareButton({ title, mediaType, id }: ShareButtonProps) {
     }
   };
 
-  // Use native share on mobile
+  // Phones and some desktops have a native share sheet; use it when it exists.
   if (navigator.share) {
     return (
-      <Button variant="outline" size="icon" className="rounded-full" onClick={nativeShare}>
-        <Share2 className="h-4 w-4" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="secondary" size="icon-lg" aria-label="Share" onClick={nativeShare}>
+            <Share2 />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Share</TooltipContent>
+      </Tooltip>
     );
   }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-full">
-          <Share2 className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="rounded-2xl">
-        <DropdownMenuItem onClick={copyLink} className="rounded-xl">
-          <Link className="h-4 w-4 mr-2" />
-          Copy link
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon-lg" aria-label="Share">
+              <Share2 />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Share</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={copyLink}>
+          <Link /> Copy link
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={shareTwitter} className="rounded-xl">
-          <Twitter className="h-4 w-4 mr-2" />
-          Share on X
+        <DropdownMenuItem onSelect={shareTwitter}>
+          <Twitter /> Share on X
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={shareFacebook} className="rounded-xl">
-          <Facebook className="h-4 w-4 mr-2" />
-          Share on Facebook
+        <DropdownMenuItem onSelect={shareFacebook}>
+          <Facebook /> Share on Facebook
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,7 +1,10 @@
 import { memo, useRef, useCallback, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { MediaCard } from './MediaCard';
-import { Button } from './ui/button';
+import { PageContainer } from './PageHeader';
+import { PosterSkeleton } from '@/components/browse/PosterSkeleton';
+import { SectionHeader } from '@/components/reel';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 
@@ -15,15 +18,16 @@ interface MediaRailProps {
   className?: string;
 }
 
+const cardWidth = 'w-[9.25rem] sm:w-[10.5rem] md:w-[11.5rem] lg:w-[12.5rem]';
+
 /**
- * Horizontal rail of media cards. Uses CSS scroll-snap and native overflow
- * for buttery mobile scrolling; desktop gets arrow controls that reflect
- * the actual scroll position.
+ * A horizontal shelf of posters. Native scrolling with snap points (swipe on touch), arrow buttons
+ * only on devices with a pointer, and soft fades at the edges that show more is off-screen.
  */
 export const MediaRail = memo(function MediaRail({
   title, subtitle, items, mediaType, onItemClick, loading, className,
 }: MediaRailProps) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLUListElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
 
@@ -51,80 +55,49 @@ export const MediaRail = memo(function MediaRail({
 
   if (!loading && items.length === 0) return null;
 
-  const showArrows = canLeft || canRight;
+  const arrows = (canLeft || canRight) && (
+    <div className="hidden items-center gap-1.5 [@media(hover:hover)_and_(pointer:fine)]:flex">
+      <Button variant="outline" size="icon-sm" onClick={() => scrollBy(-1)} disabled={!canLeft} aria-label={`Scroll ${title} left`}>
+        <ChevronLeft />
+      </Button>
+      <Button variant="outline" size="icon-sm" onClick={() => scrollBy(1)} disabled={!canRight} aria-label={`Scroll ${title} right`}>
+        <ChevronRight />
+      </Button>
+    </div>
+  );
 
   return (
-    <section className={cn('space-y-3', className)}>
-      <div className="flex items-end justify-between gap-3 px-3 sm:px-5 lg:px-8">
-        <div>
-          <h2 className="text-lg sm:text-xl font-semibold tracking-tight">{title}</h2>
-          {subtitle && (
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+    <section aria-label={title} aria-busy={loading || undefined} className={className}>
+      <PageContainer>
+        <SectionHeader title={title} subtitle={subtitle} action={arrows || undefined} />
+
+        {/* The scroller bleeds to the page gutters so cards slide under the edge fades. */}
+        <div className="relative -mx-4 sm:-mx-6 lg:-mx-10">
+          <ul
+            ref={scrollerRef}
+            onScroll={updateArrows}
+            className="no-scrollbar flex snap-x scroll-px-4 gap-4 overflow-x-auto scroll-smooth px-4 pb-2 sm:scroll-px-6 sm:px-6 lg:scroll-px-10 lg:px-10"
+          >
+            {loading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <li key={i} className={cn('shrink-0 snap-start', cardWidth)}>
+                    <PosterSkeleton />
+                  </li>
+                ))
+              : items.map((item, i) => (
+                  <li key={`${mediaType}-${item.id}`} className={cn('shrink-0 snap-start', cardWidth)}>
+                    <MediaCard media={item} mediaType={mediaType} onClick={() => onItemClick?.(item.id, mediaType)} eager={i < 4} />
+                  </li>
+                ))}
+          </ul>
+          {canRight && (
+            <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent sm:w-14" />
+          )}
+          {canLeft && (
+            <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent sm:w-14" />
           )}
         </div>
-        {showArrows && (
-          <div className="hidden md:flex items-center gap-1">
-            <Button
-              variant="ghost" size="sm"
-              className="h-8 w-8 p-0 rounded-full"
-              onClick={() => scrollBy(-1)}
-              disabled={!canLeft}
-              aria-label={`Scroll ${title} left`}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost" size="sm"
-              className="h-8 w-8 p-0 rounded-full"
-              onClick={() => scrollBy(1)}
-              disabled={!canRight}
-              aria-label={`Scroll ${title} right`}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <div className="relative">
-        <div
-          ref={scrollerRef}
-          onScroll={updateArrows}
-          className="flex gap-3 sm:gap-4 overflow-x-auto snap-x scroll-smooth px-3 sm:px-5 lg:px-8 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {loading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="shrink-0 snap-start w-[140px] sm:w-[160px] md:w-[180px] aspect-[2/3] rounded-2xl bg-secondary/60 animate-pulse"
-                />
-              ))
-            : items.map((item) => (
-                <div
-                  key={`${mediaType}-${item.id}`}
-                  className="shrink-0 snap-start w-[140px] sm:w-[160px] md:w-[180px]"
-                >
-                  <MediaCard
-                    media={item}
-                    mediaType={mediaType}
-                    onClick={() => onItemClick?.(item.id, mediaType)}
-                  />
-                </div>
-              ))}
-        </div>
-        {canRight && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 w-10 sm:w-16 bg-gradient-to-l from-background to-transparent"
-          />
-        )}
-        {canLeft && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 w-6 sm:w-10 bg-gradient-to-r from-background to-transparent"
-          />
-        )}
-      </div>
+      </PageContainer>
     </section>
   );
 });

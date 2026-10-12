@@ -1,25 +1,35 @@
-import { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Art, type ArtName } from '@/components/reel/art';
 import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
-  icon: LucideIcon;
+  /** A film-themed illustration. Preferred over `icon`. */
+  art?: ArtName;
+  /** Legacy: a plain icon. Used only when no `art` is given. */
+  icon?: LucideIcon;
   title: string;
   description?: string;
   className?: string;
+  /** Actions (buttons/links) shown under the text. */
   children?: React.ReactNode;
 }
 
-export function EmptyState({ icon: Icon, title, description, className, children }: EmptyStateProps) {
+/** Empty, no-results and error states: an illustration, a plain title, one line of help, then actions. */
+export function EmptyState({ art, icon: Icon, title, description, className, children }: EmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center py-12 text-center", className)}>
-      <div className="rounded-3xl bg-surface-container p-5 mb-4">
-        <Icon className="h-7 w-7 text-muted-foreground" />
-      </div>
-      <h3 className="text-base font-semibold mb-1">{title}</h3>
-      {description && (
-        <p className="text-sm text-muted-foreground max-w-sm">{description}</p>
+    <div className={cn('mx-auto flex max-w-md flex-col items-center px-4 py-14 text-center', className)}>
+      {art ? (
+        <Art name={art} className="mb-5" />
+      ) : Icon ? (
+        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-lg border border-border bg-surface-2 text-muted-foreground">
+          <Icon className="h-6 w-6" aria-hidden />
+        </div>
+      ) : (
+        <Art name="generic" className="mb-5" />
       )}
-      {children && <div className="mt-4">{children}</div>}
+      <h2 className="font-display text-xl font-semibold tracking-tight text-balance">{title}</h2>
+      {description && <p className="mt-2 text-sm text-muted-foreground text-pretty">{description}</p>}
+      {children && <div className="mt-6 flex flex-wrap items-center justify-center gap-2">{children}</div>}
     </div>
   );
 }

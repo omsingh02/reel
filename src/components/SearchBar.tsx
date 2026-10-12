@@ -11,16 +11,20 @@ interface SearchBarProps {
   autoFocus?: boolean;
 }
 
-export function SearchBar({ 
-  onSearch, 
-  placeholder = "Search movies and TV shows...", 
+/**
+ * The search field: large and calm. Typing searches after a short pause; Escape or the clear
+ * button empties it and puts the cursor back.
+ */
+export function SearchBar({
+  onSearch,
+  placeholder = "Search movies and TV shows…",
   className,
   defaultValue = '',
   autoFocus = false,
 }: SearchBarProps) {
   const [value, setValue] = useState(defaultValue);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -56,28 +60,26 @@ export function SearchBar({
   }, []);
 
   return (
-    <div className={cn("relative", className)}>
-      <Search className="absolute left-3 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div role="search" className={cn('relative', className)}>
+      <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
       <input
         ref={inputRef}
         type="text"
+        name="q"
         autoFocus={autoFocus}
+        autoComplete="off"
+        spellCheck={false}
         aria-label="Search"
         enterKeyHint="search"
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="h-10 sm:h-12 w-full rounded-full bg-secondary border border-border/50 pl-10 sm:pl-12 pr-10 sm:pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow"
+        className="h-12 w-full rounded-md border border-input bg-card pl-12 pr-12 text-base text-foreground transition-colors duration-fast placeholder:text-subtle hover:border-border-strong focus-visible:border-ring focus-visible:outline-offset-0"
       />
       {value && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 p-0 rounded-full hover:bg-secondary"
-          onClick={handleClear}
-        >
-          <X className="h-4 w-4" />
+        <Button variant="ghost" size="icon-sm" className="absolute right-2 top-1/2 -translate-y-1/2" onClick={handleClear} aria-label="Clear search">
+          <X />
         </Button>
       )}
     </div>

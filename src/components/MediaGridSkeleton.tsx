@@ -1,25 +1,20 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import { PosterSkeleton } from '@/components/browse/PosterSkeleton';
 
 interface MediaGridSkeletonProps {
   count?: number;
 }
 
+/** The loading state of a poster grid: same columns and gaps as MediaGrid. */
 export function MediaGridSkeleton({ count = 12 }: MediaGridSkeletonProps) {
   return (
-    <div className="grid gap-2 sm:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <div
+      role="status"
+      aria-busy="true"
+      className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+    >
+      <span className="sr-only">Loading titles</span>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="flex flex-col overflow-hidden rounded-2xl bg-card border border-border/50">
-          <div className="relative aspect-[2/3] m-1.5 mb-0 rounded-xl overflow-hidden">
-            <Skeleton className="h-full w-full" />
-          </div>
-          <div className="flex flex-col gap-2 p-4">
-            <Skeleton className="h-4 w-3/4" />
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-3 w-10" />
-              <Skeleton className="h-3 w-8" />
-            </div>
-          </div>
-        </div>
+        <PosterSkeleton key={i} />
       ))}
     </div>
   );

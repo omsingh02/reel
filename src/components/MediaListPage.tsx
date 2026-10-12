@@ -1,13 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { AlertTriangle, type LucideIcon } from 'lucide-react';
 import { Layout } from '@/components/Layout';
+import { PageContainer, PageHeader } from '@/components/PageHeader';
 import { MediaGrid } from '@/components/MediaGrid';
 import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
-import { SearchLink } from '@/components/SearchLink';
 import {
   FiltersBar,
   DEFAULT_FILTERS,
@@ -23,7 +22,6 @@ import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 export interface MediaListPageProps {
   title: string;
   mediaType: MediaType;
-  emptyIcon: LucideIcon;
   subtitle: string;
 }
 
@@ -39,7 +37,7 @@ function buildPageParam(lastPage: { page: number; total_pages: number; results: 
  * Catalog page (Movies / Shows). Filters live in the URL so a filtered view
  * is shareable and survives back/forward navigation.
  */
-export function MediaListPage({ title, mediaType, emptyIcon: EmptyIcon, subtitle }: MediaListPageProps) {
+export function MediaListPage({ title, mediaType, subtitle }: MediaListPageProps) {
   const [params, setParams] = useSearchParams();
   const openTitle = useOpenTitle();
   const { isHidden } = useHidden();
@@ -97,51 +95,41 @@ export function MediaListPage({ title, mediaType, emptyIcon: EmptyIcon, subtitle
 
   return (
     <Layout>
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          <span className="text-xl font-semibold">{title}</span>
-          <SearchLink className="ml-auto" />
-        </div>
-      </header>
+      <PageHeader eyebrow="Browse" title={title} description={subtitle} />
 
-      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6 space-y-5">
-        <div className="space-y-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-          </div>
-          <FiltersBar mediaType={mediaType} value={filters} onChange={setFilters} />
-        </div>
+      <PageContainer className="space-y-8">
+        <FiltersBar mediaType={mediaType} value={filters} onChange={setFilters} />
 
         {isLoading ? (
           <MediaGridSkeleton count={12} />
         ) : isError ? (
           <EmptyState
-            icon={AlertTriangle}
-            title="Couldn't load results"
-            description="Something went wrong reaching the catalog. Check your connection and try again."
+            art="error"
+            title="Couldn't load this list"
+            description="Something went wrong reaching the catalogue. Check your connection and try again."
           >
-            <Button onClick={() => refetch()} className="rounded-full">Try again</Button>
+            <Button onClick={() => refetch()}>Try again</Button>
           </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState
-            icon={EmptyIcon}
+            art="search"
             title="Nothing matches these filters"
             description="Try a different genre or year, or lower the minimum rating."
           >
             {hasActiveFilters(filters) && (
-              <Button variant="outline" className="rounded-full" onClick={() => setFilters(DEFAULT_FILTERS)}>
+              <Button variant="outline" onClick={() => setFilters(DEFAULT_FILTERS)}>
                 Clear filters
               </Button>
             )}
           </EmptyState>
         ) : (
           <>
+            <h2 className="sr-only">{title} results</h2>
             <MediaGrid items={items} mediaType={mediaType} onItemClick={openTitle} />
-            <div ref={loadMoreRef} className="py-4">
+            <div ref={loadMoreRef} className="pb-4">
               {isFetchingNextPage && <MediaGridSkeleton count={6} />}
               {!hasNextPage && (
-                <p className="text-center text-xs text-muted-foreground py-2">
+                <p className="label-mono py-8 text-center">
                   {reachedCap
                     ? `Showing the top ${PAGE_CAP * 20} results — use the filters to narrow it down`
                     : "You've reached the end"}
@@ -150,7 +138,7 @@ export function MediaListPage({ title, mediaType, emptyIcon: EmptyIcon, subtitle
             </div>
           </>
         )}
-      </div>
+      </PageContainer>
     </Layout>
   );
 }

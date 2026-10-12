@@ -1,14 +1,17 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
-import { EyeOff, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Seo } from '@/components/Seo';
 import { EmptyState } from '@/components/EmptyState';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { PageContainer, PageHeader } from '@/components/PageHeader';
+import { Poster } from '@/components/reel';
+import { PosterGridSkeleton } from '@/components/library/Skeletons';
 import { Button } from '@/components/ui/button';
 import { useHidden } from '@/hooks/useHidden';
 import { useOpenTitle } from '@/hooks/useOpenTitle';
-import { getImageUrl, getMovieDetails, getTVShowDetails } from '@/lib/tmdb';
+import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb';
 import { yearOf } from '@/lib/dates';
 import type { TMDBMovieDetails, TMDBTVShowDetails } from '@/types/tmdb';
 
@@ -38,70 +41,81 @@ export default function Hidden() {
   return (
     <Layout>
       <Seo title="Hidden titles — Reel" description="Titles you marked as not interested." path="/hidden" noindex />
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
-          <h1 className="text-xl font-semibold">Hidden titles</h1>
-          {items.length > 0 && <span className="ml-3 text-sm text-muted-foreground">({items.length})</span>}
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Library"
+        title="Hidden titles"
+        description={
+          items.length > 0
+            ? `${items.length} ${items.length === 1 ? 'title is' : 'titles are'} kept out of Discover, Movies, Shows and search until you bring ${items.length === 1 ? 'it' : 'them'} back.`
+            : 'Titles you mark "Not interested" are kept out of your feeds.'
+        }
+      />
 
-      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6 max-w-2xl">
+      <PageContainer className="pb-6">
         {items.length === 0 ? (
           <EmptyState
-            icon={EyeOff}
+            art="hidden"
             title="Nothing hidden"
             description='Titles you mark "Not interested" disappear from Discover, Movies, Shows and search. They show up here so you can bring them back.'
-          />
+          >
+            <Button asChild variant="secondary"><Link to="/">Back to Discover</Link></Button>
+          </EmptyState>
         ) : loading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+          <PosterGridSkeleton count={Math.min(shown.length, 12)} />
         ) : (
-          <div className="space-y-2">
+          <>
             {items.length > shown.length && (
-              <p className="text-xs text-muted-foreground">Showing the first {MAX_TITLES} of {items.length}.</p>
+              <p className="numeral mb-6 font-mono text-xs text-muted-foreground">Showing the first {MAX_TITLES} of {items.length}.</p>
             )}
-            {shown.map((item, i) => {
-              const data = queries[i]?.data as TMDBMovieDetails | TMDBTVShowDetails | undefined;
-              const title = data
-                ? item.mediaType === 'movie'
-                  ? (data as TMDBMovieDetails).title
-                  : (data as TMDBTVShowDetails).name
-                : `Title ${item.id}`;
-              const date = data
-                ? item.mediaType === 'movie'
-                  ? (data as TMDBMovieDetails).release_date
-                  : (data as TMDBTVShowDetails).first_air_date
-                : null;
-              const poster = getImageUrl(data?.poster_path ?? null, 'w154');
-              return (
-                <div
-                  key={`${item.mediaType}-${item.id}`}
-                  className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/40 cursor-pointer hover:shadow-md transition-all"
-                  onClick={() => openTitle(item.id, item.mediaType)}
-                >
-                  <div className="flex-shrink-0 w-12 aspect-[2/3] rounded-xl overflow-hidden bg-secondary">
-                    {poster && <img src={poster} alt="" loading="lazy" className="h-full w-full object-cover" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate" title={title}>{title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.mediaType === 'movie' ? 'Movie' : 'TV'}
-                      {yearOf(date) ? ` · ${yearOf(date)}` : ''}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full gap-1.5 shrink-0"
-                    onClick={e => { e.stopPropagation(); unhide(item.id, item.mediaType); }}
-                  >
-                    <Eye className="h-4 w-4" /> Unhide
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
+            <h2 className="sr-only">Your hidden titles</h2>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {shown.map((item, i) => {
+                const data = queries[i]?.data as TMDBMovieDetails | TMDBTVShowDetails | undefined;
+                const title = data
+                  ? item.mediaType === 'movie'
+                    ? (data as TMDBMovieDetails).title
+                    : (data as TMDBTVShowDetails).name
+                  : `Title ${item.id}`;
+                const date = data
+                  ? item.mediaType === 'movie'
+                    ? (data as TMDBMovieDetails).release_date
+                    : (data as TMDBTVShowDetails).first_air_date
+                  : null;
+                const year = yearOf(date);
+                return (
+                  <li key={`${item.mediaType}-${item.id}`} className="group relative">
+                    <Poster
+                      path={data?.poster_path ?? null}
+                      title={title}
+                      year={year}
+                      className="group-hover:shadow-poster group-hover:ring-foreground/30"
+                    />
+                    <div className="mt-2.5 space-y-1">
+                      <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug">
+                        <button type="button" onClick={() => openTitle(item.id, item.mediaType)} className="stretched-link text-left">
+                          {title}
+                        </button>
+                      </h3>
+                      <p className="numeral font-mono text-xs text-muted-foreground">
+                        {item.mediaType === 'movie' ? 'Movie' : 'TV'}
+                        {year ? ` · ${year}` : ''}
+                      </p>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="relative z-10 mt-3 w-full"
+                      onClick={() => unhide(item.id, item.mediaType)}
+                    >
+                      <Eye /> Unhide
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
-      </div>
+      </PageContainer>
     </Layout>
   );
 }

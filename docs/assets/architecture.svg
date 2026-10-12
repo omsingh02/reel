@@ -1,24 +1,24 @@
-<!-- Source for architecture.png. Render with Inter installed (see docs/BRAND.md). -->
+<!-- Source for architecture.png. Render with Instrument Sans installed (see docs/BRAND.md). -->
 <svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420">
   <style>
-svg{display:block;font-family:Inter,sans-serif}
-.t{font-size:15px;font-weight:600;fill:#eef1f8}
-.s{font-size:12px;fill:#98a1b5}
-.g{font-size:11px;font-weight:600;letter-spacing:1.6px;fill:#6f7890}
-.l{font-size:12px;font-weight:600;paint-order:stroke;stroke:#121316;stroke-width:7px;stroke-linejoin:round}
-.box{fill:#1a2030;stroke:#367EE2;stroke-width:1.4}
-.ext{fill:#1d1f26;stroke:#4a5163;stroke-width:1.4}
-.mcp{fill:#241f12;stroke:#E7B008;stroke-width:1.4}
-.e{fill:none;stroke:#7d869b;stroke-width:1.7;stroke-linejoin:round}
-.a{fill:none;stroke:#E7B008;stroke-width:1.7;stroke-linejoin:round}
+svg{display:block;font-family:'Instrument Sans Variable','Instrument Sans',sans-serif}
+.t{font-size:15px;font-weight:600;fill:#f2eee8}
+.s{font-size:12px;fill:#a89d90}
+.g{font-size:11px;font-weight:600;letter-spacing:1.6px;fill:#8a7d70}
+.l{font-size:12px;font-weight:600;paint-order:stroke;stroke:#13100e;stroke-width:7px;stroke-linejoin:round}
+.box{fill:#1f1813;stroke:#f25b31;stroke-width:1.4}
+.ext{fill:#1f1915;stroke:#5f544a;stroke-width:1.4}
+.mcp{fill:#261d10;stroke:#f7c245;stroke-width:1.4}
+.e{fill:none;stroke:#8a7d70;stroke-width:1.7;stroke-linejoin:round}
+.a{fill:none;stroke:#f7c245;stroke-width:1.7;stroke-linejoin:round}
 </style>
   <defs>
-    <marker id="mg" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="#7d869b"/></marker>
-    <marker id="ma" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="#E7B008"/></marker>
+    <marker id="mg" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="#8a7d70"/></marker>
+    <marker id="ma" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" fill="#f7c245"/></marker>
   </defs>
-  <rect x="0.7" y="0.7" width="978.6" height="418.6" rx="18" fill="#121316" stroke="#2a2e38" stroke-width="1.4"/>
+  <rect x="0.7" y="0.7" width="978.6" height="418.6" rx="18" fill="#13100e" stroke="#2e2722" stroke-width="1.4"/>
 
-  <rect x="28" y="28" width="262" height="192" rx="14" fill="#16181d" stroke="#2f3442" stroke-width="1.2"/>
+  <rect x="28" y="28" width="262" height="192" rx="14" fill="#1a1511" stroke="#3a322c" stroke-width="1.2"/>
   <text class="g" x="46" y="52">BROWSER</text>
 
   <!-- edges first so boxes sit on top -->
@@ -30,9 +30,9 @@ svg{display:block;font-family:Inter,sans-serif}
   <path class="a" d="M630,340 H750" marker-end="url(#ma)"/>
   <path class="a" d="M630,312 H725 V114 H750" marker-end="url(#ma)"/>
 
-  <text class="l" fill="#aab2c5" x="510" y="74" text-anchor="middle">auth + RLS queries</text>
-  <text class="l" fill="#aab2c5" x="362" y="168">catalogue requests</text>
-  <text class="l" fill="#E7B008" x="345" y="320" text-anchor="middle">OAuth + MCP</text>
+  <text class="l" fill="#cfc5b8" x="510" y="74" text-anchor="middle">auth + RLS queries</text>
+  <text class="l" fill="#cfc5b8" x="362" y="168">catalogue requests</text>
+  <text class="l" fill="#f7c245" x="345" y="320" text-anchor="middle">OAuth + MCP</text>
 
   <rect class="box" x="48" y="66" width="222" height="58" rx="10"/>
   <text class="t" x="66" y="92">React SPA</text><text class="s" x="66" y="111">UI · caching · optimistic updates</text>
@@ -52,6 +52,6 @@ svg{display:block;font-family:Inter,sans-serif}
   <rect class="mcp" x="48" y="300" width="222" height="58" rx="10"/>
   <text class="t" x="66" y="326">AI assistant</text><text class="s" x="66" y="345">any MCP client</text>
 
-  <circle cx="50" cy="394" r="4.5" fill="#7d869b"/><text class="s" x="62" y="398">App traffic</text>
-  <circle cx="160" cy="394" r="4.5" fill="#E7B008"/><text class="s" x="172" y="398">AI assistant traffic</text>
+  <circle cx="50" cy="394" r="4.5" fill="#8a7d70"/><text class="s" x="62" y="398">App traffic</text>
+  <circle cx="160" cy="394" r="4.5" fill="#f7c245"/><text class="s" x="172" y="398">AI assistant traffic</text>
 </svg>

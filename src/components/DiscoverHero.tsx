@@ -1,6 +1,7 @@
 import { memo, useCallback } from 'react';
 import { Plus, Check, Star, Info } from 'lucide-react';
 import { Button } from './ui/button';
+import { Tag } from './ui/badge';
 import { getImageUrl, getTitle, getReleaseDate } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { yearOf } from '@/lib/dates';
@@ -13,92 +14,96 @@ interface DiscoverHeroProps {
 }
 
 /**
- * Editorial cinematic spotlight for the top trending item. Backdrop image
- * with layered gradients, title, meta, and primary actions.
+ * The marquee: one featured title, shown like a still from the film. A cinemascope crop of the
+ * backdrop (the portrait poster on phones), film grain, a dark scrim, and the title set in the
+ * display serif. The `dark` class scopes the dark theme's tokens to this block, so its text and
+ * buttons stay legible over artwork in both themes.
  */
 export const DiscoverHero = memo(function DiscoverHero({ media, mediaType, onOpen }: DiscoverHeroProps) {
   const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
   const inList = isInWatchlist(media.id, mediaType);
 
   const title = getTitle(media);
-  const date = getReleaseDate(media);
-  const year = yearOf(date);
+  const year = yearOf(getReleaseDate(media));
   const backdrop = getImageUrl(media.backdrop_path, 'w780') || getImageUrl(media.poster_path, 'w780');
   const backdropLarge = media.backdrop_path ? getImageUrl(media.backdrop_path, 'w1280') : null;
+  const portrait = getImageUrl(media.poster_path, 'w780');
 
-  const handleWatchlist = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleWatchlist = useCallback(() => {
     if (inList) removeFromWatchlist(media.id, mediaType);
     else addToWatchlist(media, mediaType);
   }, [inList, media, mediaType, addToWatchlist, removeFromWatchlist]);
 
   return (
-    <div className="relative overflow-hidden rounded-3xl mx-3 sm:mx-5 lg:mx-8 mt-4">
-      <div className="relative aspect-[16/10] sm:aspect-[21/9] lg:aspect-[24/9] w-full bg-secondary">
+    <section
+      aria-label="Featured title"
+      className="dark grain relative isolate overflow-hidden rounded-lg border border-border bg-background text-foreground"
+    >
+      <div className="relative aspect-[4/5] sm:aspect-[16/9] md:aspect-[2.39/1]">
         {backdrop && (
-          <img
-            src={backdrop}
-            srcSet={backdropLarge ? `${backdrop} 780w, ${backdropLarge} 1280w` : undefined}
-            sizes="(min-width: 1024px) calc(100vw - 20rem), 100vw"
-            alt=""
-            aria-hidden
-            className="absolute inset-0 h-full w-full object-cover object-top"
-            loading="eager"
-            // @ts-expect-error - fetchpriority is valid HTML but not yet typed in React 18
-            fetchpriority="high"
-          />
+          <picture>
+            {portrait && <source media="(max-width: 639px)" srcSet={portrait} />}
+            <img
+              src={backdrop}
+              srcSet={backdropLarge ? `${backdrop} 780w, ${backdropLarge} 1280w` : undefined}
+              sizes="(min-width: 1408px) 1328px, 100vw"
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
+              loading="eager"
+              // @ts-expect-error - `fetchpriority` is valid HTML, but React 18's types only know the camelCase name it warns about
+              fetchpriority="high"
+            />
+          </picture>
         )}
-        {/* Layered gradients for legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-background/40 to-transparent" />
+        <div aria-hidden className="scrim-b absolute inset-0" />
+        <div aria-hidden className="scrim-r absolute inset-0 hidden opacity-90 md:block" />
 
-        <div className="absolute inset-0 flex flex-col justify-end p-5 sm:p-8 lg:p-10">
-          <div className="max-w-xl space-y-3">
-            <div className="flex items-center gap-2 text-[11px] sm:text-xs uppercase tracking-[0.14em] text-muted-foreground">
-              <span className="text-primary font-semibold">Featured</span>
-              <span aria-hidden>·</span>
-              <span>{mediaType === 'movie' ? 'Movie' : 'TV Series'}</span>
-              {year && <><span aria-hidden>·</span><span>{year}</span></>}
-              {media.vote_average > 0 && (
-                <>
-                  <span aria-hidden>·</span>
-                  <span className="inline-flex items-center gap-1 text-foreground/80">
-                    <Star className="h-3 w-3 fill-rating text-rating" />
-                    {media.vote_average.toFixed(1)}
-                  </span>
-                </>
-              )}
+        <div className="absolute inset-x-0 bottom-0 z-[2] p-5 sm:p-8 lg:p-12">
+          <div className="max-w-2xl space-y-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <Tag variant="signal">Featured</Tag>
+              <p className="numeral flex items-center gap-2.5 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                <span>{mediaType === 'movie' ? 'Movie' : 'TV series'}</span>
+                {year && (
+                  <>
+                    <span aria-hidden>/</span>
+                    <span>{year}</span>
+                  </>
+                )}
+                {media.vote_average > 0 && (
+                  <>
+                    <span aria-hidden>/</span>
+                    <span className="inline-flex items-center gap-1 text-foreground">
+                      <Star className="h-3 w-3 fill-rating text-rating" aria-hidden />
+                      <span className="sr-only">Rated </span>
+                      {media.vote_average.toFixed(1)}
+                    </span>
+                  </>
+                )}
+              </p>
             </div>
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.05] line-clamp-2">
-              {title}
-            </h2>
+
+            <h2 className="line-clamp-2 text-balance text-display-sm sm:text-display lg:text-display-lg">{title}</h2>
+
             {media.overview && (
-              <p className="text-sm sm:text-base text-muted-foreground line-clamp-2 sm:line-clamp-3 max-w-lg">
+              <p className="line-clamp-3 max-w-xl text-[0.9375rem] text-muted-foreground sm:text-base md:line-clamp-2 lg:line-clamp-3">
                 {media.overview}
               </p>
             )}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <Button
-                size="lg"
-                className="rounded-full h-11 px-5 gap-2"
-                onClick={() => onOpen(media.id, mediaType)}
-              >
-                <Info className="h-4 w-4" />
+
+            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+              <Button size="lg" onClick={() => onOpen(media.id, mediaType)}>
+                <Info />
                 View details
               </Button>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="rounded-full h-11 px-4 gap-2 bg-secondary/80 backdrop-blur"
-                onClick={handleWatchlist}
-              >
-                {inList ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              <Button size="lg" variant="overlay" className="border border-white/20" onClick={handleWatchlist}>
+                {inList ? <Check /> : <Plus />}
                 {inList ? 'In My List' : 'Add to List'}
               </Button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 });

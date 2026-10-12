@@ -1,10 +1,15 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
-import { CalendarDays } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Seo } from '@/components/Seo';
 import { EmptyState } from '@/components/EmptyState';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { PageContainer, PageHeader } from '@/components/PageHeader';
+import { StubSkeleton } from '@/components/library/Skeletons';
+import { TicketStub } from '@/components/library/TicketStub';
+import { Button } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { Tag } from '@/components/ui/badge';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useOpenTitle } from '@/hooks/useOpenTitle';
 import { getMovieDetails, getTVShowDetails } from '@/lib/tmdb';
@@ -18,9 +23,22 @@ interface Entry {
   title: string;
   date: string; // ISO
   label: string;
+  posterPath: string | null;
 }
 
 const MAX_TITLES = 80;
+
+/** "Today", "Tomorrow" or "In 4 days" for the coming week, otherwise nothing. */
+function soon(date: string): string | null {
+  const d = parseCalendarDate(date);
+  if (!d) return null;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((d.getTime() - today.getTime()) / 86_400_000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  return days > 1 && days <= 7 ? `In ${days} days` : null;
+}
 
 export default function Upcoming() {
   const { watchlist, isLoading } = useWatchlist();
@@ -60,6 +78,7 @@ export default function Upcoming() {
             title: m.title,
             date: m.release_date,
             label: 'Release',
+            posterPath: item.posterPath,
           });
         }
       } else {
@@ -70,7 +89,8 @@ export default function Upcoming() {
             id: tv.id, mediaType: 'tv',
             title: tv.name,
             date: next.air_date,
-            label: `S${next.season_number}E${next.episode_number}: ${next.name}`,
+            label: `S${next.season_number}E${next.episode_number} · ${next.name}`,
+            posterPath: item.posterPath,
           });
         }
       }
@@ -81,12 +101,9 @@ export default function Upcoming() {
   const grouped = useMemo(() => {
     const map = new Map<string, Entry[]>();
     entries.forEach(e => {
-      const key = formatCalendarDate(e.date, {
-        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
-      });
-      const arr = map.get(key) || [];
+      const arr = map.get(e.date) || [];
       arr.push(e);
-      map.set(key, arr);
+      map.set(e.date, arr);
     });
     return Array.from(map.entries());
   }, [entries]);
@@ -95,58 +112,81 @@ export default function Upcoming() {
   const anyLoading = isLoading || (entries.length === 0 && queries.some(q => q.isLoading));
   const failed = queries.filter(q => q.isError).length;
   const skipped = Math.max(0, tracked.length - pending.length);
+  const thisYear = new Date().getFullYear();
 
   return (
     <Layout>
       <Seo title="Upcoming Releases — Reel" description="See upcoming movie releases and TV episode air dates for the titles saved in your list." path="/upcoming" noindex jsonLd={{"@context":"https://schema.org","@type":"CollectionPage","name":"Upcoming Releases","description":"Upcoming movie releases and TV episode air dates for titles saved in your list.","url":`${SITE_URL}/upcoming`}} />
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
-          <h1 className="text-xl font-semibold">Upcoming</h1>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Library"
+        title="Upcoming"
+        description="Release dates and new episodes for the movies and shows in your list."
+      />
 
-      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6 max-w-3xl">
+      <PageContainer className="pb-6">
+        <div className="max-w-4xl">
         {anyLoading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+          <StubSkeleton />
         ) : entries.length === 0 ? (
           <EmptyState
-            icon={CalendarDays}
+            art="upcoming"
             title={failed > 0 ? "Couldn't check upcoming releases" : "Nothing on the horizon"}
             description={
               failed > 0
                 ? "Some titles failed to load. Check your connection and reopen this page."
                 : "Add titles to your list to see upcoming releases and new episodes here."
             }
-          />
+          >
+            {failed === 0 && (
+              <>
+                <Button asChild><Link to="/shows">Browse shows</Link></Button>
+                <Button asChild variant="ghost"><Link to="/movies">Browse movies</Link></Button>
+              </>
+            )}
+          </EmptyState>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {(failed > 0 || skipped > 0) && (
-              <p className="text-xs text-muted-foreground">
+              <Callout tone={failed > 0 ? 'warning' : 'info'}>
                 {failed > 0 && `Couldn't check ${failed} title${failed === 1 ? '' : 's'} just now. `}
                 {skipped > 0 && `Showing the first ${MAX_TITLES} of ${tracked.length} titles.`}
-              </p>
+              </Callout>
             )}
-            {grouped.map(([date, items]) => (
-              <div key={date}>
-                <h2 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{date}</h2>
-                <div className="space-y-2">
-                  {items.map(e => (
-                    <button
-                      key={`${e.mediaType}-${e.id}-${e.date}`}
-                      onClick={() => openTitle(e.id, e.mediaType)}
-                      className="w-full text-left p-3 rounded-2xl bg-card border border-border/40 hover:shadow-md transition-all"
-                    >
-                      <p className="text-sm font-medium truncate">{e.title}</p>
-                      <p className="text-xs text-muted-foreground">{e.label}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {grouped.map(([date, items]) => {
+              const hint = soon(date);
+              const year = parseCalendarDate(date)?.getFullYear();
+              return (
+                <section key={date} aria-labelledby={`day-${date}`}>
+                  <h2
+                    id={`day-${date}`}
+                    className="sticky top-[var(--topbar-h)] z-10 -mx-1 mb-3 flex items-center gap-3 bg-background/95 px-1 py-2 font-mono text-label font-medium uppercase backdrop-blur-sm"
+                  >
+                    <span className="text-foreground">
+                      {formatCalendarDate(date, { weekday: 'long', month: 'long', day: 'numeric', ...(year && year !== thisYear ? { year: 'numeric' } : {}) })}
+                    </span>
+                    {hint && <Tag variant="signal">{hint}</Tag>}
+                    <span aria-hidden className="h-px flex-1 bg-border" />
+                  </h2>
+                  <ul className="space-y-3">
+                    {items.map(e => (
+                      <TicketStub
+                        key={`${e.mediaType}-${e.id}-${e.date}`}
+                        title={e.title}
+                        date={e.date}
+                        detail={e.label}
+                        mediaType={e.mediaType}
+                        posterPath={e.posterPath}
+                        onOpen={() => openTitle(e.id, e.mediaType)}
+                      />
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
           </div>
         )}
-      </div>
-
+        </div>
+      </PageContainer>
     </Layout>
   );
 }

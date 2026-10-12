@@ -2,7 +2,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   getProgress as guestGet,
   subscribeProgress as guestSubscribe,
@@ -25,7 +25,6 @@ interface ProgressRow {
 export function useEpisodeProgress() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const { toast } = useToast();
 
   const guest = useSyncExternalStore(guestSubscribe, guestGet, guestGet);
 
@@ -58,7 +57,7 @@ export function useEpisodeProgress() {
   const rollback = (ctx?: { previous: ProgressRow[] }) => {
     if (ctx) qc.setQueryData(key, ctx.previous);
   };
-  const fail = (e: Error) => toast({ variant: 'destructive', title: "Couldn't update progress", description: e.message });
+  const fail = (e: Error) => toast.error("Couldn't update progress", { description: e.message });
   const settle = () => qc.invalidateQueries({ queryKey: key });
 
   const draftRow = (tmdbId: number, season: number, episode: number): ProgressRow => ({

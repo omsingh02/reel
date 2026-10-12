@@ -18,19 +18,19 @@ interface SortSelectProps {
 const sortOptions: { value: SortOption; label: string }[] = [
   { value: 'popularity', label: 'Popularity' },
   { value: 'rating', label: 'Rating' },
-  { value: 'release_date', label: 'Release Date' },
+  { value: 'release_date', label: 'Release date' },
   { value: 'title', label: 'Title' },
 ];
 
 export function SortSelect({ value, onChange, className }: SortSelectProps) {
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className={cn("rounded-full bg-secondary/40 border-0", className)}>
+    <Select value={value} onValueChange={v => onChange(v as SortOption)}>
+      <SelectTrigger className={cn('w-44', className)} aria-label="Sort by">
         <SelectValue placeholder="Sort by" />
       </SelectTrigger>
-      <SelectContent className="rounded-2xl">
-        {sortOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value} className="rounded-xl">
+      <SelectContent>
+        {sortOptions.map(option => (
+          <SelectItem key={option.value} value={option.value}>
             {option.label}
           </SelectItem>
         ))}

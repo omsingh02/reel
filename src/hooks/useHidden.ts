@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { MediaType } from '@/types/tmdb';
-import { useToast } from '@/hooks/use-toast';
 import {
   getHidden as guestGet,
   subscribeHidden as guestSubscribe,
@@ -11,7 +10,7 @@ import {
   unhideItem as guestUnhide,
 } from '@/lib/hidden';
 import { useSyncExternalStore } from 'react';
-import { toast as sonnerToast } from 'sonner';
+import { toast } from 'sonner';
 
 interface HiddenRow {
   id: string;
@@ -24,7 +23,6 @@ interface HiddenRow {
 export function useHidden() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const guest = useSyncExternalStore(guestSubscribe, guestGet, guestGet);
 
@@ -55,7 +53,7 @@ export function useHidden() {
       if (error && error.code !== '23505') throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hidden_items', user?.id] }),
-    onError: (e: Error) => toast({ variant: 'destructive', title: "Couldn't hide", description: e.message }),
+    onError: (e: Error) => toast.error("Couldn't hide", { description: e.message }),
   });
 
   const removeMutation = useMutation({
@@ -68,7 +66,7 @@ export function useHidden() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hidden_items', user?.id] }),
-    onError: (e: Error) => toast({ variant: 'destructive', title: "Couldn't unhide", description: e.message }),
+    onError: (e: Error) => toast.error("Couldn't unhide", { description: e.message }),
   });
 
   const unhide = useCallback((id: number, mediaType: MediaType) => {
@@ -79,7 +77,7 @@ export function useHidden() {
   const hide = useCallback((id: number, mediaType: MediaType) => {
     if (user) addMutation.mutate({ id, mediaType });
     else guestHide(id, mediaType);
-    sonnerToast("Hidden from your feeds", {
+    toast("Hidden from your feeds", {
       action: { label: 'Undo', onClick: () => unhide(id, mediaType) },
     });
   }, [user, addMutation, unhide]);

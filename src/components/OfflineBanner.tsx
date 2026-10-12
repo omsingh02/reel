@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 
-/** Slim banner shown while the browser reports no network connection. */
+/**
+ * A slim warning strip under the top bar while the browser reports no connection.
+ * It floats (fixed, below the sticky header) so it does not shift the page when it appears.
+ */
 export function OfflineBanner() {
   const [offline, setOffline] = useState(() =>
     typeof navigator !== 'undefined' ? !navigator.onLine : false
@@ -23,10 +26,10 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-destructive px-4 py-2 text-xs font-medium text-destructive-foreground"
+      className="fixed inset-x-0 top-[var(--topbar-h)] z-30 flex items-center justify-center gap-2 border-b border-warning/35 bg-warning-subtle px-4 py-1.5 text-center text-[0.8125rem] font-medium text-warning-text"
     >
-      <WifiOff className="h-3.5 w-3.5" />
-      You're offline — showing cached content where available
+      <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+      You're offline. Showing saved content where possible.
     </div>
   );
 }

@@ -1,21 +1,16 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { BarChart3, Clock, Film, Tv, Star, type LucideIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Seo } from '@/components/Seo';
 import { EmptyState } from '@/components/EmptyState';
+import { PageContainer, PageHeader } from '@/components/PageHeader';
+import { SectionHeader, Stat } from '@/components/reel';
+import { DecadeBars } from '@/components/library/DecadeBars';
+import { RatingStrip } from '@/components/library/RatingStrip';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { useWatchlist, useRuntimeLookup } from '@/hooks/useWatchlist';
 import { yearOf } from '@/lib/dates';
-
-function StatCard({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
-  return (
-    <div className="p-4 rounded-2xl bg-card border border-border/40">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-        <Icon className="h-3.5 w-3.5" />{label}
-      </div>
-      <p className="text-2xl font-semibold">{value}</p>
-    </div>
-  );
-}
 
 export default function Stats() {
   const { watchlist, setWatched } = useWatchlist();
@@ -42,9 +37,8 @@ export default function Stats() {
     const shows = watched.filter(w => w.mediaType === 'tv').length;
     const minutes = watched.reduce((sum, w) => sum + (w.runtime || 0), 0);
     const ratings = watched.filter(w => typeof w.rating === 'number') as Array<typeof watched[number] & { rating: number }>;
-    const avgRating = ratings.length
-      ? (ratings.reduce((s, r) => s + r.rating, 0) / ratings.length).toFixed(1)
-      : '—';
+    const avgNumber = ratings.length ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length : null;
+    const avgRating = avgNumber !== null ? avgNumber.toFixed(1) : '—';
 
     // By decade
     const decades = new Map<string, number>();
@@ -56,7 +50,7 @@ export default function Stats() {
     });
     const topDecades = Array.from(decades.entries()).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
-    return { total: watched.length, movies, shows, minutes, avgRating, topDecades };
+    return { total: watched.length, movies, shows, minutes, avgRating, avgNumber, topDecades };
   }, [watchlist]);
 
   const hours = Math.round(stats.minutes / 60);
@@ -64,54 +58,60 @@ export default function Stats() {
   return (
     <Layout>
       <Seo title="Your Viewing Stats — Reel" description="Time watched, movies and shows completed, and your average rating across everything you have marked as watched." path="/stats" noindex />
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center px-3 sm:px-5 lg:px-8 h-16">
-          <h1 className="text-xl font-semibold">Your Stats</h1>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Library"
+        title="Stats"
+        description="A look at everything you've marked as watched."
+      />
 
-      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6 max-w-3xl">
+      <PageContainer className="pb-6">
         {stats.total === 0 ? (
           <EmptyState
-            icon={BarChart3}
+            art="stats"
             title="No watched titles yet"
             description="Mark titles as watched from their details page to start tracking your stats."
-          />
+          >
+            <Button asChild><Link to="/movies">Browse movies</Link></Button>
+            <Button asChild variant="ghost"><Link to="/watchlist">Open My List</Link></Button>
+          </EmptyState>
         ) : (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <StatCard icon={BarChart3} label="Watched" value={String(stats.total)} />
-              <StatCard icon={Clock} label="Hours" value={String(hours)} />
-              <StatCard icon={Film} label="Movies" value={String(stats.movies)} />
-              <StatCard icon={Tv} label="TV titles" value={String(stats.shows)} />
-            </div>
+          <div className="space-y-10">
+            <section aria-label="Totals" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Stat label="Watched" value={stats.total} />
+              <Stat label="Hours" value={hours} />
+              <Stat label="Movies" value={stats.movies} />
+              <Stat label="TV titles" value={stats.shows} />
+            </section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-4 rounded-2xl bg-card border border-border/40">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                  <Star className="h-3.5 w-3.5" />Your average rating
-                </div>
-                <p className="text-2xl font-semibold">{stats.avgRating}{stats.avgRating !== '—' && <span className="text-sm text-muted-foreground"> / 10</span>}</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-card border border-border/40">
-                <p className="text-xs text-muted-foreground mb-2">Top decades</p>
-                {stats.topDecades.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No release dates yet.</p>
-                ) : (
-                  <ul className="space-y-1 text-sm">
-                    {stats.topDecades.map(([d, n]) => (
-                      <li key={d} className="flex justify-between">
-                        <span>{d}</span>
-                        <span className="text-muted-foreground">{n}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <section aria-labelledby="avg-heading">
+                <SectionHeader title={<span id="avg-heading">Your average rating</span>} subtitle="Across everything you've rated" as="h2" />
+                <Card className="space-y-5 p-6">
+                  <p className="numeral font-display text-display font-semibold leading-none sm:text-display-lg">
+                    {stats.avgRating}
+                    {stats.avgNumber !== null && <span className="ml-2 font-sans text-base font-medium text-muted-foreground">/ 10</span>}
+                  </p>
+                  <RatingStrip value={stats.avgNumber ?? 0} />
+                  {stats.avgNumber === null && (
+                    <p className="text-sm text-muted-foreground">Rate a few of the titles you've watched to see your average.</p>
+                  )}
+                </Card>
+              </section>
+
+              <section aria-labelledby="decades-heading">
+                <SectionHeader title={<span id="decades-heading">Top decades</span>} subtitle="When your watched titles were released" as="h2" />
+                <Card className="p-6">
+                  {stats.topDecades.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No release dates yet.</p>
+                  ) : (
+                    <DecadeBars decades={stats.topDecades} />
+                  )}
+                </Card>
+              </section>
             </div>
-          </>
+          </div>
         )}
-      </div>
+      </PageContainer>
     </Layout>
   );
 }

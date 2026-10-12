@@ -8,7 +8,9 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#121216" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#13100E" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F7F5F0" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Reel" />
 
@@ -36,6 +38,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="margin:0 auto;max-width:28rem;padding:4rem 1.5rem;font:16px/1.6 system-ui,-apple-system,'Segoe UI',sans-serif;color:#2a211c;text-align:center">
+        <h1 style="margin:0 0 .5rem;font:600 1.5rem/1.2 Georgia,serif">Reel needs JavaScript</h1>
+        <p style="margin:0">Reel is an app that runs in your browser. Turn JavaScript on, or try another browser, and reload this page.</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

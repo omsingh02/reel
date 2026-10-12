@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -24,7 +23,13 @@ const SearchPage = lazy(() => import("./pages/Search"));
 const TitleRoute = lazy(() => import("./pages/Title"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+// Development-only style guide; the whole import is dropped from production builds.
+const Design = import.meta.env.DEV ? lazy(() => import("./pages/Design")) : null;
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Settings = lazy(() => import("./pages/Settings"));
+const About = lazy(() => import("./pages/About"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,9 +62,14 @@ function AppRoutes() {
         <Route path="/hidden" element={<Hidden />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
         <Route path="/movie/:id" element={<TitleRoute mediaType="movie" />} />
         <Route path="/show/:id" element={<TitleRoute mediaType="tv" />} />
         <Route path="/oauth/consent" element={<OAuthConsent />} />
+        {Design && <Route path="/design" element={<Design />} />}
         <Route path="*" element={<NotFound />} />
       </Routes>
 
@@ -79,7 +89,6 @@ const App = () => (
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
-            <Toaster />
             <Sonner />
             <BrowserRouter>
               <ScrollToTop />

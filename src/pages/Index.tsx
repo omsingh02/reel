@@ -1,9 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Seo } from '@/components/Seo';
-import { SearchLink } from '@/components/SearchLink';
+import { PageContainer } from '@/components/PageHeader';
 import { MediaRail } from '@/components/MediaRail';
 import { DiscoverHero } from '@/components/DiscoverHero';
 import { EmptyState } from '@/components/EmptyState';
@@ -117,67 +116,62 @@ export default function Index() {
           },
         }}
       />
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          <h1 className="text-xl font-semibold tracking-tight">Discover</h1>
-          <SearchLink className="ml-auto" />
-        </div>
-      </header>
+      <PageContainer className="pb-4 pt-5 sm:pt-8">
+        <h1 className="sr-only">Discover</h1>
 
-      <div className="flex-1 py-4 pb-8 space-y-8">
         {isDiscoverError ? (
-          <div className="px-3 sm:px-5 lg:px-8 py-10">
-            <EmptyState
-              icon={AlertTriangle}
-              title="Couldn't load discovery"
-              description="Check your connection and try again."
-            >
-              <Button onClick={refetchAll} className="rounded-full">Try again</Button>
-            </EmptyState>
+          <EmptyState
+            art="error"
+            title="Couldn't load discovery"
+            description="Check your connection and try again."
+          >
+            <Button onClick={refetchAll}>Try again</Button>
+          </EmptyState>
+        ) : featured ? (
+          <DiscoverHero media={featured} mediaType={featuredType} onOpen={openTitle} />
+        ) : isDiscoverLoading ? (
+          <div role="status" aria-busy="true" className="skeleton aspect-[4/5] w-full rounded-lg sm:aspect-[16/9] md:aspect-[2.39/1]">
+            <span className="sr-only">Loading featured title</span>
           </div>
-        ) : (
-          <>
-            {featured ? (
-              <DiscoverHero media={featured} mediaType={featuredType} onOpen={openTitle} />
-            ) : isDiscoverLoading ? (
-              <div className="mx-3 sm:mx-5 lg:mx-8 mt-4 aspect-[16/10] sm:aspect-[21/9] lg:aspect-[24/9] rounded-3xl bg-secondary/60 animate-pulse" />
-            ) : null}
+        ) : null}
+      </PageContainer>
 
-            <MediaRail
-              title="Trending movies"
-              subtitle="Trending this week"
-              items={trendingMoviesRail}
-              mediaType="movie"
-              onItemClick={openTitle}
-              loading={trendingMovies.isLoading}
-            />
-            <MediaRail
-              title="Trending TV"
-              subtitle="Series getting attention right now"
-              items={trendingTVRail}
-              mediaType="tv"
-              onItemClick={openTitle}
-              loading={trendingTV.isLoading}
-            />
-            <MediaRail
-              title="Popular movies"
-              subtitle="Popular on TMDB right now"
-              items={popularMoviesRail}
-              mediaType="movie"
-              onItemClick={openTitle}
-              loading={popularMovies.isLoading}
-            />
-            <MediaRail
-              title="Popular TV"
-              subtitle="Popular series on TMDB"
-              items={popularTVRail}
-              mediaType="tv"
-              onItemClick={openTitle}
-              loading={popularTV.isLoading}
-            />
-          </>
-        )}
-      </div>
+      {!isDiscoverError && (
+        <div className="space-y-10 pb-8 pt-6 sm:space-y-14 sm:pt-10">
+          <MediaRail
+            title="Trending movies"
+            subtitle="Trending this week"
+            items={trendingMoviesRail}
+            mediaType="movie"
+            onItemClick={openTitle}
+            loading={trendingMovies.isLoading}
+          />
+          <MediaRail
+            title="Trending TV"
+            subtitle="Series getting attention right now"
+            items={trendingTVRail}
+            mediaType="tv"
+            onItemClick={openTitle}
+            loading={trendingTV.isLoading}
+          />
+          <MediaRail
+            title="Popular movies"
+            subtitle="Popular on TMDB right now"
+            items={popularMoviesRail}
+            mediaType="movie"
+            onItemClick={openTitle}
+            loading={popularMovies.isLoading}
+          />
+          <MediaRail
+            title="Popular TV"
+            subtitle="Popular series on TMDB"
+            items={popularTVRail}
+            mediaType="tv"
+            onItemClick={openTitle}
+            loading={popularTV.isLoading}
+          />
+        </div>
+      )}
     </Layout>
   );
 }
