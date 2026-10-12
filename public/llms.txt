@@ -4,7 +4,9 @@
 
 Reel is a free web app for browsing trending and popular movies and TV
 shows, saving titles to a personal watchlist, tracking watched episodes, and
-viewing personal viewing stats.
+viewing personal viewing stats. It works without an account (the list stays in
+your browser), and has an optional account plus an MCP server so an AI
+assistant can manage your list with your permission.
 
 ## Pages
 
@@ -14,7 +16,11 @@ viewing personal viewing stats.
 - [Upcoming](/upcoming): Upcoming releases and new episodes for the titles saved in your list.
 - [My List](/watchlist): Your saved titles, watched status and ratings.
 - [Stats](/stats): Personal viewing statistics.
+- [About](/about): What Reel is and how its data works.
+- [Privacy](/privacy): What is stored, where, and who it is shared with.
+- [Terms](/terms): Plain-language terms of use.
 
 ## Optional
 
 - [Sign in](/auth): Account access to sync your watchlist across devices.
+- [Settings](/settings): Theme, export your data, and delete your account.

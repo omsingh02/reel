@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://github.com/omsingh02/reel/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/omsingh02/reel/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1D64C9"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-F25B31"></a>
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white">
   <img alt="React" src="https://img.shields.io/badge/React-18-149ECA?logo=react&logoColor=white">
   <img alt="Vite" src="https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white">
@@ -34,35 +34,40 @@
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/discover.webp" alt="Discover page with a featured title and trending rails" width="49%">
-  <img src="docs/screenshots/title-details.webp" alt="Title page with rating, watched date and trailer" width="49%">
+  <img src="docs/screenshots/discover.webp" alt="Discover with a cinemascope featured title and trending rails" width="49%">
+  <img src="docs/screenshots/title-details.webp" alt="Title page with your rating, watched date and where to watch" width="49%">
 </p>
 <p align="center">
-  <img src="docs/screenshots/my-list.png" alt="My List with watched titles and ratings" width="49%">
-  <img src="docs/screenshots/episode-tracking.png" alt="Per-episode progress for a TV show" width="49%">
+  <img src="docs/screenshots/my-list.webp" alt="My List with watched titles and ratings" width="49%">
+  <img src="docs/screenshots/episode-tracking.webp" alt="Per-episode progress for a TV show" width="49%">
 </p>
 <p align="center">
-  <img src="docs/screenshots/stats.png" alt="Viewing stats" width="49%">
-  <img src="docs/screenshots/upcoming.png" alt="Upcoming releases and new episodes for your list" width="49%">
+  <img src="docs/screenshots/stats.webp" alt="Viewing stats as a credits sheet" width="49%">
+  <img src="docs/screenshots/upcoming.webp" alt="Upcoming releases and new episodes as ticket stubs" width="49%">
 </p>
 
 <details>
-<summary><b>Mobile and light theme</b></summary>
+<summary><b>Mobile, light theme and account screens</b></summary>
 <br>
 <p align="center">
   <img src="docs/screenshots/mobile-discover.webp" alt="Mobile Discover" width="24%">
-  <img src="docs/screenshots/mobile-my-list.png" alt="Mobile My List" width="24%">
-  <img src="docs/screenshots/mobile-stats.png" alt="Mobile Stats" width="24%">
+  <img src="docs/screenshots/mobile-my-list.webp" alt="Mobile My List" width="24%">
+  <img src="docs/screenshots/mobile-stats.webp" alt="Mobile Stats" width="24%">
+  <img src="docs/screenshots/mobile-title.webp" alt="Mobile title page" width="24%">
 </p>
 <p align="center">
-  <img src="docs/screenshots/light-mode.webp" alt="Movies catalogue in the light theme" width="80%">
+  <img src="docs/screenshots/light-mode.webp" alt="Movies catalogue in the light theme" width="49%">
+  <img src="docs/screenshots/settings.webp" alt="Settings with appearance, account and data export" width="49%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/auth.webp" alt="Sign in and create account" width="80%">
 </p>
 </details>
 
 ## Features
 
 **Discover**
-- Featured title plus trending and popular rails for movies and TV.
+- A cinemascope hero for the featured title, then trending and popular rails for movies and TV.
 - Browse **Movies** and **TV Shows** by genre, year, minimum rating and sort order. Filters live in the URL, so a filtered view is shareable.
 - Search with infinite scroll. If the Movies tab has no hits but TV does, it switches for you.
 - Title pages with cast and crew, trailer, recommendations, similar titles, and **where to watch** by region (streaming, rent, buy).
@@ -77,8 +82,11 @@
 **Yours, wherever you are**
 - **Guest first.** Everything works without an account and is stored in your browser. Sign in later and your list, hidden titles and episode progress are merged into your account.
 - Email and password accounts with verification and password reset. Per-user data is protected by Postgres Row Level Security.
-- Dark and light themes, a responsive layout with a mobile bottom bar, and a web app manifest so it can be added to your home screen.
+- **Settings**: switch theme, change your password, **export everything as JSON**, clear this device's data, or **delete your account** (a typed confirmation, then everything you saved goes with it).
+- Dark ("projection room") and light ("programme paper") themes, a top navigation bar on desktop and a bottom tab bar on phones, and a web app manifest so it can be added to your home screen.
+- Accessible by design: keyboard-friendly dialogs with focus management, labelled controls, and colour pairs checked against WCAG AA in both themes.
 - Catalogue responses are cached locally for a few hours so the app feels instant.
+- Plain-language [About](src/pages/About.tsx), [Privacy](src/pages/Privacy.tsx) and [Terms](src/pages/Terms.tsx) pages that say what is stored and who it is shared with.
 
 **For AI assistants**
 - An OAuth-protected [MCP server](#mcp-server) lets compatible assistants search titles and manage your list on your behalf.
@@ -87,11 +95,11 @@
 
 | Layer | What it uses |
 | --- | --- |
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui (Radix), React Router, TanStack Query, Zod |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, Radix UI primitives with the in-house "Projection Room" design system ([docs/DESIGN.md](docs/DESIGN.md)), React Router, TanStack Query, Zod, Sonner |
 | Backend | Supabase: Postgres with RLS, Auth, Edge Functions (Deno) |
 | Data | [TMDB](https://www.themoviedb.org/) catalogue, reached through a server-side proxy so the API key never ships to the browser |
 | AI access | MCP server built with the open-source `@lovable.dev/mcp-js` SDK, authenticated by Supabase OAuth |
-| Quality | Vitest, ESLint, `tsc`, GitHub Actions CI |
+| Quality | Vitest, ESLint, `tsc`, a WCAG contrast check for the colour tokens, GitHub Actions CI |
 
 ### How it fits together
 
@@ -123,6 +131,7 @@ supabase db push                                  # tables, RLS policies, constr
 supabase config push                              # auth URLs, email confirmation, MCP OAuth server
 supabase secrets set TMDB_API_KEY=<your-tmdb-key> # server-side only, never a VITE_ variable
 supabase functions deploy tmdb                    # TMDB proxy
+supabase functions deploy delete-account          # lets a signed-in user delete their own account
 bun run deploy:mcp                                # MCP server: bundles src/lib/mcp, then deploys it
 ```
 
@@ -143,13 +152,15 @@ Guest mode works as soon as the `tmdb` function is deployed; sign-in, sync and t
 | `dev` | Start the Vite dev server on port 8080 |
 | `build` | Production build to `dist/` (regenerates the sitemap first) |
 | `preview` | Serve the production build locally |
+| `build:mcp` / `deploy:mcp` | Bundle the MCP server from `src/lib/mcp/` / bundle it and deploy it |
 | `typecheck` | Type-check with `tsc` |
 | `lint` | Run ESLint |
 | `test` / `test:watch` | Run the Vitest suite once / in watch mode |
+| `node scripts/check-contrast.mjs` | Check every text/background colour pair in `src/index.css` against WCAG AA, in both themes |
 
 ### Deploying
 
-Reel is a static SPA plus two Supabase edge functions, so it fits the free tiers of [Vercel](https://vercel.com) and [Supabase](https://supabase.com).
+Reel is a static SPA plus three small Supabase edge functions, so it fits the free tiers of [Vercel](https://vercel.com) and [Supabase](https://supabase.com).
 
 1. **Backend:** run the Supabase commands above against your project.
 2. **Frontend:** import the repo into Vercel (the Vite preset is detected; [`vercel.json`](vercel.json) adds the SPA rewrite, cache headers and security headers) and set these environment variables for Production and Preview:
@@ -196,17 +207,23 @@ Then ask things like *"add Dune: Part Two to my list"* or *"mark Severance as wa
 
 ```
 src/
-  components/      UI building blocks (shadcn/ui primitives live in components/ui)
+  components/
+    ui/            Design-system primitives on Radix: button, dialog, select, tabs, ...
+    reel/          Film-specific pieces: poster, rating scale, details slate, stats, empty-state art
+    browse/ title/ library/ account/   Pieces owned by one area of the app
   contexts/        Auth context
   hooks/           Data hooks: watchlist, episode progress, hidden titles, show sync
   integrations/    Generated Supabase client and types
   lib/             TMDB client, date helpers, local stores, episode logic, MCP tools
-  pages/           Route components
+  pages/           Route components (src/pages/Design.tsx is a dev-only style guide at /design)
 supabase/
-  functions/       tmdb (catalogue proxy) and mcp (generated MCP server)
+  functions/       tmdb (catalogue proxy), delete-account, and mcp (MCP server)
   migrations/      SQL schema and RLS policies
-docs/              Brand guide, banner, screenshots
+scripts/           Sitemap, MCP bundle and colour-contrast tooling
+docs/              Design system, brand guide, banner, screenshots
 ```
+
+The visual language lives in [`docs/DESIGN.md`](docs/DESIGN.md) (tokens, type, components and rules) and [`docs/BRAND.md`](docs/BRAND.md) (logo and assets). Run `bun run dev` and open `/design` to see every token and component in both themes.
 
 A few conventions worth knowing: TMDB dates are plain calendar dates, so always go through `src/lib/dates.ts` instead of `new Date("YYYY-MM-DD")` (which shifts a day west of UTC), and guest and signed-in users share the same hooks, switching storage behind the scenes.
 
@@ -216,7 +233,7 @@ Bug reports, ideas and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIB
 
 ## Roadmap ideas
 
-Not promises, just where it could go next: import from Letterboxd and Trakt exports, export to CSV/JSON, custom lists, new-episode notifications, genre stats, and a service worker for true offline use.
+Not promises, just where it could go next: import from Letterboxd and Trakt exports, CSV export (JSON export is in Settings), custom lists, new-episode notifications, genre stats, and a service worker for true offline use.
 
 ## License
 
@@ -225,5 +242,5 @@ Not promises, just where it could go next: import from Letterboxd and Trakt expo
 ## Acknowledgements and attribution
 
 - Movie and TV metadata, images and streaming-availability data come from [TMDB](https://www.themoviedb.org/); availability data is provided by JustWatch via TMDB. **This product uses the TMDB API but is not endorsed or certified by TMDB.**
-- UI built with [shadcn/ui](https://ui.shadcn.com), [Radix UI](https://www.radix-ui.com), [Lucide](https://lucide.dev) icons and the [Inter](https://rsms.me/inter/) typeface.
+- UI built on [Radix UI](https://www.radix-ui.com) primitives and [Lucide](https://lucide.dev) icons, with [Sonner](https://sonner.emilkowal.ski) for toasts. Type is set in [Fraunces](https://github.com/undercasetype/Fraunces), [Instrument Sans](https://github.com/Instrument/instrument-sans) and [IBM Plex Mono](https://github.com/IBM/plex), self-hosted via [Fontsource](https://fontsource.org) under the SIL Open Font License.
 - Posters and artwork in the screenshots belong to their respective owners.

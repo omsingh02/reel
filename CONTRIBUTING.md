@@ -25,14 +25,15 @@ data comes from the `tmdb` edge function, which needs a `TMDB_API_KEY` secret
 
 | Path | What lives there |
 | --- | --- |
-| `src/pages/` | Route-level screens (Discover, Movies, Shows, My List, Upcoming, Stats, Hidden, Auth, …) |
-| `src/components/` | Feature components; `components/ui/` is shadcn-ui |
+| `src/pages/` | Route-level screens (Discover, Movies, Shows, My List, Upcoming, Stats, Hidden, Settings, Auth, About, …). `Design.tsx` is a dev-only style guide at `/design` |
+| `src/components/` | `ui/` design-system primitives (Radix), `reel/` film-specific pieces, `browse/` `title/` `library/` `account/` parts that belong to one area, and shared app-frame components |
 | `src/hooks/` | Data hooks (watchlist, episode progress, hidden titles, show sync) |
 | `src/lib/` | Pure helpers: TMDB client, dates, show/episode logic, guest storage, MCP tool sources |
 | `src/contexts/` | Auth context |
 | `supabase/migrations/` | SQL migrations, including RLS policies |
-| `supabase/functions/` | Edge functions: `tmdb` (catalogue proxy) and `mcp` (MCP server) |
-| `scripts/` | Build-time scripts (sitemap) |
+| `supabase/functions/` | Edge functions: `tmdb` (catalogue proxy), `delete-account`, and `mcp` (MCP server) |
+| `scripts/` | Tooling: sitemap, MCP bundle, colour-contrast check |
+| `docs/` | `DESIGN.md` (the design system), `BRAND.md`, banner and screenshots |
 
 ## Workflow
 
@@ -54,8 +55,12 @@ data comes from the `tmdb` edge function, which needs a `TMDB_API_KEY` secret
 
 ## Code guidelines
 
-- **UI:** shadcn-ui and Tailwind. Reuse components in `src/components/ui/` and the existing design
-  tokens rather than adding one-off colors.
+- **UI:** Tailwind with the design system in [`docs/DESIGN.md`](docs/DESIGN.md). Reuse components
+  from `src/components/ui/` and `src/components/reel/`, and use semantic tokens (`bg-card`,
+  `text-muted-foreground`, `border-border`), never raw hex or Tailwind palette colours. There is no
+  blue or purple in the palette. Each page uses `PageHeader` for its single `h1`, and every data
+  view needs loading, empty and error states. Open `/design` in development to see every piece in
+  both themes. If you change colour tokens, run `node scripts/check-contrast.mjs`.
 - **Imports:** use the `@/…` alias, not long relative paths.
 - **Dates:** TMDB dates are calendar dates like `2026-10-12`. Always go through `src/lib/dates.ts`.
   Never call `new Date('YYYY-MM-DD')` — it parses as UTC and shows the wrong day west of UTC.
@@ -68,6 +73,8 @@ data comes from the `tmdb` edge function, which needs a `TMDB_API_KEY` secret
 - **Migrations** live in `supabase/migrations/`. Every table needs Row Level Security and policies;
   the publishable key ships to browsers, so RLS is the security boundary.
 - **Edge functions** live in `supabase/functions/` and need redeploying after changes.
+  `delete-account` checks the caller's token itself (`verify_jwt = false` in `config.toml`) and
+  refuses tokens issued to connected apps; keep it that way.
 - **The MCP server** is written in `src/lib/mcp/`. The bundle at `supabase/functions/mcp/index.ts`
   is **auto-generated** from those sources — edit the sources, not the bundle. If you can't
   regenerate it, mirror your change in both and say so in the PR.

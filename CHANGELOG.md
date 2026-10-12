@@ -7,6 +7,18 @@ All notable changes to Reel are documented here. The format is based on
 
 ### Added
 
+- **"Projection Room" design system.** Two warm themes (a projection-black dark theme and a
+  "programme paper" light theme), one signal colour with gold reserved for ratings, Fraunces /
+  Instrument Sans / IBM Plex Mono type (self-hosted), a Radix-based component library, film-specific
+  pieces (poster with typeset fallback, ten-frame rating scale, details slate, empty-state art),
+  and a dev-only style guide at `/design`. Documented in `docs/DESIGN.md`;
+  `scripts/check-contrast.mjs` checks every colour pair against WCAG AA in both themes.
+- **Settings** (`/settings`): theme, change password, export your data as JSON, clear this device's
+  data, and delete your account behind a typed confirmation.
+- **About, Privacy and Terms** pages (`/about`, `/privacy`, `/terms`). The Privacy and Terms texts
+  are plain-language drafts and should be reviewed before relying on them.
+- `delete-account` edge function: verifies the caller's token with Supabase Auth, then deletes the
+  user; their rows cascade. Deploy with `supabase functions deploy delete-account`.
 - Hidden titles page (`/hidden`) to review and unhide anything marked "Not interested", plus an
   Undo toast when hiding a title.
 - "Watched on" date picker, so past viewings can be logged on the right day.
@@ -17,18 +29,34 @@ All notable changes to Reel are documented here. The format is based on
 - Forgot-password and reset-password flow (`/reset-password`).
 - Mobile "More" menu (Upcoming, Stats, Hidden titles, theme, account) and a Movies tab in the bottom bar.
 - "My rating" sort on My List.
-- TMDB and JustWatch attribution in the sidebar and mobile menu.
+- TMDB and JustWatch attribution in the site footer and on the About page.
 - Per-title page titles and descriptions; share links now use `/movie/:id` and `/show/:id`.
 - Search switches to the other tab when only that tab has results, and keeps results without a poster.
 - Default "Available on" region now comes from the browser locale.
 - `slim=1` option on the `tmdb` edge function for lightweight details.
 - Unit tests for dates, runtime calculation, episode logic and list cleaning; CI workflow,
   issue and PR templates, Dependabot, and contributor docs.
-- Brand kit: path-based logo and wordmarks, banner, GitHub social preview, README screenshots and
-  a brand guide (`docs/`), plus the MIT `LICENSE`.
+- Brand kit: logo, wordmarks, app icons, banner, GitHub social preview, README screenshots and a
+  brand guide (`docs/`), plus the MIT `LICENSE`.
 
 ### Changed
 
+- **The whole interface was redesigned**, with the same data, routes and behaviour:
+  - A top navigation bar on desktop and a bottom tab bar with a "More" sheet on phones, replacing
+    the sidebar.
+  - Discover opens on a cinemascope hero; Movies, TV Shows and Search get a filter toolbar and
+    loading, empty and error states shaped like the content.
+  - The title view is an accessible Radix dialog (labelled by the title, focus trap, scroll lock)
+    and a standalone page, with a film-strip episode tracker.
+  - My List is a set of rows with a watched toggle and a rating popover, Upcoming is a set of ticket
+    stubs, Stats is a credits sheet and Hidden is a poster grid.
+  - Sign-in is a split layout with inline field errors and a show/hide password toggle; the OAuth
+    consent screen names the client and says what it can do.
+  - The error, offline and missing-configuration screens use the shared empty-state and callout
+    components; the offline banner is a slim strip under the top bar.
+- Toasts use a single system (Sonner); the old Radix toast and compatibility adapter were removed.
+- New brand identity (film-frame mark, new icons, social card, banner and architecture diagram),
+  replacing the earlier blue one.
 - **Standalone deployment.** Reel no longer depends on the Lovable platform: the Supabase client is
   plain (no preview-auth broker), the `.lovable/` folder is gone, the MCP consent screen moved from
   `/.lovable/oauth/consent` to `/oauth/consent`, `.env` is no longer tracked, and the Supabase auth
@@ -58,6 +86,10 @@ All notable changes to Reel are documented here. The format is based on
 
 ### Fixed
 
+- The title details grid no longer leaves a solid empty cell when a row has an odd item out.
+- On phones the rating and "Where to watch" now follow the synopsis instead of sitting below the
+  whole cast and episode list.
+- A season's accessible name reads "Season 1, 0/8 watched" instead of "Season 10/8 watched".
 - MCP tools read `SUPABASE_ANON_KEY` (what Supabase injects into Edge Functions) when
   `SUPABASE_PUBLISHABLE_KEY` is absent, so they work on a regular Supabase project.
 - The `tmdb` function times out after 8 s, forwards upstream 404/429 (with `Retry-After`) instead
@@ -92,6 +124,8 @@ All notable changes to Reel are documented here. The format is based on
 
 ### Security
 
+- `delete-account` refuses tokens issued to connected apps, so an assistant you approved to manage
+  your list can never delete your account; only a session in Reel itself can.
 - TMDB request errors can contain the full request URL, including the API key. The `tmdb` function
   now redacts it from logs, and the MCP tools return a generic "TMDB is unreachable or timed out"
   message instead of the raw error.
