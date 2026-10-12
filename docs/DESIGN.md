@@ -74,7 +74,7 @@ Fonts are self-hosted (`@fontsource`), loaded in `src/main.tsx`.
 | `MediaCard` | poster + plain title + mono year/score. One real button via a stretched link; quick actions (add/remove, hide) on hover, focus and touch; a corner flag shows "in your list" or "watched" |
 | `RatingScale` | 1–10 as ten film frames that fill gold. Radio group: click, arrows, Home/End, Backspace to clear. Hover previews. `sm` variant for popovers and rows |
 | `SectionHeader` | serif section title with optional subtitle and action |
-| `Slate` | production details as a hairline grid, like a clapperboard's info panel |
+| `Slate` | production details as a hairline grid, like a clapperboard's info panel; a cell left alone in its row stretches across it |
 | `Stat` | one big serif number with a mono label |
 | `SprocketRule` | decorative perforation divider |
 | `Art`, `EmptyState` | monoline film illustrations and the empty/error layout |

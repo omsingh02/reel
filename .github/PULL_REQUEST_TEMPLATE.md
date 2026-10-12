@@ -24,5 +24,5 @@
 <!-- Delete if not applicable. -->
 
 - [ ] Database change: migration added under `supabase/migrations/` with RLS policies
-- [ ] Edge function change (`tmdb` or `mcp`): needs redeploying, noted here
+- [ ] Edge function change (`tmdb`, `delete-account` or `mcp`): needs redeploying, noted here
 - [ ] MCP tools changed in `src/lib/mcp/` (the generated bundle in `supabase/functions/mcp/` is updated too)

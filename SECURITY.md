@@ -23,7 +23,7 @@ In scope:
 - Authentication and session handling (sign-in, sign-up, password reset)
 - Row Level Security (RLS) policies and anything that could expose or change another user's data
   (`watchlist_items`, `hidden_items`, `episode_progress`, `profiles`)
-- The `tmdb` and `mcp` Supabase Edge Functions (`supabase/functions/`)
+- The `tmdb`, `delete-account` and `mcp` Supabase Edge Functions (`supabase/functions/`)
 - The OAuth consent flow used by the MCP server (`/oauth/consent`)
 
 Out of scope:
