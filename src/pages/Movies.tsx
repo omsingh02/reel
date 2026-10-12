@@ -1,4 +1,3 @@
-import { Film } from 'lucide-react';
 import { MediaListPage } from '@/components/MediaListPage';
 import { Seo } from '@/components/Seo';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +14,6 @@ export default function Movies() {
       <MediaListPage
         title="Movies"
         mediaType="movie"
-        emptyIcon={Film}
         subtitle="Browse by genre, year and rating"
       />
     </>

@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { Search as SearchIcon, AlertTriangle } from 'lucide-react';
+import { Clapperboard, Tv } from 'lucide-react';
 import { Layout } from '@/components/Layout';
+import { PageContainer, PageHeader } from '@/components/PageHeader';
 import { Seo } from '@/components/Seo';
 import { SearchBar } from '@/components/SearchBar';
 import { MediaGrid } from '@/components/MediaGrid';
 import { MediaGridSkeleton } from '@/components/MediaGridSkeleton';
 import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
+import { Segmented } from '@/components/ui/segmented';
 import { searchMedia, cleanMediaList } from '@/lib/tmdb';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useHidden } from '@/hooks/useHidden';
 import { useOpenTitle } from '@/hooks/useOpenTitle';
-import { cn } from '@/lib/utils';
 import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 
 const PAGE_CAP = 10;
@@ -99,65 +100,66 @@ export default function SearchPage() {
         path="/search"
         noindex
       />
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
+      <PageHeader
+        eyebrow="Search"
+        title={query ? <>Results for &ldquo;{query}&rdquo;</> : 'Search'}
+        className="pb-5 sm:pb-6"
+      />
+
+      <PageContainer className="space-y-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <SearchBar
             key={query}
             defaultValue={query}
             onSearch={setQuery}
             autoFocus
-            placeholder="Search movies and TV shows..."
-            className="flex-1 max-w-2xl"
+            placeholder="Search movies and TV shows…"
+            className="flex-1 sm:max-w-2xl"
+          />
+          <Segmented<MediaType>
+            aria-label="Search in"
+            value={type}
+            onValueChange={setType}
+            options={[
+              { value: 'movie', label: 'Movies', icon: <Clapperboard /> },
+              { value: 'tv', label: 'Shows', icon: <Tv /> },
+            ]}
+            className="self-start sm:self-auto"
           />
         </div>
-      </header>
 
-      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6 space-y-5">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold tracking-tight truncate">
-            {query ? `Results for “${query}”` : 'Search'}
-          </h1>
-          <div className="flex items-center gap-1 p-1 rounded-full bg-secondary/60 shrink-0">
-            {(['movie', 'tv'] as MediaType[]).map(t => (
-              <button
-                key={t}
-                onClick={() => setType(t)}
-                className={cn(
-                  'px-4 h-8 rounded-full text-sm font-medium transition-colors',
-                  type === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {t === 'movie' ? 'Movies' : 'Shows'}
-              </button>
-            ))}
-          </div>
-        </div>
+        {query && results.isSuccess && (
+          <p role="status" className="sr-only">
+            {items.length === 0 ? 'No results' : `${items.length} ${items.length === 1 ? 'result' : 'results'} loaded`}
+          </p>
+        )}
 
         {!query ? (
           <EmptyState
-            icon={SearchIcon}
-            title="Search the catalog"
+            art="search"
+            title="Search the catalogue"
             description="Type a movie or show title to get started."
           />
         ) : results.isLoading ? (
           <MediaGridSkeleton count={12} />
         ) : results.isError ? (
-          <EmptyState icon={AlertTriangle} title="Couldn't load results" description="Something went wrong reaching the catalog.">
-            <Button className="rounded-full" onClick={() => results.refetch()}>Try again</Button>
+          <EmptyState art="error" title="Couldn't load results" description="Something went wrong reaching the catalogue. Check your connection and try again.">
+            <Button onClick={() => results.refetch()}>Try again</Button>
           </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState
-            icon={SearchIcon}
+            art="search"
             title="No results found"
             description={`No ${type === 'movie' ? 'movies' : 'shows'} match “${query}”. Try the other tab or a different spelling.`}
           />
         ) : (
           <>
+            <h2 className="sr-only">Search results</h2>
             <MediaGrid items={items} mediaType={type} onItemClick={openTitle} />
-            <div ref={loadMoreRef} className="py-4">
+            <div ref={loadMoreRef} className="pb-4">
               {results.isFetchingNextPage && <MediaGridSkeleton count={6} />}
               {!results.hasNextPage && (
-                <p className="text-center text-xs text-muted-foreground py-2">
+                <p className="label-mono py-8 text-center">
                   {reachedCap
                     ? `Showing the top ${PAGE_CAP * 20} results — try a more specific search`
                     : "You've reached the end"}
@@ -166,7 +168,7 @@ export default function SearchPage() {
             </div>
           </>
         )}
-      </div>
+      </PageContainer>
     </Layout>
   );
 }

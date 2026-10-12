@@ -1,4 +1,3 @@
-import { Tv } from 'lucide-react';
 import { MediaListPage } from '@/components/MediaListPage';
 import { Seo } from '@/components/Seo';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +14,6 @@ export default function TVShows() {
       <MediaListPage
         title="TV Shows"
         mediaType="tv"
-        emptyIcon={Tv}
         subtitle="Browse by genre, year and rating"
       />
     </>

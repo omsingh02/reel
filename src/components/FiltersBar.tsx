@@ -5,6 +5,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { getGenres } from '@/lib/tmdb';
+import { cn } from '@/lib/utils';
 import type { MediaType } from '@/types/tmdb';
 
 export interface CatalogFilters {
@@ -37,6 +38,10 @@ interface FiltersBarProps {
   className?: string;
 }
 
+/**
+ * Genre, year, minimum rating and sort, as a quiet toolbar of selects. Two columns on phones,
+ * a single row from `sm` up. A "Clear" action appears only when something is filtered.
+ */
 export function FiltersBar({ mediaType, value, onChange, className = '' }: FiltersBarProps) {
   const { data } = useQuery({
     queryKey: ['genres', mediaType],
@@ -57,65 +62,60 @@ export function FiltersBar({ mediaType, value, onChange, className = '' }: Filte
     },
   ];
 
-  const triggerClass = 'h-9 rounded-full bg-secondary/60 border-0 text-sm w-auto min-w-[7.5rem] gap-1';
+  const trigger = 'sm:w-44';
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+    <div role="group" aria-label="Filters" className={cn('grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center', className)}>
       <Select value={value.genre || ANY} onValueChange={v => set({ genre: clean(v) })}>
-        <SelectTrigger className={triggerClass} aria-label="Filter by genre">
+        <SelectTrigger className={trigger} aria-label="Filter by genre">
           <SelectValue placeholder="Genre" />
         </SelectTrigger>
-        <SelectContent className="rounded-2xl max-h-72">
-          <SelectItem value={ANY} className="rounded-xl">All genres</SelectItem>
+        <SelectContent>
+          <SelectItem value={ANY}>All genres</SelectItem>
           {genres.map(g => (
-            <SelectItem key={g.id} value={String(g.id)} className="rounded-xl">{g.name}</SelectItem>
+            <SelectItem key={g.id} value={String(g.id)}>{g.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       <Select value={value.year || ANY} onValueChange={v => set({ year: clean(v) })}>
-        <SelectTrigger className={triggerClass} aria-label="Filter by year">
+        <SelectTrigger className={trigger} aria-label="Filter by year">
           <SelectValue placeholder="Year" />
         </SelectTrigger>
-        <SelectContent className="rounded-2xl max-h-72">
-          <SelectItem value={ANY} className="rounded-xl">Any year</SelectItem>
+        <SelectContent>
+          <SelectItem value={ANY}>Any year</SelectItem>
           {YEARS.map(y => (
-            <SelectItem key={y} value={y} className="rounded-xl">{y}</SelectItem>
+            <SelectItem key={y} value={y} className="numeral">{y}</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       <Select value={value.minRating || ANY} onValueChange={v => set({ minRating: clean(v) })}>
-        <SelectTrigger className={triggerClass} aria-label="Filter by minimum rating">
+        <SelectTrigger className={trigger} aria-label="Filter by minimum rating">
           <SelectValue placeholder="Rating" />
         </SelectTrigger>
-        <SelectContent className="rounded-2xl">
-          <SelectItem value={ANY} className="rounded-xl">Any rating</SelectItem>
+        <SelectContent>
+          <SelectItem value={ANY}>Any rating</SelectItem>
           {RATINGS.map(r => (
-            <SelectItem key={r} value={r} className="rounded-xl">{r}+ rating</SelectItem>
+            <SelectItem key={r} value={r}>{r}+ rating</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       <Select value={value.sort} onValueChange={v => set({ sort: v })}>
-        <SelectTrigger className={triggerClass} aria-label="Sort results">
+        <SelectTrigger className={trigger} aria-label="Sort results">
           <SelectValue placeholder="Sort" />
         </SelectTrigger>
-        <SelectContent className="rounded-2xl">
+        <SelectContent>
           {sortOptions.map(o => (
-            <SelectItem key={o.value} value={o.value} className="rounded-xl">{o.label}</SelectItem>
+            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
       {hasActiveFilters(value) && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-9 rounded-full gap-1 text-muted-foreground"
-          onClick={() => onChange(DEFAULT_FILTERS)}
-        >
-          <X className="h-3.5 w-3.5" />
+        <Button variant="ghost" onClick={() => onChange(DEFAULT_FILTERS)} className="col-span-2 sm:col-auto">
+          <X />
           Clear
         </Button>
       )}
