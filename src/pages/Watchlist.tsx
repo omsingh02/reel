@@ -1,20 +1,21 @@
-import { useState, useCallback, useMemo } from 'react';
-import { List, LogIn, Filter as FilterIcon, CalendarDays, BarChart3 } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Seo } from '@/components/Seo';
 import { WatchlistCard } from '@/components/WatchlistCard';
 import { EmptyState } from '@/components/EmptyState';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { PageContainer, PageHeader } from '@/components/PageHeader';
+import { ListSkeleton } from '@/components/library/Skeletons';
 import { Button } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { Segmented } from '@/components/ui/segmented';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useOpenTitle } from '@/hooks/useOpenTitle';
-import type { MediaType, WatchlistItem } from '@/types/tmdb';
+import type { WatchlistItem } from '@/types/tmdb';
 
 type StatusFilter = 'all' | 'watchlist' | 'watched';
 type TypeFilter = 'all' | 'movie' | 'tv';
@@ -26,7 +27,6 @@ export default function Watchlist() {
   const [status, setStatus] = useState<StatusFilter>('all');
   const [type, setType] = useState<TypeFilter>('all');
   const [sort, setSort] = useState<SortKey>('added');
-  const navigate = useNavigate();
 
   const handleItemClick = useOpenTitle();
 
@@ -63,102 +63,101 @@ export default function Watchlist() {
 
   const showSignInPrompt = !user && !authLoading && watchlist.length === 0;
   const watchedCount = watchlist.filter(w => (w.status ?? 'watchlist') === 'watched').length;
+  const loading = authLoading || isLoading;
+
+  const description = watchlist.length > 0
+    ? `${watchlist.length} ${watchlist.length === 1 ? 'title' : 'titles'} · ${watchedCount} watched`
+    : 'The movies and shows you want to see, and the ones you have.';
+
+  const browseButtons = (
+    <>
+      <Button asChild><Link to="/movies">Browse movies</Link></Button>
+      <Button asChild variant="secondary"><Link to="/shows">Browse shows</Link></Button>
+    </>
+  );
 
   return (
     <Layout>
       <Seo title="My List — Reel" description="Your saved movies and TV shows, with watched status, ratings and filters to decide what to watch next." path="/watchlist" noindex />
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="flex items-center gap-3 px-3 sm:px-5 lg:px-8 h-16">
-          <h1 className="text-xl font-semibold">My List</h1>
-          {watchlist.length > 0 && (
-            <span className="text-sm text-muted-foreground">
-              ({watchlist.length} · {watchedCount} watched)
-            </span>
-          )}
-          <div className="ml-auto flex items-center gap-1">
-            <Link
-              to="/upcoming"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm px-3 py-1.5 rounded-full hover:bg-secondary transition-colors"
-            >
-              <CalendarDays className="h-4 w-4" /> <span className="hidden sm:inline">Upcoming</span>
-            </Link>
-            <Link
-              to="/stats"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm px-3 py-1.5 rounded-full hover:bg-secondary transition-colors"
-            >
-              <BarChart3 className="h-4 w-4" /> <span className="hidden sm:inline">Stats</span>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PageHeader eyebrow="Library" title="My List" description={description} />
 
-      <div className="flex-1 px-3 sm:px-5 lg:px-8 py-6">
+      <PageContainer className="pb-6">
+        {!loading && !user && watchlist.length > 0 && (
+          <Callout title="Your list lives on this device." className="mb-6">
+            Sign in to keep it everywhere.{' '}
+            <Link to="/auth" className="rounded-sm font-semibold text-primary-text underline underline-offset-4">Sign in</Link>
+          </Callout>
+        )}
+
         {!showSignInPrompt && watchlist.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 mb-5">
-            <FilterIcon className="h-4 w-4 text-muted-foreground" />
-            <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-              <SelectTrigger className="w-36 rounded-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="watchlist">To watch</SelectItem>
-                <SelectItem value="watched">Watched</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={type} onValueChange={(v) => setType(v as TypeFilter)}>
-              <SelectTrigger className="w-32 rounded-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Any type</SelectItem>
-                <SelectItem value="movie">Movies</SelectItem>
-                <SelectItem value="tv">TV</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
-              <SelectTrigger className="w-40 rounded-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="added">Recently added</SelectItem>
-                <SelectItem value="title">Title (A–Z)</SelectItem>
-                <SelectItem value="release">Newest release</SelectItem>
-                <SelectItem value="myrating">My rating</SelectItem>
-                <SelectItem value="rating">TMDB score</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-3">
+            <Segmented<StatusFilter>
+              aria-label="Show"
+              value={status}
+              onValueChange={setStatus}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'watchlist', label: 'To watch' },
+                { value: 'watched', label: 'Watched' },
+              ]}
+            />
+            <Segmented<TypeFilter>
+              aria-label="Type"
+              value={type}
+              onValueChange={setType}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'movie', label: 'Movies' },
+                { value: 'tv', label: 'TV' },
+              ]}
+            />
+            <div className="sm:ml-auto">
+              <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
+                <SelectTrigger aria-label="Sort by" className="h-9 w-48"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="added">Recently added</SelectItem>
+                  <SelectItem value="title">Title (A–Z)</SelectItem>
+                  <SelectItem value="release">Newest release</SelectItem>
+                  <SelectItem value="myrating">My rating</SelectItem>
+                  <SelectItem value="rating">TMDB score</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
 
-        {authLoading || isLoading ? (
-          <LoadingSpinner className="py-20" size="lg" />
+        {loading ? (
+          <ListSkeleton />
         ) : showSignInPrompt ? (
           <EmptyState
-            icon={List}
+            art="list"
             title="Your list is empty"
-            description="Start adding movies and TV shows right away — sign in any time to keep them in sync across devices."
+            description="Start adding movies and TV shows right away. Sign in any time to keep them in sync across devices."
           >
-            <Button variant="outline" onClick={() => navigate('/auth')} className="mt-4 rounded-full gap-2">
-              <LogIn className="h-4 w-4" /> Sign in to sync
-            </Button>
+            {browseButtons}
+            <Button asChild variant="ghost"><Link to="/auth">Sign in to sync</Link></Button>
           </EmptyState>
         ) : watchlist.length === 0 ? (
           <EmptyState
-            icon={List}
-            title="Your watchlist is empty"
-            description="Start adding movies and TV shows to keep track of what you want to watch"
-          />
-        ) : filtered.length === 0 ? (
-          <EmptyState
-            icon={FilterIcon}
-            title="Nothing matches"
-            description="Try clearing or changing your filters."
+            art="list"
+            title="Your list is empty"
+            description="Start adding movies and TV shows to keep track of what you want to watch."
           >
+            {browseButtons}
+          </EmptyState>
+        ) : filtered.length === 0 ? (
+          <EmptyState art="search" title="Nothing matches" description="Try clearing or changing your filters.">
             <Button
               variant="outline"
-              className="rounded-full mt-3"
               onClick={() => { setStatus('all'); setType('all'); setSort('added'); }}
             >
               Reset filters
             </Button>
           </EmptyState>
         ) : (
-          <div className="space-y-2 max-w-2xl">
+          <>
+          <h2 className="sr-only">Your titles</h2>
+          <ul className="grid gap-3 lg:grid-cols-2">
             {filtered.map((item: WatchlistItem) => (
               <WatchlistCard
                 key={`${item.mediaType}-${item.id}`}
@@ -166,10 +165,10 @@ export default function Watchlist() {
                 onClick={() => handleItemClick(item.id, item.mediaType)}
               />
             ))}
-          </div>
+          </ul>
+          </>
         )}
-      </div>
-
+      </PageContainer>
     </Layout>
   );
 }

@@ -1,32 +1,30 @@
 import { memo, useMemo } from 'react';
-import { X, Star, Film, Tv, CheckCircle2 } from 'lucide-react';
+import { Check, Star, X } from 'lucide-react';
+import { Poster } from '@/components/reel';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { Tag } from '@/components/ui/badge';
+import { RatingPopover } from '@/components/library/RatingPopover';
+import { WatchedToggle } from '@/components/library/WatchedToggle';
 import type { WatchlistItem } from '@/types/tmdb';
-import { getImageUrl } from '@/lib/tmdb';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import { useEpisodeProgress } from '@/hooks/useEpisodeProgress';
 import { useShowSync } from '@/hooks/useShowSync';
 import { yearOf } from '@/lib/dates';
-
-const RATINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 interface WatchlistCardProps {
   item: WatchlistItem;
   onClick?: () => void;
 }
 
+/**
+ * One entry in My List: poster, title and credits-style data on the left; the three things you do
+ * to an entry on the right (mark watched, rate, remove). The title is a real button stretched over
+ * the whole row, so the row opens the title while the actions stay separately clickable.
+ */
 export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: WatchlistCardProps) {
   const { removeFromWatchlist, setWatched } = useWatchlist();
   const { forShow } = useEpisodeProgress();
   const { markAllAired } = useShowSync();
-  const posterUrl = getImageUrl(item.posterPath, 'w154');
   const year = yearOf(item.releaseDate);
   const isWatched = item.status === 'watched';
 
@@ -37,13 +35,9 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
     [forShow, item.id, item.mediaType]
   );
 
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    removeFromWatchlist(item.id, item.mediaType);
-  };
+  const handleRemove = () => removeFromWatchlist(item.id, item.mediaType);
 
-  const handleToggleWatched = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleToggleWatched = () => {
     setWatched(item.id, item.mediaType, {
       status: isWatched ? 'watchlist' : 'watched',
       watchedAt: isWatched ? null : new Date().toISOString(),
@@ -52,8 +46,7 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
     if (!isWatched && item.mediaType === 'tv') void markAllAired(item.id);
   };
 
-  const handleRate = (e: React.MouseEvent, rating: number) => {
-    e.stopPropagation();
+  const handleRate = (rating: number) => {
     setWatched(item.id, item.mediaType, {
       rating,
       ...(isWatched ? {} : { status: 'watched' as const, watchedAt: new Date().toISOString() }),
@@ -61,116 +54,60 @@ export const WatchlistCard = memo(function WatchlistCard({ item, onClick }: Watc
     if (!isWatched && item.mediaType === 'tv') void markAllAired(item.id);
   };
 
-  const handleClearRating = (e: Event) => {
-    e.preventDefault();
-    setWatched(item.id, item.mediaType, { rating: null });
-  };
+  const handleClearRating = () => setWatched(item.id, item.mediaType, { rating: null });
 
   return (
-    <div
-      className="group flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/40 hover:shadow-md transition-all cursor-pointer"
-      onClick={onClick}
-    >
-      <div className="flex-shrink-0 w-12 aspect-[2/3] rounded-xl overflow-hidden bg-secondary">
-        {posterUrl ? (
-          <img src={posterUrl} alt={item.title} loading="lazy" className="h-full w-full object-cover" />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-            {item.mediaType === 'movie' ? <Film className="h-4 w-4" /> : <Tv className="h-4 w-4" />}
-          </div>
-        )}
+    <li className="group relative flex items-center gap-3 rounded-lg border border-border bg-card p-3 pr-1.5 transition-colors duration-fast hover:border-border-strong sm:gap-4 sm:pr-2">
+      <div className="w-14 shrink-0 sm:w-16">
+        <Poster path={item.posterPath} title={item.title} year={year} size="w154" />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start gap-2 mb-1">
-          <h3 className="font-medium text-sm leading-tight truncate" title={item.title}>
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug">
+          <button type="button" onClick={onClick} className="stretched-link text-left">
             {item.title}
-          </h3>
-          <span className="flex-shrink-0 text-[10px] font-medium py-0.5 px-2 rounded-full bg-secondary text-secondary-foreground">
-            {item.mediaType === 'movie' ? 'Movie' : 'TV'}
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span>{year || 'TBA'}</span>
+          </button>
+        </h3>
+
+        <p className="numeral flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-xs text-muted-foreground">
+          <span>{year ?? 'TBA'}</span>
+          <Tag>{item.mediaType === 'movie' ? 'Movie' : 'TV'}</Tag>
           {item.voteAverage > 0 && (
-            <span className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-rating text-rating" />
+            <span className="inline-flex items-center gap-1">
+              <Star className="h-3 w-3 fill-rating text-rating" aria-hidden />
+              <span className="sr-only">TMDB score </span>
               {item.voteAverage.toFixed(1)}
             </span>
           )}
-          {isWatched && (
-            <span className="inline-flex items-center gap-1 text-primary">
-              <CheckCircle2 className="h-3 w-3" />
-              Watched{typeof item.rating === 'number' ? ` · ${item.rating}/10` : ''}
+        </p>
+
+        <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          {isWatched ? (
+            <Tag variant="success"><Check strokeWidth={3} aria-hidden /> Watched</Tag>
+          ) : (
+            <Tag>To watch</Tag>
+          )}
+          {episodesWatched > 0 && (
+            <span className="numeral font-mono text-xs text-muted-foreground">
+              {episodesWatched} episode{episodesWatched === 1 ? '' : 's'} watched
             </span>
           )}
-          {!isWatched && episodesWatched > 0 && (
-            <span className="text-primary">{episodesWatched} episode{episodesWatched === 1 ? '' : 's'} watched</span>
-          )}
-        </div>
+        </p>
       </div>
 
-      <div className="flex items-center gap-0.5 flex-shrink-0">
+      <div className="relative z-10 flex shrink-0 items-center">
+        <WatchedToggle watched={isWatched} onToggle={handleToggleWatched} />
+        <RatingPopover rating={item.rating} watched={isWatched} onRate={handleRate} onClear={handleClearRating} />
         <Button
           variant="ghost"
-          size="sm"
-          className={cn(
-            "h-11 w-11 p-0 rounded-full",
-            isWatched ? "text-primary hover:bg-primary/10" : "text-muted-foreground hover:bg-secondary"
-          )}
-          onClick={handleToggleWatched}
-          aria-label={isWatched ? 'Mark as not watched' : 'Mark as watched'}
-        >
-          <CheckCircle2 className="h-5 w-5" />
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "h-11 w-11 p-0 rounded-full",
-                typeof item.rating === 'number' ? "text-rating hover:bg-rating/10" : "text-muted-foreground hover:bg-secondary"
-              )}
-              onClick={(e) => e.stopPropagation()}
-              aria-label="Rate this title"
-            >
-              <Star className={cn("h-5 w-5", typeof item.rating === 'number' && "fill-rating")} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-            <div className="grid grid-cols-5 gap-1 p-1">
-              {RATINGS.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={(e) => handleRate(e, n)}
-                  className={cn(
-                    "h-8 w-8 rounded-full text-xs font-medium transition-colors hover:bg-secondary",
-                    item.rating === n && "bg-primary text-primary-foreground hover:bg-primary"
-                  )}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-            {typeof item.rating === 'number' && (
-              <DropdownMenuItem onSelect={handleClearRating}>Clear rating</DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-11 w-11 p-0 rounded-full hover:bg-destructive/10 hover:text-destructive"
+          size="icon"
+          className="h-10 w-10 rounded-full text-muted-foreground hover:bg-destructive-subtle hover:text-destructive-text sm:h-11 sm:w-11"
           onClick={handleRemove}
           aria-label="Remove from watchlist"
         >
-          <X className="h-4 w-4" />
+          <X />
         </Button>
       </div>
-    </div>
+    </li>
   );
 });
