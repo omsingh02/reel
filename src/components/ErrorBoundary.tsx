@@ -1,7 +1,6 @@
 import { Component, type ReactNode } from 'react';
+import { Art } from '@/components/reel/art';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/EmptyState';
-import { AlertTriangle } from 'lucide-react';
 
 interface Props { children: ReactNode }
 interface State { error: Error | null }
@@ -10,7 +9,7 @@ interface State { error: Error | null }
  * Last line of defence: a render crash anywhere below shows a recoverable
  * screen instead of a blank page.
  *
- * Special case — a failed lazy chunk means the user is running an old build
+ * Special case: a failed lazy chunk means the user is running an old build
  * whose files no longer exist on the server (happens right after a deploy).
  * That is recoverable by reloading once; we guard with sessionStorage so a
  * genuinely broken build cannot become a reload loop.
@@ -47,21 +46,24 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (!this.state.error) return this.props.children;
 
+    // This can render outside the router and the theme provider, so it uses plain tokens only.
     return (
-      <div className="flex min-h-screen items-center justify-center px-6">
-        <EmptyState
-          icon={AlertTriangle}
-          title="Something broke"
-          description="That page hit an unexpected error. Nothing you saved was lost."
-        >
-          <div className="flex gap-2">
-            <Button className="rounded-full" onClick={this.reset}>Try again</Button>
-            <Button variant="outline" className="rounded-full" onClick={() => { window.location.href = '/'; }}>
+      <main className="flex min-h-dvh items-center justify-center bg-background px-6 py-16 text-foreground">
+        <div className="flex max-w-md flex-col items-center text-center">
+          <Art name="error" className="mb-6" />
+          <p className="label-mono">Something went wrong</p>
+          <h1 className="mt-2 text-display-sm text-balance">That page hit a snag</h1>
+          <p className="mt-3 text-muted-foreground text-pretty">
+            Nothing you saved was lost. Try again, or head back to Discover.
+          </p>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+            <Button onClick={this.reset}>Try again</Button>
+            <Button variant="outline" onClick={() => { window.location.href = '/'; }}>
               Back to Discover
             </Button>
           </div>
-        </EmptyState>
-      </div>
+        </div>
+      </main>
     );
   }
 }

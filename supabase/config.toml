@@ -19,6 +19,11 @@ verify_jwt = false
 # `npm:@lovable.dev/mcp-js`, whose dependency tree bundles to ~26 MB (over the upload limit).
 entrypoint = "./functions/mcp/dist/index.js"
 
+# Account deletion: checks the caller's token itself (and refuses connected-app tokens), so the
+# platform-level JWT check is off.
+[functions.delete-account]
+verify_jwt = false
+
 [auth]
 enabled = true
 # Production origin. The consent screen path below is appended to this.

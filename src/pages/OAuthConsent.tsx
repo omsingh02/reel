@@ -1,9 +1,15 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Loader2, Film, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { Seo } from "@/components/Seo";
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ArrowRight, Check } from 'lucide-react';
+import { FocusedLayout } from '@/components/account/FocusedLayout';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Logo } from '@/components/Logo';
+import { Art } from '@/components/reel';
+import { Seo } from '@/components/Seo';
+import { Button } from '@/components/ui/button';
+import { Callout } from '@/components/ui/callout';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 // Beta typed wrapper for supabase.auth.oauth (not yet in generated types).
 interface AuthorizationDetails {
@@ -20,25 +26,43 @@ type OAuthApi = {
 };
 const oauth = (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 
+/** What a connected assistant can do through Reel's tools. */
+const CAPABILITIES = [
+  'Search movies and TV shows',
+  'Read your list: statuses and ratings',
+  'Add titles to your list and mark them watched',
+  'Change your ratings and remove titles',
+];
+
+const seo = (
+  <Seo
+    title="Authorize app access — Reel"
+    description="Review and approve the access an external app is requesting to your Reel account."
+    path="/oauth/consent"
+    noindex
+  />
+);
+
 export default function OAuthConsent() {
   const [params] = useSearchParams();
-  const authorizationId = params.get("authorization_id") ?? "";
+  const { user } = useAuth();
+  const authorizationId = params.get('authorization_id') ?? '';
   const [details, setDetails] = useState<AuthorizationDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<'approve' | 'deny' | null>(null);
 
   useEffect(() => {
     let active = true;
     (async () => {
-      if (!authorizationId) return setError("Missing authorization_id.");
+      if (!authorizationId) return setError('Missing authorization_id.');
       const { data: sess } = await supabase.auth.getSession();
       if (!sess.session) {
         const next = window.location.pathname + window.location.search;
-        window.location.href = "/auth?next=" + encodeURIComponent(next);
+        window.location.href = '/auth?next=' + encodeURIComponent(next);
         return;
       }
       if (!oauth?.getAuthorizationDetails) {
-        return setError("OAuth is not available in this client build.");
+        return setError('OAuth is not available in this client build.');
       }
       const { data, error } = await oauth.getAuthorizationDetails(authorizationId);
       if (!active) return;
@@ -56,103 +80,110 @@ export default function OAuthConsent() {
   }, [authorizationId]);
 
   async function decide(approve: boolean) {
-    setBusy(true);
+    setBusy(approve ? 'approve' : 'deny');
     const { data, error } = approve
       ? await oauth.approveAuthorization(authorizationId)
       : await oauth.denyAuthorization(authorizationId);
     if (error) {
-      setBusy(false);
+      setBusy(null);
       return setError(error.message);
     }
     const target = data?.redirect_url ?? data?.redirect_to;
     if (!target) {
-      setBusy(false);
-      return setError("No redirect returned by the authorization server.");
+      setBusy(null);
+      return setError('No redirect returned by the authorization server.');
     }
     window.location.href = target;
   }
 
   if (error) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Seo
-        title="Authorize App Access — Reel"
-        description="Review and approve the access an external app is requesting to your Reel account."
-        path="/oauth/consent"
-        noindex
-      />
-        <div className="w-full max-w-md rounded-3xl bg-card shadow-lg p-8 text-center">
-          <h1 className="text-xl font-bold mb-2">Authorization error</h1>
-          <p className="text-sm text-muted-foreground">{error}</p>
+      <FocusedLayout>
+        {seo}
+        <div className="flex flex-col items-center py-8 text-center">
+          <Art name="error" className="mb-5" />
+          <h1 className="text-display-sm text-balance">We couldn't open this request</h1>
+          <p className="mt-3 max-w-sm text-sm text-muted-foreground" role="alert">{error}</p>
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">Go back to the app that sent you here and try connecting again.</p>
+          <Button asChild variant="outline" className="mt-6">
+            <Link to="/">Back to Reel</Link>
+          </Button>
         </div>
-      </main>
+      </FocusedLayout>
     );
   }
 
   if (!details) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </main>
+      <FocusedLayout>
+        {seo}
+        <h1 className="sr-only">Authorize app access</h1>
+        <LoadingSpinner size="lg" label="Loading the request" />
+      </FocusedLayout>
     );
   }
 
-  const clientName = details.client?.name ?? "an app";
+  const clientName = details.client?.name ?? 'an app';
   const redirectUri = details.client?.redirect_uri ?? details.redirect_uri ?? null;
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background p-4">
-    <Seo
-      title="Authorize App Access — Reel"
-      description="Review and approve the access an external app is requesting to your Reel account."
-      path="/oauth/consent"
-      noindex
-    />
-      <div className="w-full max-w-md rounded-3xl bg-card shadow-lg p-8">
-        <div className="text-center mb-6">
-          <div className="mx-auto h-14 w-14 rounded-2xl bg-primary flex items-center justify-center mb-4">
-            <Film className="h-7 w-7 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold">Connect {clientName} to Reel</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            This lets <span className="font-medium">{clientName}</span> use this app as you.
-          </p>
-        </div>
+    <FocusedLayout>
+      {seo}
 
-        <div className="rounded-2xl bg-secondary/40 p-4 space-y-3 text-sm">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-            <div>
-              <p className="font-medium">Access to your Reel list</p>
-              <p className="text-muted-foreground text-xs mt-0.5">
-                Search titles and read, add, remove, or update your watchlist items and ratings.
-              </p>
-            </div>
-          </div>
-          {redirectUri && (
-            <p className="text-xs text-muted-foreground break-all">
-              Redirect: <span className="font-mono">{redirectUri}</span>
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground">
-            This does not bypass Reel's permissions. Only approve apps you trust.
-          </p>
+      <div className="flex items-center justify-center gap-3" aria-hidden>
+        <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-border bg-surface-2 font-display text-2xl font-semibold uppercase">
+          {clientName.charAt(0)}
         </div>
-
-        <div className="flex gap-3 mt-6">
-          <Button
-            variant="outline"
-            className="flex-1 h-11 rounded-full"
-            disabled={busy}
-            onClick={() => decide(false)}
-          >
-            Cancel
-          </Button>
-          <Button className="flex-1 h-11 rounded-full" disabled={busy} onClick={() => decide(true)}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Approve"}
-          </Button>
+        <div className="flex items-center gap-1 text-subtle">
+          <span className="h-px w-8 border-t border-dashed border-border-strong" />
+          <ArrowRight className="h-4 w-4" />
+          <span className="h-px w-8 border-t border-dashed border-border-strong" />
         </div>
+        <Logo className="h-14 w-14" />
       </div>
-    </main>
+
+      <div className="mt-8 text-center">
+        <p className="label-mono">Connect an app</p>
+        <h1 className="mt-2 text-display-sm text-balance">
+          Connect <span className="break-words">{clientName}</span> to Reel
+        </h1>
+        {user?.email && (
+          <p className="mt-3 text-sm text-muted-foreground">
+            You're signed in as <span className="font-semibold text-foreground">{user.email}</span>. It will act as you.
+          </p>
+        )}
+      </div>
+
+      <section aria-labelledby="can-do" className="mt-8 rounded-lg border border-border bg-card p-5 shadow-panel">
+        <h2 id="can-do" className="label-mono mb-3">It will be able to</h2>
+        <ul className="space-y-2.5">
+          {CAPABILITIES.map(item => (
+            <li key={item} className="flex items-start gap-3 text-sm">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-success-text" aria-hidden />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <Callout tone="warning" className="mt-4" title="Only approve apps you trust">
+        Approving lets {clientName} use Reel on your behalf.
+      </Callout>
+
+      {redirectUri && (
+        <p className="mt-4 break-all text-center text-[0.8125rem] text-subtle">
+          After you choose, you'll be sent to <span className="font-mono">{redirectUri}</span>
+        </p>
+      )}
+
+      <div className="mt-6 grid grid-cols-2 gap-3">
+        <Button variant="outline" size="lg" disabled={busy !== null} onClick={() => decide(false)}>
+          {busy === 'deny' ? 'Cancelling…' : 'Cancel'}
+        </Button>
+        <Button size="lg" disabled={busy !== null} onClick={() => decide(true)}>
+          {busy === 'approve' ? 'Approving…' : 'Approve'}
+        </Button>
+      </div>
+    </FocusedLayout>
   );
 }
