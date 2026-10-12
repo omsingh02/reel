@@ -1,142 +1,69 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { MediaCard } from '@/components/MediaCard';
+import { SectionHeader } from '@/components/reel';
 import { Button } from '@/components/ui/button';
-import { getImageUrl } from '@/lib/tmdb';
-import { cn } from '@/lib/utils';
-import type { MediaType } from '@/types/tmdb';
-
-interface RecommendationItem {
-  id: number;
-  poster_path: string | null;
-  title?: string;
-  name?: string;
-  vote_average: number;
-  release_date?: string;
-  first_air_date?: string;
-}
+import type { MediaType, TMDBMovie, TMDBTVShow } from '@/types/tmdb';
 
 interface RecommendationCarouselProps {
-  items: RecommendationItem[];
+  items: (TMDBMovie | TMDBTVShow)[];
   mediaType: MediaType;
   title?: string;
   onSelect: (id: number, mediaType: MediaType) => void;
 }
 
-export const RecommendationCarousel = React.forwardRef<HTMLDivElement, RecommendationCarouselProps>(function RecommendationCarousel({ items, mediaType, title: sectionTitle, onSelect }, ref) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: 'start',
-    containScroll: 'trimSnaps',
-    dragFree: true,
-  });
-  
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
+/** A draggable row of posters ("More like this"). Same cards, quick actions and states as everywhere else. */
+export const RecommendationCarousel = React.forwardRef<HTMLElement, RecommendationCarouselProps>(function RecommendationCarousel(
+  { items, mediaType, title: sectionTitle, onSelect },
+  ref,
+) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', containScroll: 'trimSnaps', dragFree: true });
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
 
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
-
-  const onSelectChange = useCallback(() => {
+  const sync = useCallback(() => {
     if (!emblaApi) return;
-    setCanScrollPrev(emblaApi.canScrollPrev());
-    setCanScrollNext(emblaApi.canScrollNext());
+    setCanPrev(emblaApi.canScrollPrev());
+    setCanNext(emblaApi.canScrollNext());
   }, [emblaApi]);
 
   useEffect(() => {
     if (!emblaApi) return;
-    onSelectChange();
-    emblaApi.on('select', onSelectChange);
-    emblaApi.on('reInit', onSelectChange);
+    sync();
+    emblaApi.on('select', sync).on('reInit', sync).on('scroll', sync);
     return () => {
-      emblaApi.off('select', onSelectChange);
-      emblaApi.off('reInit', onSelectChange);
+      emblaApi.off('select', sync).off('reInit', sync).off('scroll', sync);
     };
-  }, [emblaApi, onSelectChange]);
+  }, [emblaApi, sync]);
 
   if (items.length === 0) return null;
 
   return (
-    <div className="relative group" ref={ref}>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-muted-foreground">
-          {sectionTitle || 'You might also like'}
-        </h3>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
-              !canScrollPrev && "invisible"
-            )}
-            onClick={scrollPrev}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity",
-              !canScrollNext && "invisible"
-            )}
-            onClick={scrollNext}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+    <section ref={ref} aria-label={sectionTitle || 'More like this'}>
+      <SectionHeader
+        title={sectionTitle || 'More like this'}
+        action={
+          <div className="hidden items-center gap-1.5 md:flex">
+            <Button variant="outline" size="icon-sm" aria-label="Scroll left" disabled={!canPrev} onClick={() => emblaApi?.scrollPrev()}>
+              <ChevronLeft />
+            </Button>
+            <Button variant="outline" size="icon-sm" aria-label="Scroll right" disabled={!canNext} onClick={() => emblaApi?.scrollNext()}>
+              <ChevronRight />
+            </Button>
+          </div>
+        }
+      />
+      {/* The padding keeps hover lift and focus outlines from being clipped by the scroller. */}
+      <div className="-mx-1 overflow-hidden px-1 pb-1 pt-1" ref={emblaRef}>
+        <div className="flex gap-4">
+          {items.map((item, i) => (
+            <div key={item.id} className="w-[8.75rem] shrink-0 sm:w-40">
+              <MediaCard media={item} mediaType={mediaType} onClick={() => onSelect(item.id, mediaType)} eager={i < 4} />
+            </div>
+          ))}
         </div>
       </div>
-
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex gap-3">
-          {items.map(item => {
-            const title = item.title || item.name || '';
-            const posterUrl = getImageUrl(item.poster_path, 'w185');
-            const year = (item.release_date || item.first_air_date)?.slice(0, 4);
-
-            return (
-              <button
-                key={item.id}
-                className="flex-shrink-0 w-32 sm:w-28 group/card cursor-pointer text-left"
-                onClick={() => onSelect(item.id, mediaType)}
-              >
-                <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-secondary mb-2">
-                  {posterUrl ? (
-                    <img
-                      src={posterUrl}
-                      alt={title}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover transition-transform group-hover/card:scale-105"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center p-2 text-xs text-muted-foreground text-center">
-                      {title}
-                    </div>
-                  )}
-                  
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col justify-end p-2 rounded-xl">
-                    {item.vote_average > 0 && (
-                      <div className="flex items-center gap-1 text-xs text-white">
-                        <Star className="h-3 w-3 fill-rating text-rating" />
-                        {item.vote_average.toFixed(1)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <p className="text-xs font-medium truncate group-hover/card:text-primary transition-colors">
-                  {title}
-                </p>
-                {year && (
-                  <p className="text-xs text-muted-foreground">{year}</p>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+    </section>
   );
 });

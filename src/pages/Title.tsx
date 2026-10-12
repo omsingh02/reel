@@ -6,7 +6,6 @@ import { EmptyState } from '@/components/EmptyState';
 import { Seo } from '@/components/Seo';
 import { Button } from '@/components/ui/button';
 import { titlePath } from '@/lib/tmdb';
-import { AlertTriangle } from 'lucide-react';
 import type { MediaType } from '@/types/tmdb';
 
 interface TitleRouteProps {
@@ -43,30 +42,23 @@ export default function TitleRoute({ overlay = false, mediaType }: TitleRoutePro
     return (
       <Layout>
         <Seo title="Title not found — Reel" description="This title could not be found." path={location.pathname} noindex />
-        <div className="flex-1 flex items-center justify-center px-6">
-          <EmptyState icon={AlertTriangle} title="Title not found" description="That link doesn't point to a valid title.">
-            <Button className="rounded-full" onClick={() => navigate('/')}>Back to Discover</Button>
+        <div className="flex flex-1 items-center justify-center px-6">
+          <EmptyState art="search" title="Title not found" description="That link doesn't point to a valid title.">
+            <Button onClick={() => navigate('/')}>Back to Discover</Button>
           </EmptyState>
         </div>
       </Layout>
     );
   }
 
-  const modal = (
-    <MediaDetails id={numericId} mediaType={mediaType} onClose={close} onNavigate={goTo} />
-  );
-
-  if (overlay) return modal;
+  // Over another page: a dialog. Opened directly (or shared): the same content as a normal page.
+  if (overlay) {
+    return <MediaDetails id={numericId} mediaType={mediaType} onClose={close} onNavigate={goTo} overlay />;
+  }
 
   return (
     <Layout>
-      <Seo
-        title={`${mediaType === 'movie' ? 'Movie' : 'Show'} details — Reel`}
-        description="Cast, ratings, trailers, streaming providers and episode tracking."
-        path={location.pathname}
-      />
-      <div className="flex-1" />
-      {modal}
+      <MediaDetails id={numericId} mediaType={mediaType} onClose={close} onNavigate={goTo} />
     </Layout>
   );
 }

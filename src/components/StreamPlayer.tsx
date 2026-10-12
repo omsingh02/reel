@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, MonitorPlay, ChevronDown, ExternalLink, ShieldOff, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -167,6 +167,9 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
     isTv ? currentEpisode : undefined
   );
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { dialogRef.current?.focus(); }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -193,23 +196,28 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black flex flex-col" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex flex-col bg-black" onClick={onClose}>
       <div
-        className="flex-1 flex flex-col max-w-7xl w-full mx-auto"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Player: ${title}`}
+        tabIndex={-1}
+        className="mx-auto flex w-full max-w-7xl flex-1 flex-col outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top bar */}
-        <div className="flex items-center justify-between gap-2 px-4 py-3 shrink-0">
+        <div className="flex shrink-0 items-center justify-between gap-2 px-4 py-3">
           <div className="flex items-center gap-3 min-w-0">
-            <MonitorPlay className="h-5 w-5 text-primary shrink-0" />
-            <h3 className="text-sm font-medium text-white truncate">
+            <MonitorPlay className="h-5 w-5 shrink-0 text-white/70" aria-hidden />
+            <h2 className="truncate font-display text-base font-semibold text-white">
               {title}
               {isTv && (
-                <span className="ml-2 text-white/60">
+                <span className="numeral ml-2 font-mono text-xs font-normal text-white/70">
                   S{currentSeason}·E{currentEpisode}
                 </span>
               )}
-            </h3>
+            </h2>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -217,7 +225,7 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
             {isTv && validSeasons.length > 0 && (
               <>
                 <Select value={String(currentSeason)} onValueChange={handleSeasonChange}>
-                  <SelectTrigger className="h-8 w-[92px] rounded-lg text-xs bg-white/10 border-white/10 text-white">
+                  <SelectTrigger aria-label="Season" className="h-9 w-[104px] border-white/15 bg-white/10 text-xs text-white hover:border-white/30 [&_svg]:text-white/70">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="z-[70] max-h-72">
@@ -232,7 +240,7 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
                   value={String(currentEpisode)}
                   onValueChange={(v) => setCurrentEpisode(parseInt(v, 10) || 1)}
                 >
-                  <SelectTrigger className="h-8 w-[92px] rounded-lg text-xs bg-white/10 border-white/10 text-white">
+                  <SelectTrigger aria-label="Episode" className="h-9 w-[104px] border-white/15 bg-white/10 text-xs text-white hover:border-white/30 [&_svg]:text-white/70">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="z-[70] max-h-72">
@@ -249,19 +257,19 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
             {/* Source selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 gap-1.5 rounded-lg h-8 px-3 text-xs">
+                <Button variant="ghost" size="sm" className="h-9 gap-1.5 px-3 text-xs text-white hover:bg-white/15 hover:text-white" aria-label={`Source: ${activeSource.name}`}>
                   {activeSource.name}
                   <ChevronDown className="h-3.5 w-3.5 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-xl min-w-[140px] z-[70]">
+              <DropdownMenuContent align="end" className="z-[70] min-w-[10rem]">
                 {usable.map((source) => (
                   <DropdownMenuItem
                     key={source.name}
                     onClick={() => selectSource(source)}
                     className={cn(
-                      "rounded-lg text-sm cursor-pointer",
-                      activeSource.name === source.name && "bg-primary/10 text-primary font-medium"
+                      "cursor-pointer text-sm",
+                      activeSource.name === source.name && "font-semibold text-primary-text"
                     )}
                   >
                     {source.name}
@@ -273,7 +281,7 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/10 h-11 w-11 sm:h-8 sm:w-8 p-0 rounded-lg"
+              className="h-11 w-11 p-0 text-white hover:bg-white/15 hover:text-white sm:h-9 sm:w-9"
               onClick={onClose}
               aria-label="Close player"
             >
@@ -288,7 +296,7 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
             key={`${embedUrl}|${fullAccess}`}
             src={embedUrl}
             title={`${title} player`}
-            className="w-full h-full rounded-xl border-0 bg-black"
+            className="h-full w-full rounded-md border-0 bg-black"
             allowFullScreen
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
             referrerPolicy="origin"
@@ -297,7 +305,7 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
         </div>
 
         {/* Footer: escape hatches for the two real failure modes */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 shrink-0 text-[11px] text-white/50">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 py-2 text-xs text-white/70">
           <span className="truncate">
             {fullAccess
               ? 'Full access on — this source can open pages on its own.'
@@ -308,7 +316,7 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
               variant="ghost"
               size="sm"
               onClick={toggleFullAccess}
-              className="h-8 gap-1.5 rounded-lg px-2 text-[11px] text-white/70 hover:bg-white/10 hover:text-white"
+              className="h-9 gap-1.5 px-2.5 text-xs text-white/80 hover:bg-white/15 hover:text-white"
             >
               {fullAccess ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
               {fullAccess ? 'Full access on' : 'Allow full access'}
@@ -317,7 +325,7 @@ export function StreamPlayer({ tmdbId, imdbId, mediaType, title, seasons, season
               href={embedUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-[11px] text-white/70 hover:bg-white/10 hover:text-white"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-xs text-white/80 transition-colors hover:bg-white/15 hover:text-white"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Open in new tab
