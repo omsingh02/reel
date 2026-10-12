@@ -24,7 +24,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ci
       VITE_SUPABASE_PROJECT_ID: ci
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
 
